@@ -10,8 +10,8 @@ from KratosMultiphysics.WRApp.checkpoint.Snapshot import Snapshot
 class Checkpoint:
     """@brief Class representing a checkpoint, consisting of one or more consecutive @ref Snapshot s."""
 
-    def __init__(self, snapshots: list):
-        """@brief Construct a Checkpoint from a list of @ref Snapshot.
+    def __init__(self, snapshots: "list[Snapshot]"):
+        """@brief Construct a Checkpoint from a list of @ref Snapshot s.
            @param snapshots: list of @ref Snapshot s that make up the checkpoint. The number of snapshots must
                              match the buffer size of the model part the checkpoint will be loaded into."""
         self.__snapshots = sorted(snapshots)
@@ -30,15 +30,16 @@ class Checkpoint:
 
     def Load(self, model_part: KratosMultiphysics.ModelPart) -> None:
         """@brief Load data from the Snapshots to the provided @ref ModelPart.
-           @details The model part's buffer size must match the number of stored snapshots.
+           @note The model part's buffer size must match the number of stored snapshots.
         """
         if self.GetBufferSize() != model_part.GetBufferSize():
             raise RuntimeError(f"Buffer size mismatch! (model part: {model_part.GetBufferSize()}, checkpoint: {self.GetBufferSize()})")
 
-        # No need to cycle the buffer on the first snapshot.
-        self.__snapshots[0].Load(model_part)
+        if self.__snapshots:
+            # No need to cycle the buffer on the first snapshot.
+            self.__snapshots[0].Load(model_part)
 
-        # Load the rest of the snapshots.
-        for snapshot in self.__snapshots[1:]:
-            model_part.CloneSolutionStep() # TODO: ModelPart::CreateSolutionStep would suffice but throws an exception for now
-            snapshot.Load(model_part)
+            # Load the rest of the snapshots.
+            for snapshot in self.__snapshots[1:]:
+                model_part.CloneSolutionStep() # TODO: ModelPart::CreateSolutionStep would suffice but throws an exception for now
+                snapshot.Load(model_part)
