@@ -1,6 +1,6 @@
 /// @author Máté Kelemen
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/pipes/inc/AddPipesToPython.hpp"
 #include "wrapp/pipes/inc/PipedModelPredicate.hpp"
 
@@ -11,12 +11,12 @@ namespace Kratos::Python {
 void AddPipesToPython(pybind11::module& rModule)
 {
     #define KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(NAME)    \
-        pybind11::class_<WRApp::NAME,                       \
-                         WRApp::NAME::Pointer,              \
+        pybind11::class_<WRApplication::NAME,                       \
+                         WRApplication::NAME::Pointer,              \
                          ModelPredicate>(rModule, #NAME)    \
             .def(pybind11::init<>())                        \
             .def(pybind11::init<const Parameters&>())       \
-            .def("__call__", &WRApp::NAME::operator())
+            .def("__call__", &WRApplication::NAME::operator())
 
     KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(TimeIntervalPredicate);
 

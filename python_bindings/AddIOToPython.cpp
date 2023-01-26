@@ -3,7 +3,7 @@
 // --- External Includes ---
 #include "pybind11/functional.h"
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/io/inc/AddIOToPython.hpp"
 #include "wrapp/io/inc/Journal.hpp"
 

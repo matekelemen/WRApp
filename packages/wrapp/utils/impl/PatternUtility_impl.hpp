@@ -2,7 +2,7 @@
 
 #pragma once
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/utils/inc/PatternUtility.hpp"
 
 

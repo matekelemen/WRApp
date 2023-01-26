@@ -1,7 +1,9 @@
 from KratosMultiphysics import _ImportApplication
-from WRApp import *
+from KratosWRApplication import *
 
-application = WRApp()
-application_name = "WRApp"
+application = KratosWRApplication()
+application_name = "WRApplication"
 
 _ImportApplication(application, application_name)
+
+from .checkpoint import *

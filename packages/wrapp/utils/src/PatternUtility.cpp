@@ -4,7 +4,7 @@
 #include "includes/define.h"
 #include "includes/exception.h"
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/utils/inc/PatternUtility.hpp"
 
 // --- STL Includes ---

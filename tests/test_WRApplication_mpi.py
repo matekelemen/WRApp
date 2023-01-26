@@ -3,8 +3,8 @@
 # --- Core Imports ---
 import KratosMultiphysics
 
-# --- WRApp Imports ---
-import applications.WRApp.tests.test_WRApp as test_WRApp
+# --- WRApplication Imports ---
+import applications.WRApplication.tests.test_WRApplication as test_WRApplication
 
 # --- STD Imports ---
 import sys
@@ -21,4 +21,4 @@ if __name__ == "__main__":
     if not sys.argv[1:]:
         sys.argv.append("--using-mpi") # ;(
 
-    test_WRApp.Run(enable_mpi = True)
+    test_WRApplication.Run(enable_mpi = True)

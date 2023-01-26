@@ -1,7 +1,7 @@
 /// @author Máté Kelemen
 
-// --- WRApp Includes ---
-#include "wr_application/WRApp_variables.hpp"
+// --- WRApplication Includes ---
+#include "wr_application/WRApplication_variables.hpp"
 
 
 namespace Kratos {

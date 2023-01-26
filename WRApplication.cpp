@@ -1,45 +1,45 @@
 /// @author Máté Kelemen
 
-// --- WRApp Includes ---
-#include "wr_application/WRApp.hpp"
-#include "wr_application/WRApp_variables.hpp"
+// --- WRApplication Includes ---
+#include "wr_application/WRApplication.hpp"
+#include "wr_application/WRApplication_variables.hpp"
 
 
 namespace Kratos
 {
 
 
-WRApp::WRApp()
-    : KratosApplication("WRApp")
+KratosWRApplication::KratosWRApplication()
+    : KratosApplication("WRApplication")
 {
 }
 
 
-void WRApp::Register()
+void KratosWRApplication::Register()
 {
-    KRATOS_INFO("") << "Initializing WRApp..." << std::endl;
+    KRATOS_INFO("") << "Initializing WRApplication..." << std::endl;
 
     // Register custom variables
     KRATOS_REGISTER_VARIABLE(ANALYSIS_PATH)
 }
 
 
-std::string WRApp::Info() const
+std::string KratosWRApplication::Info() const
 {
-    return "WRApp";
+    return "KratosWRApplication";
 }
 
 
-void WRApp::PrintInfo(std::ostream& rStream) const
+void KratosWRApplication::PrintInfo(std::ostream& rStream) const
 {
     rStream << this->Info();
     this->PrintData(rStream);
 }
 
 
-void WRApp::PrintData(std::ostream& rStream) const
+void KratosWRApplication::PrintData(std::ostream& rStream) const
 {
-    KRATOS_WATCH("In WRApp:");
+    KRATOS_WATCH("In WRApplication:");
     KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
     rStream << "Variables:" << std::endl;
     KratosComponents<VariableData>().PrintData(rStream);

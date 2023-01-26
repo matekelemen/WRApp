@@ -5,7 +5,7 @@
 #include <omp.h>
 #endif
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/io/inc/Journal.hpp"
 
 // --- Core Includes ---

@@ -6,8 +6,8 @@ import KratosMultiphysics
 # --- HDF5 Imports ---
 import KratosMultiphysics.HDF5Application
 
-# --- WRApp Imports ---
-from KratosMultiphysics.WRApp.checkpoint.Snapshot import Snapshot
+# --- WRApplication Imports ---
+from KratosMultiphysics.WRApplication.checkpoint.Snapshot import Snapshot
 
 # --- STD Imports ---
 import abc
@@ -57,12 +57,12 @@ class CheckpointProcessBase(KratosMultiphysics.Process):
             "checkpoint_settings" : {
                 "prefix" : "",
                 "io_condition" : {
-                    "import_module" : "KratosMultiphysics.WRApp.Checkpoint",
+                    "import_module" : "KratosMultiphysics.WRApplication.Checkpoint",
                     "import_name" : "ConstantCondition",
                     "value" : true
                 },
                 "snapshot_settings" : {
-                    "import_module" : "KratosMultiphysics.WRApp.Checkpoint",
+                    "import_module" : "KratosMultiphysics.WRApplication.Checkpoint",
                     "import_name" : "SnapshotOnDisk",
                     "file_settings" : {
                         "file_name" : "checkpoints/<model_part_name>_snapshot_<path_id>_<step>.h5",

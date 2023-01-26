@@ -5,10 +5,9 @@ import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
-# --- WRApp Imports ---
-import KratosMultiphysics.WRApp as WRApp
-import KratosMultiphysics.WRApp.checkpoint.Snapshot as Snapshots
-from KratosMultiphysics.WRApp import TestCase
+# --- WRApplication Imports ---
+import KratosMultiphysics.WRApplication as WRApp
+from KratosMultiphysics.WRApplication import TestCase
 
 # --- STD Imports ---
 import pathlib
@@ -19,7 +18,10 @@ def GetMDPAPath() -> pathlib.Path:
     return script_directory / "data" / "test_snapshot"
 
 
-def SetModelPartData(model_part: KratosMultiphysics.ModelPart, step: int = 0, path: int = 0, time: float = 0.0) -> None:
+def SetModelPartData(model_part: KratosMultiphysics.ModelPart,
+                     step: int = 0,
+                     path: int = 0,
+                     time: float = 0.0) -> None:
     model_part.ProcessInfo[KratosMultiphysics.STEP] = step
     model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = path
     model_part.ProcessInfo[KratosMultiphysics.TIME] = time
@@ -72,11 +74,9 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
         # Check properties
         for property_name in ["X", "Y", "Z", "X0", "Y0", "Z0", "Id"]:
             test_case.assertAlmostEqual(getattr(source_node, property_name), getattr(target_node, property_name))
-            pass
 
         # Check flags
         test_case.assertTrue(source_node.Is(target_node))
-
 
     # Compare elements
     test_case.assertEqual(len(source_model_part.Elements), len(target_model_part.Elements))
@@ -84,7 +84,6 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
         # Check nodes
         for source_node, target_node in zip(source_element.GetNodes(), target_element.GetNodes()):
             test_case.assertTrue(source_node.Id, target_node.Id)
-            pass
 
         # Check flags
         test_case.assertTrue(source_element.Is(target_element))
@@ -97,7 +96,6 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
         # Check nodes
         for source_node, target_node in zip(source_condition.GetNodes(), target_condition.GetNodes()):
             test_case.assertTrue(source_node.Id, target_node.Id)
-            pass
 
         # Check flags
         test_case.assertTrue(source_condition.Is(target_condition))
@@ -125,13 +123,11 @@ class TestSnapshotOnDisk(TestCase.TestCase):
         KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
     def test_ReadWrite(self) -> None:
-        input_parameters = Snapshots.DefaultSnapshotInput.GetDefaultParameters()
-        output_parameters = Snapshots.DefaultSnapshotOutput.GetDefaultParameters()
+        input_parameters = WRApp.SnapshotOnDisk.GetInputType().GetDefaultParameters()
+        output_parameters = WRApp.SnapshotOnDisk.GetOutputType().GetDefaultParameters()
 
-        input_parameters["io_settings"]["file_name"].SetString(str(self.file_path))
-        output_parameters["io_settings"]["file_name"].SetString(str(self.file_path))
         for parameters in (input_parameters, output_parameters):
-            parameters["io_settings"]["file_name"].SetString(str(parameters["io_settings"]["file_name"].GetString()))
+            parameters["io_settings"]["file_name"].SetString(str(self.file_path))
 
         model, source_model_part = MakeModel()
         SetModelPartData(source_model_part, step = 2, path = 3, time = 1.5)
@@ -141,7 +137,7 @@ class TestSnapshotOnDisk(TestCase.TestCase):
         self.assertEqual(source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 3)
         self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
-        snapshot = Snapshots.SnapshotOnDisk(
+        snapshot = WRApp.SnapshotOnDisk(
             source_model_part.ProcessInfo[KratosMultiphysics.STEP],
             source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH],
             input_parameters,

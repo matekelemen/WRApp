@@ -6,7 +6,7 @@
 #include "includes/data_communicator.h"
 
 
-namespace Kratos::WRApp {
+namespace Kratos::WRApplication {
 
 
 struct MPIUtils
@@ -24,6 +24,6 @@ struct MPIUtils
 }; // struct MPIUtils
 
 
-} // namespace Kratos::WRApp
+} // namespace Kratos::WRApplication
 
 #include "wrapp/multiprocessing/impl/MPIUtils_impl.hpp"

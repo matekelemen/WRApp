@@ -10,7 +10,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/interval_utility.h"
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/pipes/inc/pipe.hpp"
 #include "wrapp/numeric/inc/IntervalUtility.hpp"
 
@@ -143,7 +143,7 @@ public:
     {return mInterval.IsInInterval(Value);}
 
 private:
-    WRApp::Detail::IntervalUtility<TValue> mInterval;
+    WRApplication::Detail::IntervalUtility<TValue> mInterval;
 }; // class IntervalPredicate
 
 

@@ -4,9 +4,9 @@
 import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
-# --- WRApp Imports ---
-import KratosMultiphysics.WRApp as WRApp
-from KratosMultiphysics.WRApp import TestCase
+# --- WRApplication Imports ---
+import KratosMultiphysics.WRApplication as WRApplication
+from KratosMultiphysics.WRApplication import TestCase
 
 # --- STD Imports ---
 import pathlib
@@ -27,7 +27,7 @@ class TestJournal(TestCase.TestCase):
         DeleteFileIfExisting(str(self.test_file_path))
 
     def test_Journal(self) -> None:
-        journal = WRApp.Journal(self.test_file_path)
+        journal = WRApplication.Journal(self.test_file_path)
         model = KratosMultiphysics.Model()
 
         extractor = lambda model: KratosMultiphysics.Parameters('["1st","2nd"]')
@@ -57,7 +57,7 @@ class TestJournal(TestCase.TestCase):
                 true
             ]""")
 
-        journal = WRApp.Journal(self.test_file_path, extractor)
+        journal = WRApplication.Journal(self.test_file_path, extractor)
         journal.Clear()
 
         model = KratosMultiphysics.Model()
@@ -90,7 +90,7 @@ class TestJournal(TestCase.TestCase):
         # Check whether python objects are protected in a multithreaded environment
         journal.Clear()
         self.assertFalse(len(journal))
-        KratosMultiphysics.WRApp.TestingUtilities.TestJournal(model, journal)
+        KratosMultiphysics.WRApplication.TestingUtilities.TestJournal(model, journal)
         self.assertTrue(len(journal))
 
     def test_Erase(self) -> None:
@@ -104,7 +104,7 @@ class TestJournal(TestCase.TestCase):
             8
         """
 
-        journal = WRApp.Journal(self.test_file_path)
+        journal = WRApplication.Journal(self.test_file_path)
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("test")
 

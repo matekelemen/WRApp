@@ -11,7 +11,7 @@
  *  non-python threads.
  */
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/io/inc/Journal.hpp"
 
 

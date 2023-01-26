@@ -3,8 +3,8 @@
 # --- Core Imports ---
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-# --- WRApp Imports ---
-from KratosMultiphysics.WRApp.TestCase import SuiteFlags, TestSuite, TestCase
+# --- WRApplication Imports ---
+from KratosMultiphysics.WRApplication.TestCase import SuiteFlags, TestSuite, TestCase
 
 # STL imports
 import pathlib

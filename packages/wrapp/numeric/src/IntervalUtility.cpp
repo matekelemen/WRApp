@@ -1,13 +1,13 @@
 /// @author Máté Kelemen
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/numeric/inc/IntervalUtility.hpp"
 
 // --- STL Includes ---
 #include <cmath>
 
 
-namespace Kratos::WRApp::Detail {
+namespace Kratos::WRApplication::Detail {
 
 
 namespace {

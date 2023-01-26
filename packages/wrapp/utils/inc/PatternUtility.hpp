@@ -16,7 +16,7 @@
 namespace Kratos {
 
 
-///@addtogroup WRApp
+///@addtogroup WRApplication
 ///@{
 ///@name Kratos Classes
 ///@{

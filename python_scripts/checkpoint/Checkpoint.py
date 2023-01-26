@@ -3,8 +3,8 @@
 # --- Core Imports ---
 import KratosMultiphysics
 
-# --- WRApp Imports ---
-from KratosMultiphysics.WRApp.checkpoint.Snapshot import Snapshot
+# --- WRApplication Imports ---
+from KratosMultiphysics.WRApplication.checkpoint.Snapshot import Snapshot
 
 
 class Checkpoint:
@@ -16,7 +16,9 @@ class Checkpoint:
                              match the buffer size of the model part the checkpoint will be loaded into."""
         self.__snapshots = sorted(snapshots)
         if not self.IsValid():
-            raise ValueError(f"Invalid Snapshots:\n{'\n'.join(str(snapshot) for snapshot in self.__snapshots)}")
+            new_line = "\n"
+            raise ValueError(f"Invalid Snapshots:\n{new_line.join(str(snapshot) for snapshot in self.__snapshots)}")
+
 
     def IsValid(self) -> bool:
         """@brief Check whether the snapshots are consecutive."""
@@ -25,8 +27,10 @@ class Checkpoint:
                 return False
         return bool(self.__snapshots)
 
+
     def GetBufferSize(self) -> int:
         return len(self.__snapshots)
+
 
     def Load(self, model_part: KratosMultiphysics.ModelPart) -> None:
         """@brief Load data from the Snapshots to the provided @ref ModelPart.

@@ -2,7 +2,7 @@
 
 #pragma once
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 // Included from "custom_utilities/pipe.hpp"
 #include "wrapp/pipes/inc/pipe.hpp" // unnecessary include to get language servers working
 

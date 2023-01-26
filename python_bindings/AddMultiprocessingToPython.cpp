@@ -1,6 +1,6 @@
 /// @author Máté Kelemen
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/multiprocessing/inc/AddMultiprocessingToPython.hpp"
 #include "wrapp/multiprocessing/inc/MPIUtils.hpp"
 
@@ -13,7 +13,7 @@ void AddMultiprocessingToPython(pybind11::module& rModule)
     rModule.def("MPIAllGatherVStrings",
                 [](const std::vector<std::string>& rStrings, DataCommunicator& rCommunicator) -> std::vector<std::string> {
                     std::vector<std::string> output;
-                    WRApp::MPIUtils::AllGatherV(rStrings.begin(),
+                    WRApplication::MPIUtils::AllGatherV(rStrings.begin(),
                                                 rStrings.end(),
                                                 std::back_inserter(output),
                                                 rCommunicator);

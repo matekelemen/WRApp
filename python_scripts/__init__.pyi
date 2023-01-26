@@ -58,6 +58,9 @@ class JournalBase:
     def __iter__(self) -> Iterator: ...
     def __len__(self) -> int: ...
 
+class KratosWRApplication(Kratos.KratosApplication):
+    def __init__(self) -> None: ...
+
 class ModelPartPattern(PlaceholderPattern):
     def __init__(self, arg0: str) -> None: ...
     @overload
@@ -77,15 +80,13 @@ class TestingUtilities:
     def __init__(self, *args, **kwargs) -> None: ...
     def TestJournal(self, *args, **kwargs) -> Any: ...
 
-class WRApp(Kratos.KratosApplication):
-    def __init__(self) -> None: ...
-
 def MPIAllGatherVStrings(arg0: List[str], arg1: Kratos.DataCommunicator) -> List[str]: ...
 
 
 #   ---- start of includes of python modules --- 
 
-from WRApp import *
+from KratosWRApplication import *
+from .checkpoint import *
 from _typeshed import Incomplete
 
 application: Incomplete

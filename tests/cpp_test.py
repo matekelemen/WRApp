@@ -4,14 +4,14 @@
 import KratosMultiphysics
 from KratosMultiphysics import *
 
-# --- WRApp Imports ---
-from KratosMultiphysics.WRApp import *
-from KratosMultiphysics.WRApp import TestCase
+# --- WRApplication Imports ---
+from KratosMultiphysics.WRApplication import *
+from KratosMultiphysics.WRApplication import TestCase
 
 
 def Run():
     KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS)
-    KratosMultiphysics.Tester.RunTestSuite("KratosWRAppTestSuite")
+    KratosMultiphysics.Tester.RunTestSuite("KratosWRApplicationTestSuite")
 
 
 class CppTests(TestCase.TestCase):

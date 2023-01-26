@@ -2,7 +2,7 @@
 
 #pragma once
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/pipes/inc/basic_pipes.hpp"
 
 // --- Core Includes ---
@@ -13,7 +13,7 @@
 #include "utilities/interval_utility.h"
 
 
-namespace Kratos::WRApp {
+namespace Kratos::WRApplication {
 
 
 template <class TPipe>
@@ -146,4 +146,4 @@ using StepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
 >>;
 
 
-} // namespace Kratos::WRApp
+} // namespace Kratos::WRApplication

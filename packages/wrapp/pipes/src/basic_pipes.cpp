@@ -1,6 +1,6 @@
 /// @author Máté Kelemen
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/pipes/inc/basic_pipes.hpp"
 
 

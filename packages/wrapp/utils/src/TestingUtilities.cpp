@@ -12,7 +12,7 @@
 
 #ifdef KRATOS_BUILD_TESTING
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/utils/inc/TestingUtilities.hpp"
 
 // --- Core Includes ---

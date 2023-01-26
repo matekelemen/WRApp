@@ -5,14 +5,14 @@
 // --- Core Includes ---
 #include "includes/data_communicator.h"
 
-// --- WRApp Includes ---
+// --- WRApplication Includes ---
 #include "wrapp/multiprocessing/inc/MPIUtils.hpp"
 
 // --- STL Includes ---
 #include <vector>
 
 
-namespace Kratos::WRApp {
+namespace Kratos::WRApplication {
 
 
 template <class TInputIterator, class TOutputIterator>
@@ -50,4 +50,4 @@ void MPIUtils::AllGatherV(TInputIterator itBegin,
 }
 
 
-} // namespace Kratos::WRApp
+} // namespace Kratos::WRApplication

@@ -59,14 +59,14 @@ private:
 }; // struct IntBoolTestPipe
 
 
-KRATOS_TEST_CASE_IN_SUITE(PipeTraits, KratosWRAppTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(PipeTraits, KratosWRApplicationTestSuite)
 {
     static_assert(Pipes::IsPipe<BoolIntTestPipe>::value);
     static_assert(Pipes::IsPipe<IntBoolTestPipe>::value);
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(PipeOperator, KratosWRAppTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(PipeOperator, KratosWRApplicationTestSuite)
 {
     BoolIntTestPipe bool_int;
     IntBoolTestPipe int_bool;
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(PipeOperator, KratosWRAppTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(CompoundPipe, KratosWRAppTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompoundPipe, KratosWRApplicationTestSuite)
 {
     BoolIntTestPipe bool_int;
     IntBoolTestPipe int_bool;
@@ -139,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompoundPipe, KratosWRAppTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(PipeFactory, KratosWRAppTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(PipeFactory, KratosWRApplicationTestSuite)
 {
     {
         using Pipeline = decltype(BoolIntTestPipe() | IntBoolTestPipe());
