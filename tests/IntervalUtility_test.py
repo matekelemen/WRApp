@@ -2,16 +2,16 @@
 
 # --- Core Imports ---
 import KratosMultiphysics
-from KratosMultiphysics import KratosUnittest
 
 # --- WRApp Imports ---
 from KratosMultiphysics import WRApp
+from KratosMultiphysics.WRApp import TestCase
 
 # --- STD Imports ---
 import platform
 
 
-class TestIntervalUtility(KratosUnittest.TestCase):
+class TestIntervalUtility(TestCase.TestCase):
 
     @staticmethod
     def MakeLinspace(begin: float, end: float, number_of_samples: int) -> "list[float]":
@@ -167,7 +167,7 @@ class TestIntervalUtility(KratosUnittest.TestCase):
                 msg = f"Expected the following parameters to trigger an exception, but they did not: {parameters}")
 
 
-class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
+class TestDiscreteIntervalUtility(TestCase.TestCase):
 
     @property
     def resolution(self) -> int:
@@ -373,4 +373,4 @@ class TestDiscreteIntervalUtility(KratosUnittest.TestCase):
 
 
 if __name__ == "__main__":
-    KratosUnittest.main()
+    TestCase.main()

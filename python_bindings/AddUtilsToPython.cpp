@@ -3,6 +3,7 @@
 // --- WRApp Includes ---
 #include "wrapp/utils/inc/AddUtilsToPython.hpp"
 #include "wrapp/utils/inc/PatternUtility.hpp"
+#include "wrapp/utils/inc/TestingUtilities.hpp"
 
 
 namespace Kratos::Python {

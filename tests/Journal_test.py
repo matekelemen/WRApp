@@ -2,17 +2,19 @@
 
 # --- Core Imports ---
 import KratosMultiphysics
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApp as WRApp
+from KratosMultiphysics.WRApp import TestCase
 
 # --- STD Imports ---
 import pathlib
 
 
-class TestJournal(KratosUnittest.TestCase):
+class TestJournal(TestCase.TestCase):
+
+    suite_flags = TestCase.SuiteFlags.SMALL | TestCase.SuiteFlags.NO_MPI
 
     @property
     def test_file_path(self) -> pathlib.Path:
@@ -129,4 +131,4 @@ class TestJournal(KratosUnittest.TestCase):
 
 
 if __name__ == "__main__":
-    KratosUnittest.main()
+    TestCase.main()

@@ -1,5 +1,8 @@
 /// @author Máté Kelemen
 
+// --- External Includes ---
+#include "pybind11/functional.h"
+
 // --- WRApp Includes ---
 #include "wrapp/io/inc/AddIOToPython.hpp"
 #include "wrapp/io/inc/Journal.hpp"

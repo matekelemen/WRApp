@@ -46,6 +46,12 @@ if (${INSTALL_TESTING_FILES} MATCHES ON)
             PATTERN "*.hpp" EXCLUDE)
 endif()
 
+# Compile definitions
+if (${KRATOS_BUILD_TESTING})
+    target_compile_definitions(${application_core_name} PRIVATE KRATOS_BUILD_TESTING)
+    target_compile_definitions(${application_name} PRIVATE KRATOS_BUILD_TESTING)
+endif()
+
 # Install targets
 install(TARGETS ${application_core_name} DESTINATION libs)
 install(TARGETS ${application_name} DESTINATION libs)

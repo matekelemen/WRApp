@@ -2,13 +2,13 @@
 
 # --- Core Imports ---
 import KratosMultiphysics
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApp as WRApp
 import KratosMultiphysics.WRApp.checkpoint.Snapshot as Snapshots
+from KratosMultiphysics.WRApp import TestCase
 
 # --- STD Imports ---
 import pathlib
@@ -59,7 +59,7 @@ def FlipFlags(container) -> None:
 
 def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
                       target_model_part: KratosMultiphysics.ModelPart,
-                      test_case: KratosUnittest.TestCase) -> None:
+                      test_case: TestCase.TestCase) -> None:
     # Compare nodes
     test_case.assertEqual(len(source_model_part.Nodes), len(target_model_part.Nodes))
     for source_node, target_node in zip(source_model_part.Nodes, target_model_part.Nodes):
@@ -105,7 +105,7 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
         ##! @todo Compare condition variables (@matekelemen)
 
 
-class TestSnapshotOnDisk(KratosUnittest.TestCase):
+class TestSnapshotOnDisk(TestCase.TestCase):
 
     @property
     def test_directory(self) -> pathlib.Path:
@@ -178,4 +178,4 @@ class TestSnapshotOnDisk(KratosUnittest.TestCase):
 
 
 if __name__ == "__main__":
-    KratosUnittest.main()
+    TestCase.main()
