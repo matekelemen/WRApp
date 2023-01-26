@@ -143,7 +143,7 @@ public:
     {return mInterval.IsInInterval(Value);}
 
 private:
-    WRApplication::Detail::IntervalUtility<TValue> mInterval;
+    WRApp::Detail::IntervalUtility<TValue> mInterval;
 }; // class IntervalPredicate
 
 

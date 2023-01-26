@@ -7,7 +7,7 @@
 #include <cmath>
 
 
-namespace Kratos::WRApplication::Detail {
+namespace Kratos::WRApp::Detail {
 
 
 namespace {

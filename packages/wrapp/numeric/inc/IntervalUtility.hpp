@@ -7,7 +7,7 @@
 #include "includes/kratos_parameters.h"
 
 
-namespace Kratos::WRApplication {
+namespace Kratos::WRApp {
 
 namespace Detail {
 

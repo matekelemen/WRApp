@@ -13,7 +13,7 @@
 #include "utilities/interval_utility.h"
 
 
-namespace Kratos::WRApplication {
+namespace Kratos::WRApp {
 
 
 template <class TPipe>
@@ -146,4 +146,4 @@ using StepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
 >>;
 
 
-} // namespace Kratos::WRApplication
+} // namespace Kratos::WRApp

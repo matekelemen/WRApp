@@ -5,8 +5,7 @@
 #include "wr_application/WRApplication_variables.hpp"
 
 
-namespace Kratos
-{
+namespace Kratos {
 
 
 KratosWRApplication::KratosWRApplication()

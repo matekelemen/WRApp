@@ -13,7 +13,7 @@ void AddMultiprocessingToPython(pybind11::module& rModule)
     rModule.def("MPIAllGatherVStrings",
                 [](const std::vector<std::string>& rStrings, DataCommunicator& rCommunicator) -> std::vector<std::string> {
                     std::vector<std::string> output;
-                    WRApplication::MPIUtils::AllGatherV(rStrings.begin(),
+                    WRApp::MPIUtils::AllGatherV(rStrings.begin(),
                                                 rStrings.end(),
                                                 std::back_inserter(output),
                                                 rCommunicator);

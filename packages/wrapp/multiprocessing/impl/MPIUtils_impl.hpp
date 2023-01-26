@@ -12,7 +12,7 @@
 #include <vector>
 
 
-namespace Kratos::WRApplication {
+namespace Kratos::WRApp {
 
 
 template <class TInputIterator, class TOutputIterator>
@@ -50,4 +50,4 @@ void MPIUtils::AllGatherV(TInputIterator itBegin,
 }
 
 
-} // namespace Kratos::WRApplication
+} // namespace Kratos::WRApp
