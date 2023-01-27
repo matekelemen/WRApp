@@ -3,3 +3,7 @@ __pycache__
 *.pyc
 *.pyd
 *.pyi
+
+# Binaries
+*.h5
+*.hdf5
