@@ -7,3 +7,4 @@ application_name = "WRApplication"
 _ImportApplication(application, application_name)
 
 from .checkpoint import *
+from .TestCase import *

@@ -7,7 +7,6 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # --- WRApplication Imports ---
 import KratosMultiphysics.WRApplication as WRApp
-from KratosMultiphysics.WRApplication import TestCase
 
 # --- STD Imports ---
 import pathlib
@@ -61,7 +60,7 @@ def FlipFlags(container) -> None:
 
 def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
                       target_model_part: KratosMultiphysics.ModelPart,
-                      test_case: TestCase.TestCase) -> None:
+                      test_case: WRApp.TestCase) -> None:
     # Compare nodes
     test_case.assertEqual(len(source_model_part.Nodes), len(target_model_part.Nodes))
     for source_node, target_node in zip(source_model_part.Nodes, target_model_part.Nodes):
@@ -103,7 +102,7 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
         ##! @todo Compare condition variables (@matekelemen)
 
 
-class TestSnapshotOnDisk(TestCase.TestCase):
+class TestHDF5Snapshot(WRApp.TestCase):
 
     @property
     def test_directory(self) -> pathlib.Path:
@@ -123,8 +122,8 @@ class TestSnapshotOnDisk(TestCase.TestCase):
         KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
     def test_ReadWrite(self) -> None:
-        input_parameters = WRApp.SnapshotOnDisk.GetInputType().GetDefaultParameters()
-        output_parameters = WRApp.SnapshotOnDisk.GetOutputType().GetDefaultParameters()
+        input_parameters = WRApp.HDF5Snapshot.GetInputType().GetDefaultParameters()
+        output_parameters = WRApp.HDF5Snapshot.GetOutputType().GetDefaultParameters()
 
         for parameters in (input_parameters, output_parameters):
             parameters["io_settings"]["file_name"].SetString(str(self.file_path))
@@ -137,7 +136,7 @@ class TestSnapshotOnDisk(TestCase.TestCase):
         self.assertEqual(source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 3)
         self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
-        snapshot = WRApp.SnapshotOnDisk(
+        snapshot = WRApp.HDF5Snapshot(
             source_model_part.ProcessInfo[KratosMultiphysics.STEP],
             source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH],
             input_parameters,
@@ -174,4 +173,4 @@ class TestSnapshotOnDisk(TestCase.TestCase):
 
 
 if __name__ == "__main__":
-    TestCase.main()
+    WRApp.TestMain()

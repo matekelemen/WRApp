@@ -5,8 +5,8 @@ import KratosMultiphysics
 from KratosMultiphysics import *
 
 # --- WRApplication Imports ---
+from KratosMultiphysics import WRApplication as WRApp
 from KratosMultiphysics.WRApplication import *
-from KratosMultiphysics.WRApplication import TestCase
 
 
 def Run():
@@ -14,7 +14,7 @@ def Run():
     KratosMultiphysics.Tester.RunTestSuite("KratosWRApplicationTestSuite")
 
 
-class CppTests(TestCase.TestCase):
+class CppTests(WRApp.TestCase):
 
     def test_Cpp(self) -> None:
         Run()

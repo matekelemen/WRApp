@@ -124,5 +124,5 @@ class TestSuite(UnitTest.TestSuite):
         super().addTest(test)
 
 
-def main() -> None:
+def TestMain() -> None:
     return UnitTest.main()

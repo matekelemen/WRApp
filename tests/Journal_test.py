@@ -5,16 +5,16 @@ import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 # --- WRApplication Imports ---
-import KratosMultiphysics.WRApplication as WRApplication
+import KratosMultiphysics.WRApplication as WRApp
 from KratosMultiphysics.WRApplication import TestCase
 
 # --- STD Imports ---
 import pathlib
 
 
-class TestJournal(TestCase.TestCase):
+class TestJournal(WRApp.TestCase):
 
-    suite_flags = TestCase.SuiteFlags.SMALL | TestCase.SuiteFlags.NO_MPI
+    suite_flags = WRApp.SuiteFlags.SMALL | WRApp.SuiteFlags.NO_MPI
 
     @property
     def test_file_path(self) -> pathlib.Path:
@@ -27,7 +27,7 @@ class TestJournal(TestCase.TestCase):
         DeleteFileIfExisting(str(self.test_file_path))
 
     def test_Journal(self) -> None:
-        journal = WRApplication.Journal(self.test_file_path)
+        journal = WRApp.Journal(self.test_file_path)
         model = KratosMultiphysics.Model()
 
         extractor = lambda model: KratosMultiphysics.Parameters('["1st","2nd"]')
@@ -57,7 +57,7 @@ class TestJournal(TestCase.TestCase):
                 true
             ]""")
 
-        journal = WRApplication.Journal(self.test_file_path, extractor)
+        journal = WRApp.Journal(self.test_file_path, extractor)
         journal.Clear()
 
         model = KratosMultiphysics.Model()
@@ -90,7 +90,7 @@ class TestJournal(TestCase.TestCase):
         # Check whether python objects are protected in a multithreaded environment
         journal.Clear()
         self.assertFalse(len(journal))
-        KratosMultiphysics.WRApplication.TestingUtilities.TestJournal(model, journal)
+        WRApp.TestingUtilities.TestJournal(model, journal)
         self.assertTrue(len(journal))
 
     def test_Erase(self) -> None:
@@ -104,7 +104,7 @@ class TestJournal(TestCase.TestCase):
             8
         """
 
-        journal = WRApplication.Journal(self.test_file_path)
+        journal = WRApp.Journal(self.test_file_path)
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("test")
 
@@ -131,4 +131,4 @@ class TestJournal(TestCase.TestCase):
 
 
 if __name__ == "__main__":
-    TestCase.main()
+    WRApp.TestMain()

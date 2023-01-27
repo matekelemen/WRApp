@@ -4,14 +4,13 @@
 import KratosMultiphysics
 
 # --- WRApplication Imports ---
-from KratosMultiphysics import WRApplication
-from KratosMultiphysics.WRApplication import TestCase
+from KratosMultiphysics import WRApplication as WRApp
 
 # --- STD Imports ---
 import platform
 
 
-class TestIntervalUtility(TestCase.TestCase):
+class TestIntervalUtility(WRApp.TestCase):
 
     @staticmethod
     def MakeLinspace(begin: float, end: float, number_of_samples: int) -> "list[float]":
@@ -25,7 +24,7 @@ class TestIntervalUtility(TestCase.TestCase):
         return 25
 
     def CheckRange(self,
-                   interval: WRApplication.IntervalUtility,
+                   interval: WRApp.IntervalUtility,
                    begin: float,
                    end: float,
                    check_boundaries = True,
@@ -64,7 +63,7 @@ class TestIntervalUtility(TestCase.TestCase):
     def max(self) -> float:
         return 1e300
 
-    def CheckDefaultRange(self, interval: WRApplication.IntervalUtility) -> None:
+    def CheckDefaultRange(self, interval: WRApp.IntervalUtility) -> None:
         """Same as CheckRange but ranges below and above the interval are not checked (not representable)."""
 
         # Check lower boundary
@@ -79,12 +78,12 @@ class TestIntervalUtility(TestCase.TestCase):
 
     def test_ConstructFromDefaultParameters(self) -> None:
         # Default constructor
-        interval = WRApplication.IntervalUtility()
+        interval = WRApp.IntervalUtility()
         self.CheckDefaultRange(interval)
 
         # Empty Parameters
         parameters = KratosMultiphysics.Parameters()
-        interval = WRApplication.IntervalUtility(parameters)
+        interval = WRApp.IntervalUtility(parameters)
         self.CheckDefaultRange(interval)
 
         # Parameters with irrelevant members
@@ -92,7 +91,7 @@ class TestIntervalUtility(TestCase.TestCase):
             "irrelevant" : "setting",
             "useless_array" : [-1,"Begin"]
         }""")
-        interval = WRApplication.IntervalUtility(parameters)
+        interval = WRApp.IntervalUtility(parameters)
         self.CheckDefaultRange(interval)
 
     def test_ExactlyRepresentableBoundaries(self) -> None:
@@ -101,7 +100,7 @@ class TestIntervalUtility(TestCase.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append(end)
-            self.CheckRange(WRApplication.IntervalUtility(parameters), begin, end)
+            self.CheckRange(WRApp.IntervalUtility(parameters), begin, end)
 
     def test_NotRepresentableBoundaries(self) -> None:
         for begin, end in ((0.3, 2.0), (0.25, 0.3), (1.0/3.0, 0.7)):
@@ -109,7 +108,7 @@ class TestIntervalUtility(TestCase.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append(end)
-            self.CheckRange(WRApplication.IntervalUtility(parameters), begin, end)
+            self.CheckRange(WRApp.IntervalUtility(parameters), begin, end)
 
     def test_StringBoundaries(self) -> None:
         # Check begin
@@ -118,7 +117,7 @@ class TestIntervalUtility(TestCase.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append("Begin")
             parameters["interval"].Append(end)
-            interval = WRApplication.IntervalUtility(parameters)
+            interval = WRApp.IntervalUtility(parameters)
             self.CheckRange(interval, self.min, end, check_boundaries=False, check_below=False)
 
         # Check end
@@ -127,12 +126,12 @@ class TestIntervalUtility(TestCase.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append("End")
-            interval = WRApplication.IntervalUtility(parameters)
+            interval = WRApp.IntervalUtility(parameters)
             self.CheckRange(interval, begin, self.max, check_boundaries=False, check_above=False)
 
         # Check begin & end
         parameters = KratosMultiphysics.Parameters("""{"interval" : ["Begin", "End"]}""")
-        self.CheckDefaultRange(WRApplication.IntervalUtility(parameters))
+        self.CheckDefaultRange(WRApp.IntervalUtility(parameters))
 
     def test_DegenerateInterval(self) -> None:
         for value in (-1e10, 0.0, 1e10):
@@ -140,7 +139,7 @@ class TestIntervalUtility(TestCase.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(value)
             parameters["interval"].Append(value)
-            self.assertTrue(WRApplication.IntervalUtility(parameters).IsInInterval(value))
+            self.assertTrue(WRApp.IntervalUtility(parameters).IsInInterval(value))
 
     def test_InvalidParameters(self) -> None:
         invalid_parameters = [KratosMultiphysics.Parameters('{"interval":' + value + '}') for value in [
@@ -162,12 +161,12 @@ class TestIntervalUtility(TestCase.TestCase):
         for parameters in invalid_parameters:
             self.assertRaises(
                 Exception,
-                WRApplication.IntervalUtility,
+                WRApp.IntervalUtility,
                 parameters,
                 msg = f"Expected the following parameters to trigger an exception, but they did not: {parameters}")
 
 
-class TestDiscreteIntervalUtility(TestCase.TestCase):
+class TestDiscreteIntervalUtility(WRApp.TestCase):
 
     @property
     def resolution(self) -> int:
@@ -181,7 +180,7 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
         return out
 
     def CheckRange(self,
-                   interval: WRApplication.DiscreteIntervalUtility,
+                   interval: WRApp.DiscreteIntervalUtility,
                    begin: int,
                    end: int,
                    check_boundaries = True,
@@ -223,7 +222,7 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
     def min(self) -> int:
         return -(self.max - 1)
 
-    def CheckDefaultRange(self, interval: WRApplication.DiscreteIntervalUtility) -> None:
+    def CheckDefaultRange(self, interval: WRApp.DiscreteIntervalUtility) -> None:
         """Same as CheckRange but ranges below and above the interval are not checked (not representable)."""
 
         # Check lower boundary
@@ -238,12 +237,12 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
 
     def test_ConstructFromDefaultParameters(self) -> None:
         # Default constructor
-        interval = WRApplication.DiscreteIntervalUtility()
+        interval = WRApp.DiscreteIntervalUtility()
         self.CheckDefaultRange(interval)
 
         # Empty Parameters
         parameters = KratosMultiphysics.Parameters()
-        interval = WRApplication.DiscreteIntervalUtility(parameters)
+        interval = WRApp.DiscreteIntervalUtility(parameters)
         self.CheckDefaultRange(interval)
 
         # Parameters with irrelevant members
@@ -251,7 +250,7 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
             "irrelevant" : "setting",
             "useless_array" : [-1,"Begin"]
         }""")
-        interval = WRApplication.DiscreteIntervalUtility(parameters)
+        interval = WRApp.DiscreteIntervalUtility(parameters)
         self.CheckDefaultRange(interval)
 
     def test_NumericBoundaries(self) -> None:
@@ -260,7 +259,7 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append(end)
-            self.CheckRange(WRApplication.DiscreteIntervalUtility(parameters), begin, end)
+            self.CheckRange(WRApp.DiscreteIntervalUtility(parameters), begin, end)
 
     def test_StringBoundaries(self) -> None:
         # Begin and end checks cannot be performed correctly in pyhton,
@@ -274,7 +273,7 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
             parameters["interval"].Append("Begin")
             parameters["interval"].Append(end)
             try:
-                interval = WRApplication.DiscreteIntervalUtility(parameters)
+                interval = WRApp.DiscreteIntervalUtility(parameters)
             except Exception as exception:
                 print(end, parameters)
                 raise exception
@@ -286,12 +285,12 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(begin)
             parameters["interval"].Append("End")
-            interval = WRApplication.DiscreteIntervalUtility(parameters)
+            interval = WRApp.DiscreteIntervalUtility(parameters)
             self.CheckRange(interval, begin, self.max, check_boundaries=False, check_above=False)
 
         # Check begin & end
         parameters = KratosMultiphysics.Parameters("""{"interval" : ["Begin", "End"]}""")
-        self.CheckDefaultRange(WRApplication.DiscreteIntervalUtility(parameters))
+        self.CheckDefaultRange(WRApp.DiscreteIntervalUtility(parameters))
 
     def test_DegenerateInterval(self) -> None:
         for value in (-123456, 0, 123456):
@@ -299,7 +298,7 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
             parameters.AddEmptyArray("interval")
             parameters["interval"].Append(value)
             parameters["interval"].Append(value)
-            self.assertTrue(WRApplication.DiscreteIntervalUtility(parameters).IsInInterval(value))
+            self.assertTrue(WRApp.DiscreteIntervalUtility(parameters).IsInInterval(value))
 
     def test_InvalidParameters(self) -> None:
         invalid_parameters = [KratosMultiphysics.Parameters('{"interval":' + value + '}') for value in [
@@ -321,7 +320,7 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
         for parameters in invalid_parameters:
             self.assertRaises(
                 Exception,
-                WRApplication.IntervalUtility,
+                WRApp.DiscreteIntervalUtility,
                 parameters,
                 msg = f"Expected the following parameters to trigger an exception, but they did not: {parameters}")
 
@@ -329,48 +328,38 @@ class TestDiscreteIntervalUtility(TestCase.TestCase):
         settings = KratosMultiphysics.Parameters()
 
         # Default interval [-inf, inf]
-        small = 1e-12
-        interval = WRApplication.IntervalUtility(settings)
-        self.assertTrue(interval.IsInInterval(0.0))
+        interval = WRApp.DiscreteIntervalUtility(settings)
+        self.assertTrue(interval.IsInInterval(0))
 
         # Custom interval [25, 1e30]
         small = 1e-12
-        settings["interval"][0].SetDouble(25.0)
-        settings["interval"][1].SetDouble(1000.0)
-        interval = WRApplication.IntervalUtility(settings)
-        self.assertTrue(interval.IsInInterval(25.0))
-        self.assertFalse(interval.IsInInterval(25.0 - small))
+        settings["interval"][0].SetInt(25)
+        settings["interval"][1].SetInt(1000)
+        interval = WRApp.DiscreteIntervalUtility(settings)
+        self.assertTrue(interval.IsInInterval(25))
 
         # Initial interval [0, 0]
         small = 1e-12
-        settings["interval"][0].SetDouble(0.0)
-        settings["interval"][1].SetDouble(0.0)
-        interval = WRApplication.IntervalUtility(settings)
-        self.assertTrue(interval.IsInInterval(0.0))
-        self.assertFalse(interval.IsInInterval(small))
-        self.assertFalse(interval.IsInInterval(-small))
+        settings["interval"][0].SetInt(0)
+        settings["interval"][1].SetInt(0)
+        interval = WRApp.DiscreteIntervalUtility(settings)
+        self.assertTrue(interval.IsInInterval(0))
 
         # Initial interval [1000, 1000]
         small = 1e-10       # far from 0, bigger threshold
-        settings["interval"][0].SetDouble(1000.0)
-        settings["interval"][1].SetDouble(1000.0)
-        interval = WRApplication.IntervalUtility(settings)
-        self.assertTrue(interval.IsInInterval(1000.0))
-        self.assertFalse(interval.IsInInterval(1000.0 - small))
-        self.assertFalse(interval.IsInInterval(1000.0 + small))
+        settings["interval"][0].SetInt(1000)
+        settings["interval"][1].SetInt(1000)
+        interval = WRApp.DiscreteIntervalUtility(settings)
 
         # Custom interval [0, 1000]
-        small = 1e-10       # bigger interval, higher absolute tolerance
-        settings["interval"][0].SetDouble(0.0)
-        settings["interval"][1].SetDouble(1000.0)
-        interval = WRApplication.IntervalUtility(settings)
-        self.assertTrue(interval.IsInInterval(0.0))
-        self.assertTrue(interval.IsInInterval(1.0))
-        self.assertTrue(interval.IsInInterval(1000.0))
-        self.assertFalse(interval.IsInInterval(-small))
-        self.assertFalse(interval.IsInInterval(1000.0 + small))
+        settings["interval"][0].SetInt(0)
+        settings["interval"][1].SetInt(1000)
+        interval = WRApp.DiscreteIntervalUtility(settings)
+        self.assertTrue(interval.IsInInterval(0))
+        self.assertTrue(interval.IsInInterval(1))
+        self.assertTrue(interval.IsInInterval(1000))
 
 
 
 if __name__ == "__main__":
-    TestCase.main()
+    WRApp.TestMain()

@@ -6,8 +6,8 @@ __all__ = ["MPIUnion"]
 import KratosMultiphysics
 
 # --- WRApplication Imports ---
-from KratosMultiphysics import WRApplication
+from KratosMultiphysics import WRApplication as WRApp
 
 
 def MPIUnion(container: "set[str]", data_communicator: KratosMultiphysics.DataCommunicator) -> set:
-    return set(WRApplication.MPIAllGatherVStrings(list(container), data_communicator))
+    return set(WRApp.MPIAllGatherVStrings(list(container), data_communicator))
