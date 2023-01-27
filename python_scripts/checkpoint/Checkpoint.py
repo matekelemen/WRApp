@@ -4,10 +4,11 @@
 import KratosMultiphysics
 
 # --- WRApplication Imports ---
-from KratosMultiphysics.WRApplication.checkpoint.Snapshot import Snapshot
+from ..WRAppClass import WRAppClass
+from .Snapshot import Snapshot
 
 
-class Checkpoint:
+class Checkpoint(WRAppClass):
     """@brief Class representing a checkpoint, consisting of one or more consecutive @ref Snapshot s."""
 
     def __init__(self, snapshots: "list[Snapshot]"):

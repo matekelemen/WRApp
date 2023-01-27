@@ -3,11 +3,14 @@
 # --- Core Imports ---
 import KratosMultiphysics
 
+# --- WRApp Imports ---
+from ..WRAppClass import WRAppClass
+
 # --- STD Imports ---
 import abc
 
 
-class SnapshotIO(abc.ABC):
+class SnapshotIO(WRAppClass):
     """@brief Interface for writing/loading snapshots to/from disk."""
 
     def __call__(self, model_part: KratosMultiphysics.ModelPart) -> None:

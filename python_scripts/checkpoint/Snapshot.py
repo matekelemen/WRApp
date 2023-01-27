@@ -7,6 +7,7 @@ import KratosMultiphysics
 from KratosMultiphysics import WRApplication as WRApp
 from KratosMultiphysics.WRApplication import CheckpointPattern
 from .SnapshotIO import SnapshotIO
+from ..WRAppClass import WRAppClass
 
 # --- Core Imports ---
 import abc
@@ -14,7 +15,7 @@ import typing
 import pathlib
 
 
-class Snapshot(abc.ABC):
+class Snapshot(WRAppClass):
     """@brief Class representing a snapshot of a @ref ModelPart state.
        @details A snapshot is uniquely defined by its path ID and step index
                 for a specific analysis. The path ID indicates how many times
