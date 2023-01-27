@@ -36,8 +36,11 @@ def SetModelPartData(model_part: KratosMultiphysics.ModelPart,
         condition[KratosMultiphysics.ELEMENT_H] = -2 * (path + step * time * condition.Id)
 
 
-def MakeModelPart(model: KratosMultiphysics.Model, name: str = "test") -> KratosMultiphysics.ModelPart:
+def MakeModelPart(model: KratosMultiphysics.Model,
+                  name: str = "test",
+                  buffer_size: int = 1) -> KratosMultiphysics.ModelPart:
     model_part = model.CreateModelPart(name)
+    model_part.SetBufferSize(buffer_size)
     model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
     model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
     model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = 0
@@ -48,9 +51,9 @@ def MakeModelPart(model: KratosMultiphysics.Model, name: str = "test") -> Kratos
     return model_part
 
 
-def MakeModel() -> "tuple[KratosMultiphysics.Model, KratosMultiphysics.ModelPart]":
+def MakeModel(buffer_size: int = 1) -> "tuple[KratosMultiphysics.Model, KratosMultiphysics.ModelPart]":
     model = KratosMultiphysics.Model()
-    return model, MakeModelPart(model)
+    return model, MakeModelPart(model, buffer_size = buffer_size)
 
 
 def FlipFlags(container) -> None:
@@ -60,22 +63,25 @@ def FlipFlags(container) -> None:
 
 def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
                       target_model_part: KratosMultiphysics.ModelPart,
-                      test_case: WRApp.TestCase) -> None:
+                      test_case: WRApp.TestCase,
+                      buffer_level: int = 0) -> None:
     # Compare nodes
     test_case.assertEqual(len(source_model_part.Nodes), len(target_model_part.Nodes))
     for source_node, target_node in zip(source_model_part.Nodes, target_model_part.Nodes):
         # Check non-historical variable
         test_case.assertAlmostEqual(source_node[KratosMultiphysics.NODAL_H], target_node[KratosMultiphysics.NODAL_H])
 
-        # Check historical variable
-        test_case.assertAlmostEqual(source_node.GetSolutionStepValue(KratosMultiphysics.PRESSURE), target_node.GetSolutionStepValue(KratosMultiphysics.PRESSURE))
-
         # Check properties
         for property_name in ["X", "Y", "Z", "X0", "Y0", "Z0", "Id"]:
             test_case.assertAlmostEqual(getattr(source_node, property_name), getattr(target_node, property_name))
 
-        # Check flags
-        test_case.assertTrue(source_node.Is(target_node))
+            # Check flags
+            test_case.assertTrue(source_node.Is(target_node))
+
+        # Check historical variables
+        for buffer_index in range(buffer_level + 1):
+            test_case.assertAlmostEqual(source_node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, buffer_index),
+                                        target_node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, buffer_index))
 
     # Compare elements
     test_case.assertEqual(len(source_model_part.Elements), len(target_model_part.Elements))
