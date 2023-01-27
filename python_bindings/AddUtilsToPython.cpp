@@ -1,26 +1,54 @@
 /// @author Máté Kelemen
 
+// --- Core Includes ---
+#include "includes/kratos_components.h"
+
 // --- WRApplication Includes ---
 #include "wrapp/utils/inc/AddUtilsToPython.hpp"
 #include "wrapp/utils/inc/PatternUtility.hpp"
 #include "wrapp/utils/inc/TestingUtilities.hpp"
+#include "wrapp/utils/inc/MapKeyRange.hpp"
+
+// --- STL Includes ---
+#include <vector>
+#include <filesystem>
 
 
 namespace Kratos::Python {
 
 
 namespace {
+
+
 /// @brief Collect globbed paths to an array of strings.
 std::vector<std::filesystem::path> Glob (const ModelPartPattern& rInstance) {
     std::vector<std::filesystem::path> output;
     rInstance.Glob(std::back_inserter(output));
     return output;
 }
+
+
+/// @brief Get a list of registered names from @ref KratosComponents.
+template <class TVariable>
+pybind11::list GetComponentNames()
+{
+    pybind11::list names;
+    for (const auto& r_name : WRApp::MakeConstMapKeyRange(KratosComponents<TVariable>::GetComponents())) {
+        names.append(r_name);
+    }
+    return names;
+}
+
+
 } // namespace
 
 
 void AddUtilsToPython(pybind11::module& rModule)
 {
+    rModule.def("GetGlobalFlagNames",
+                GetComponentNames<Flags>,
+                "Get a list of all registered global flag names.");
+
     pybind11::class_<PlaceholderPattern, PlaceholderPattern::Pointer>(rModule, "PlaceholderPattern")
         .def(pybind11::init<const std::string&,const PlaceholderPattern::PlaceholderMap&>())
         .def("IsAMatch",
