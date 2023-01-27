@@ -3,15 +3,10 @@
 # --- Core Imports ---
 import KratosMultiphysics
 
-# --- HDF5 Imports ---
-from KratosMultiphysics.HDF5Application.core.utils import ParametersWrapper
-from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
-import KratosMultiphysics.HDF5Application.core.operations.model_part as Operations
-
 # --- WRApplication Imports ---
-from KratosMultiphysics import WRApplication
+from KratosMultiphysics import WRApplication as WRApp
 from KratosMultiphysics.WRApplication import CheckpointPattern
-from ..mpi_utilities import MPIUnion
+from .SnapshotIO import SnapshotIO
 
 # --- Core Imports ---
 import abc
@@ -124,210 +119,13 @@ class Snapshot(abc.ABC):
         return self.__str__()
 
 
+
 class SnapshotInMemory(Snapshot):
     """@brief Class representing a snapshot of a @ref ModelPart state in memory (stores a deep copy of the model part).
        @todo Implement in-memory snapshots if necessary (@matekelemen).
     """
     pass
 
-
-class SnapshotIOBase(abc.ABC):
-    """@brief Base class with common functionality to writing/loading snapshots to/from disk."""
-
-    def __init__(self, parameters: KratosMultiphysics.Parameters):
-        self.__parameters = parameters
-        self.__parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
-
-
-    def __call__(self, model_part: KratosMultiphysics.ModelPart) -> None:
-        """@brief Execute all defined IO operations."""
-        with OpenHDF5File(self.__parameters["io_settings"], model_part) as file:
-            for operation in self._GetOperations(model_part):
-                operation(model_part, file)
-
-
-    def ReadStepAndAnalysisPath(self) -> "tuple[int,int]":
-        model = KratosMultiphysics.Model()
-        model_part = model.CreateModelPart("temporary")
-        with OpenHDF5File(self.__GetInputParameters(), model_part) as file:
-            Operations.ReadProcessInfo(self.__parameters["operation_settings"])(model_part, file)
-        step = model_part.ProcessInfo[KratosMultiphysics.STEP]
-        analysis_path = model_part.ProcessInfo[WRApplication.ANALYSIS_PATH]
-        return step, analysis_path
-
-
-    @property
-    def parameters(self) -> KratosMultiphysics.Parameters:
-        return self.__parameters.Clone()
-
-
-    @staticmethod
-    def _ExtractNodalSolutionStepDataNames(model_part: KratosMultiphysics.ModelPart) -> "list[str]":
-        data_communicator = model_part.GetCommunicator().GetDataCommunicator()
-        local_names = model_part.GetHistoricalVariablesNames()
-        output =  list(MPIUnion(set(local_names), data_communicator))
-        return output
-
-
-    @staticmethod
-    def _ExtractNodalDataNames(model_part: KratosMultiphysics.ModelPart, check_mesh_consistency: bool = False) -> "list[str]":
-        data_communicator = model_part.GetCommunicator().GetDataCommunicator()
-        local_names = model_part.GetNonHistoricalVariablesNames(model_part.Nodes, check_mesh_consistency)
-        output =  list(MPIUnion(set(local_names), data_communicator))
-        return output
-
-
-    @staticmethod
-    def _ExtractNodalFlagNames(model_part: KratosMultiphysics.ModelPart) -> "list[str]":
-        return KratosMultiphysics.KratosGlobals.Kernel.GetFlagNames()
-
-
-    @staticmethod
-    def _ExtractElementDataNames(model_part: KratosMultiphysics.ModelPart, check_mesh_consistency: bool = False) -> "list[str]":
-        data_communicator = model_part.GetCommunicator().GetDataCommunicator()
-        local_names = model_part.GetNonHistoricalVariablesNames(model_part.Elements, check_mesh_consistency)
-        output =  list(MPIUnion(set(local_names), data_communicator))
-        return output
-
-    @staticmethod
-    def _ExtractElementFlagNames(model_part: KratosMultiphysics.ModelPart) -> "list[str]":
-        return KratosMultiphysics.KratosGlobals.Kernel.GetFlagNames()
-
-
-    @staticmethod
-    def _ExtractConditionDataNames(model_part: KratosMultiphysics.ModelPart, check_mesh_consistency: bool = False) -> "list[str]":
-        data_communicator = model_part.GetCommunicator().GetDataCommunicator()
-        local_names = model_part.GetNonHistoricalVariablesNames(model_part.Conditions, check_mesh_consistency)
-        output =  list(MPIUnion(set(local_names), data_communicator))
-        return output
-
-
-    @staticmethod
-    def _ExtractConditionFlagNames(model_part: KratosMultiphysics.ModelPart) -> "list[str]":
-        return KratosMultiphysics.KratosGlobals.Kernel.GetFlagNames()
-
-
-    @classmethod
-    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        parameters = KratosMultiphysics.Parameters(R"""{
-            "operation_settings" : {
-                "prefix" : "",
-                "time_format" : "0.4f"
-            }
-        }""")
-        parameters.AddValue("io_settings", cls.GetDefaultIOParameters())
-        return parameters
-
-
-    @abc.abstractstaticmethod
-    def GetDefaultIOParameters() -> KratosMultiphysics.Parameters:
-        return KratosMultiphysics.Parameters()
-
-
-    @abc.abstractmethod
-    def _GetOperations(self, model_part: KratosMultiphysics.ModelPart) -> typing.Iterable:
-        """@brief Get all operations to be performed on the input model part."""
-        return []
-
-
-    def __GetInputParameters(self) -> KratosMultiphysics.Parameters:
-        """@brief Get IO parameters for reading a file regardless of whether the class is meant for reading or writing."""
-        io_parameters = self.GetDefaultIOParameters()
-        io_parameters["file_access_mode"].SetString("read_only")
-        return io_parameters
-
-
-    def __GetOutputParameters(self) -> KratosMultiphysics.Parameters:
-        """@brief Get IO parameters for writing to a file regardless of whether the class is meant for reading or writing."""
-        io_parameters = self.GetDefaultIOParameters()
-        io_parameters["file_access_mode"].SetString("read_write")
-        return io_parameters
-
-
-class DefaultSnapshotOutput(SnapshotIOBase):
-    """@brief Output class for writing most data in the model part to an HDF5 snapshot.
-       @details Data written: - nodal solution step data
-                              - nodal data value
-                              - nodal flag
-                              - element data value
-                              - element flag
-                              - condition data value
-                              - condition flag
-                              - process info
-    """
-
-    @staticmethod
-    def GetDefaultIOParameters() -> KratosMultiphysics.Parameters:
-        return KratosMultiphysics.Parameters("""{
-            "file_name" : "checkpoints/<model_part_name>_snapshot_<path_id>_<step>.h5",
-            "file_access_mode" : "truncate",
-            "echo_level" : 0
-        }""")
-
-
-    def _GetOperations(self, model_part: KratosMultiphysics.ModelPart) -> list:
-        operations = []
-
-        # Variables
-        for operation, variable_names in ((Operations.NodalSolutionStepDataOutput, self._ExtractNodalSolutionStepDataNames(model_part)),
-                                          (Operations.NodalDataValueOutput, self._ExtractNodalDataNames(model_part)),
-                                          (Operations.NodalFlagValueOutput, self._ExtractNodalFlagNames(model_part)),
-                                          (Operations.ElementDataValueOutput, self._ExtractElementDataNames(model_part)),
-                                          (Operations.ElementFlagValueOutput, self._ExtractElementFlagNames(model_part)),
-                                          (Operations.ConditionDataValueOutput, self._ExtractConditionDataNames(model_part)),
-                                          (Operations.ConditionFlagValueOutput, self._ExtractConditionFlagNames(model_part))):
-            parameters = self.parameters["operation_settings"]
-            parameters.AddStringArray("list_of_variables", variable_names)
-            operations.append(operation(ParametersWrapper(parameters)))
-
-        # ProcessInfo
-        operations.append(Operations.ProcessInfoOutput(ParametersWrapper(self.parameters["operation_settings"])))
-
-        return operations
-
-
-class DefaultSnapshotInput(SnapshotIOBase):
-    """@brief Input class for reading most data from an HDF5 snapshot to a model part.
-       @details Data read: - nodal solution step data
-                           - nodal data value
-                           - nodal flag
-                           - element data value
-                           - element flag
-                           - condition data value
-                           - condition flag
-                           - process info
-    """
-
-    @staticmethod
-    def GetDefaultIOParameters() -> KratosMultiphysics.Parameters:
-        return KratosMultiphysics.Parameters("""{
-            "file_name" : "",
-            "file_access_mode" : "read_only",
-            "echo_level" : 0
-        }""")
-
-
-    def _GetOperations(self, model_part: KratosMultiphysics.ModelPart) -> list:
-        operations = []
-
-        # Variables
-        for operation, variable_names in (
-                                          (Operations.NodalSolutionStepDataInput, self._ExtractNodalSolutionStepDataNames(model_part)),
-                                          (Operations.NodalDataValueInput, self._ExtractNodalDataNames(model_part)),
-                                          (Operations.NodalFlagValueInput, self._ExtractNodalFlagNames(model_part)),
-                                          (Operations.ElementDataValueInput, self._ExtractElementDataNames(model_part)),
-                                          (Operations.ElementFlagValueInput, self._ExtractElementFlagNames(model_part)),
-                                          (Operations.ConditionDataValueInput, self._ExtractConditionDataNames(model_part)),
-                                          (Operations.ConditionFlagValueInput, self._ExtractConditionFlagNames(model_part))
-                                          ):
-            parameters = self.parameters["operation_settings"]
-            parameters.AddStringArray("list_of_variables", variable_names)
-            operations.append(operation(ParametersWrapper(parameters)))
-
-        # ProcessInfo
-        operations.append(Operations.ProcessInfoInput(ParametersWrapper(self.parameters["operation_settings"])))
-
-        return operations
 
 
 class SnapshotOnDisk(Snapshot):
@@ -357,28 +155,30 @@ class SnapshotOnDisk(Snapshot):
         self.__input(model_part)
 
 
-    @staticmethod
-    def FromFile(input_parameters: KratosMultiphysics.Parameters,
+    @classmethod
+    def FromFile(derived_class: typing.Type["SnapshotOnDisk"],
+                 input_parameters: KratosMultiphysics.Parameters,
                  output_parameters: KratosMultiphysics.Parameters) -> "SnapshotOnDisk":
         """@brief Construct a @ref Snapshot instance from a snapshot file.
            @param file_path: path to a snapshot file to parse.
            @param input_parameters: @ref Parameters to instantiate an input processor from.
            @param output_parameters: @ref Parameters to instantiate an output processor from.
         """
-        input_parameters.ValidateAndAssignDefaults(SnapshotOnDisk.GetInputType().GetDefaultParameters())
+        input_parameters.ValidateAndAssignDefaults(derived_class.GetInputType().GetDefaultParameters())
         file_path = pathlib.Path(input_parameters["io_settings"]["file_path"].GetString())
         if file_path.is_file():
-            input = SnapshotOnDisk.GetInputType()(input_parameters)
-            step, path_id = input.ReadStepAndPathID()
-            return SnapshotOnDisk(path_id, step, input_parameters, output_parameters)
+            input = derived_class.GetInputType()(input_parameters)
+            step, path_id = input.ReadID()
+            return derived_class(path_id, step, input_parameters, output_parameters)
         elif file_path.is_dir():
             raise FileExistsError(f"{file_path} is a directory")
         else:
             raise FileNotFoundError(f"File not found: {file_path}")
 
 
-    @staticmethod
-    def FromModelPart(model_part: KratosMultiphysics.ModelPart,
+    @classmethod
+    def FromModelPart(derived_class: typing.Type["SnapshotOnDisk"],
+                      model_part: KratosMultiphysics.ModelPart,
                       input_parameters: KratosMultiphysics.Parameters = None,
                       output_parameters: KratosMultiphysics.Parameters = None) -> "SnapshotOnDisk":
         """@brief Deduce variables from an input @ref ModelPart and construct a @ref SnapshotOnDisk.
@@ -386,24 +186,25 @@ class SnapshotOnDisk(Snapshot):
                     The related file name defaults to "<model_part_name>_step_<step>_path_<path>.h5"."""
         model_part_name = model_part.Name
         step = model_part.ProcessInfo[KratosMultiphysics.STEP]
-        analysis_path = model_part.ProcessInfo[WRApplication.ANALYSIS_PATH]
+        analysis_path = model_part.ProcessInfo[WRApp.ANALYSIS_PATH]
 
         if input_parameters is None:
-            input_parameters = SnapshotOnDisk.GetInputType().GetDefaultParameters()
+            input_parameters = derived_class.GetInputType().GetDefaultParameters()
             input_parameters["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
 
         if output_parameters is None:
-            output_parameters = SnapshotOnDisk.GetOutputType().GetDefaultParameters()
+            output_parameters = derived_class.GetOutputType().GetDefaultParameters()
             output_parameters["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
 
-        return SnapshotOnDisk(analysis_path,
-                              step,
-                              input_parameters,
-                              output_parameters)
+        return derived_class(analysis_path,
+                             step,
+                             input_parameters,
+                             output_parameters)
 
 
-    @staticmethod
-    def Collect(pattern: str,
+    @classmethod
+    def Collect(derived_class: typing.Type["SnapshotOnDisk"],
+                pattern: str,
                 input_parameters: KratosMultiphysics.Parameters,
                 output_parameters: KratosMultiphysics.Parameters) -> list:
         """@brief Find and read all snapshot files that match the provided file name pattern.
@@ -413,8 +214,8 @@ class SnapshotOnDisk(Snapshot):
            @return A list of @ref SnapsotOnDisk loaded from discovered snapshot files, sorted in
                    ascending order (comparison is performed lexicographically over {path_id, step_index}).
         """
-        input_parameters.ValidateAndAssignDefaults(SnapshotOnDisk.GetInputType().GetDefaultParameters())
-        output_parameters.ValidateAndAssignDefaults(SnapshotOnDisk.GetOutputType().GetDefaultParameters())
+        input_parameters.ValidateAndAssignDefaults(derived_class.GetInputType().GetDefaultParameters())
+        output_parameters.ValidateAndAssignDefaults(derived_class.GetOutputType().GetDefaultParameters())
         snapshots = []
 
         for file_path in CheckpointPattern(pattern).Glob():
@@ -422,23 +223,25 @@ class SnapshotOnDisk(Snapshot):
             current_output_parameters = output_parameters.Clone()
             current_input_parameters["io_settings"]["file_path"].SetString(str(file_path))
             current_output_parameters["io_settings"]["file_path"].SetString(str(file_path))
-            snapshots.append(SnapshotOnDisk.FromFile(current_input_parameters, current_output_parameters))
+            snapshots.append(derived_class.FromFile(current_input_parameters, current_output_parameters))
 
         snapshots.sort()
         return snapshots
 
 
     @staticmethod
-    def GetInputType() -> typing.Type[DefaultSnapshotInput]:
+    @abc.abstractmethod
+    def GetInputType() -> typing.Type[SnapshotIO]:
         """@brief Get the class responsible for reading snapshot data.
            @note Override this member if you need a custom read logic.
         """
-        return DefaultSnapshotInput
+        raise RuntimeError("Attempt to call a pure virtual function")
 
 
     @staticmethod
-    def GetOutputType() -> typing.Type[DefaultSnapshotOutput]:
+    @abc.abstractmethod
+    def GetOutputType() -> typing.Type[SnapshotIO]:
         """@brief Get the class responsible for writing snapshot data.
            @note Override this member if you need a custom write logic.
         """
-        return DefaultSnapshotOutput
+        raise RuntimeError("Attempt to call a pure virtual function")
