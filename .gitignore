@@ -7,3 +7,7 @@ __pycache__
 # Binaries
 *.h5
 *.hdf5
+
+# Output
+*.mdpa
+*.time
