@@ -1,7 +1,11 @@
 """@author Máté Kelemen"""
 
 # --- Core Imports ---
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as UnitTest
+
+# --- STD Imports ---
+import typing
 
 
 class _SuiteFlags:
@@ -111,6 +115,17 @@ class TestCase(UnitTest.TestCase):
     """@brief Custom test case class for sorting cases into suites automatically while globbing."""
 
     suite_flags = SuiteFlags.ALL
+
+    def assertAlmostEqual(self, left: typing.Any, right: typing.Any, *args, **kwargs) -> None:
+        """@brief Invoke super().assertAlmostEqual on each component of the input variables."""
+        if not (type(left) is type(right)):
+            raise TypeError(f"Input type mismatch: {type(left)} {type(right)}")
+
+        if hasattr(left, "__getitem__"):
+            for left_item, right_item in zip(left, right):
+                self.assertAlmostEqual(left_item, right_item, *args, **kwargs)
+        else:
+            super().assertAlmostEqual(left, right, *args, **kwargs)
 
 
 class TestSuite(UnitTest.TestSuite):
