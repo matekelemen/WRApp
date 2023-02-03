@@ -7,6 +7,7 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # --- WRApplication Imports ---
 import KratosMultiphysics.WRApplication as WRApp
+from MDPAGenerator import MDPAGenerator
 
 # --- STD Imports ---
 import pathlib
@@ -21,33 +22,39 @@ def SetModelPartData(model_part: KratosMultiphysics.ModelPart,
                      step: int = 0,
                      path: int = 0,
                      time: float = 0.0) -> None:
+    generator = MDPAGenerator()
     model_part.ProcessInfo[KratosMultiphysics.STEP] = step
     model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = path
     model_part.ProcessInfo[KratosMultiphysics.TIME] = time
 
     for node in model_part.Nodes:
-        node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, path + step * time * (node.Id << 1)) # historical
-        node[KratosMultiphysics.NODAL_H] = path + step * time * node.Id # non-historical
+        for i_variable, variable in enumerate(generator.historical_nodal_variables):
+            node.SetSolutionStepValue(variable,
+                                      generator.SetAll(variable, i_variable + path + step * time * (node.Id << 1))) # historical
+        for i_variable, variable in enumerate(generator.nodal_variables):
+            node[variable] = generator.SetAll(variable, path + step * time * node.Id) # non-historical
 
     for element in model_part.Elements:
-        element[KratosMultiphysics.ELEMENT_H] = -(path + step * time * element.Id)
+        for i_variable, variable in enumerate(generator.element_variables):
+            element[variable] = generator.SetAll(variable, i_variable - (path + step * time * element.Id))
 
     for condition in model_part.Conditions:
-        condition[KratosMultiphysics.ELEMENT_H] = -2 * (path + step * time * condition.Id)
+        for i_variable, variable in enumerate(generator.condition_variables):
+            condition[variable] = generator.SetAll(variable, i_variable - 2 * (path + step * time * condition.Id))
 
 
 def MakeModelPart(model: KratosMultiphysics.Model,
                   name: str = "test",
                   buffer_size: int = 1,
-                  mdpa_name: str = "test_snapshot_2DReadModelPart") -> KratosMultiphysics.ModelPart:
+                  mdpa_name: str = "test_snapshot_2D") -> KratosMultiphysics.ModelPart:
+    generator = MDPAGenerator()
     model_part = model.CreateModelPart(name)
     model_part.SetBufferSize(buffer_size)
     model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
     model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
     model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = 0
     model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
-    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-    ReadModelPart(str(GetMDPAPath(mdpa_name)), model_part)
+    generator.Load(model_part, GetMDPAPath(mdpa_name))
     SetModelPartData(model_part)
     return model_part
 
@@ -66,7 +73,8 @@ def FlipFlags(container) -> None:
 def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
                       target_model_part: KratosMultiphysics.ModelPart,
                       test_case: WRApp.TestCase,
-                      buffer_level: int = 0) -> None:
+                      buffer_level: int = 0,
+                      generator: MDPAGenerator = MDPAGenerator()) -> None:
     # Compare nodes
     test_case.assertEqual(len(source_model_part.Nodes), len(target_model_part.Nodes))
     for source_node, target_node in zip(source_model_part.Nodes, target_model_part.Nodes):
@@ -82,8 +90,12 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
 
         # Check historical variables
         for buffer_index in range(buffer_level + 1):
-            test_case.assertAlmostEqual(source_node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, buffer_index),
-                                        target_node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, buffer_index))
+            for variable in generator.historical_nodal_variables:
+                test_case.assertTrue(source_node.SolutionStepsDataHas(variable))
+                test_case.assertTrue(target_node.SolutionStepsDataHas(variable))
+                test_case.assertAlmostEqual(source_node.GetSolutionStepValue(variable, buffer_index),
+                                            target_node.GetSolutionStepValue(variable, buffer_index),
+                                            msg = f"{variable.Name()} in buffer #{buffer_index} of {[v.Name() for v in generator.historical_nodal_variables]}")
 
     # Compare elements
     test_case.assertEqual(len(source_model_part.Elements), len(target_model_part.Elements))
@@ -95,7 +107,13 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
         # Check flags
         test_case.assertTrue(source_element.Is(target_element))
 
-        ##! @todo Compare element variables (@matekelemen)
+        # Compare variables
+        for variable in generator.element_variables:
+            test_case.assertTrue(source_element.Has(variable))
+            test_case.assertTrue(target_element.Has(variable))
+            test_case.assertEqual(source_element[variable],
+                                  target_element[variable],
+                                  msg = variable.Name())
 
     # Compare conditions
     test_case.assertEqual(len(source_model_part.Conditions), len(target_model_part.Conditions))
@@ -107,7 +125,13 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
         # Check flags
         test_case.assertTrue(source_condition.Is(target_condition))
 
-        ##! @todo Compare condition variables (@matekelemen)
+        # Compare variables
+        for variable in generator.element_variables:
+            test_case.assertTrue(source_condition.Has(variable))
+            test_case.assertTrue(target_condition.Has(variable))
+            test_case.assertEqual(source_condition[variable],
+                                  target_condition[variable],
+                                  msg = variable.Name())
 
 
 class TestHDF5Snapshot(WRApp.TestCase):
@@ -154,7 +178,7 @@ class TestHDF5Snapshot(WRApp.TestCase):
                     input_parameters,
                     output_parameters)
                 snapshot.Write(source_model_part)
-                KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
+                #KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
                 # Check initialized source model part ProcessInfo (unchanged)
                 self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
@@ -162,7 +186,7 @@ class TestHDF5Snapshot(WRApp.TestCase):
                 self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
                 # Create target model part with different data
-                target_model_part = MakeModelPart(model, "read")
+                target_model_part = MakeModelPart(model, "read", mdpa_name = mdpa_name)
                 SetModelPartData(target_model_part, step = 10, path = 2, time = 3.5)
                 FlipFlags(target_model_part.Nodes)
                 FlipFlags(target_model_part.Elements)
@@ -182,6 +206,7 @@ class TestHDF5Snapshot(WRApp.TestCase):
                 self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
                 CompareModelParts(source_model_part, target_model_part, self)
+                KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
 
 if __name__ == "__main__":
