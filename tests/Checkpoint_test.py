@@ -43,9 +43,9 @@ class TestCheckpoint(WRApp.TestCase):
                     analysis_path = 0
                     time = float(step)
                     SetModelPartData(source_model_part,
-                                    step = step,
-                                    path = analysis_path,
-                                    time = time)
+                                     step = step,
+                                     path = analysis_path,
+                                     time = time)
 
                     input_parameters = WRApp.HDF5Snapshot.GetInputType().GetDefaultParameters()
                     output_parameters = WRApp.HDF5Snapshot.GetOutputType().GetDefaultParameters()
@@ -69,9 +69,9 @@ class TestCheckpoint(WRApp.TestCase):
                 # Clobber the target model part and its buffer
                 for step in range(98, 102):
                     SetModelPartData(target_model_part,
-                                    step = step,
-                                    path = 0,
-                                    time = float(step))
+                                     step = step,
+                                     path = 0,
+                                     time = float(step))
                 FlipFlags(target_model_part.Nodes)
                 FlipFlags(target_model_part.Elements)
                 FlipFlags(target_model_part.Conditions)
@@ -79,9 +79,9 @@ class TestCheckpoint(WRApp.TestCase):
                 # Load the checkpoint and compare the model parts
                 checkpoint.Load(target_model_part)
                 CompareModelParts(source_model_part,
-                                target_model_part,
-                                self,
-                                buffer_level = 2)
+                                  target_model_part,
+                                  self,
+                                  buffer_level = 2)
 
 
 if __name__ == "__main__":
