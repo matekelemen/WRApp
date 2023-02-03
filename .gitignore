@@ -11,3 +11,14 @@ __pycache__
 # Output
 *.mdpa
 *.time
+
+# WRApplication root dir
+/*
+!/include
+!/packages
+!/python_bindings
+!/python_scripts
+!/tests
+!/.gitignore
+!/CMakeLists.txt
+!/WRApplication*.cpp
