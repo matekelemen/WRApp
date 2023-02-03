@@ -35,17 +35,14 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 include(pybind11Tools)
-kratos_python_install(${INSTALL_PYTHON_USING_LINKS}
-                      "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts"
-                      KratosMultiphysics/${application_name})
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS}
+                                "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts"
+                                KratosMultiphysics/${application_name})
 
 if (${INSTALL_TESTING_FILES} MATCHES ON)
-    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION applications/${application_name}
-            PATTERN "*.git" EXCLUDE
-            PATTERN "*.c" EXCLUDE
-            PATTERN "*.h" EXCLUDE
-            PATTERN "*.cpp" EXCLUDE
-            PATTERN "*.hpp" EXCLUDE)
+    kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS}
+                                    "${CMAKE_CURRENT_SOURCE_DIR}/tests",
+                                    KratosMultiphysics/${application_name}/tests)
 endif()
 
 # Compile definitions
