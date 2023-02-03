@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # suite names get prepended with "_mpi" if "--using-mpi"
     # is passed through sys.argv, so it needs to be added if
     # the user hasn't done so (ouch).
-    if not sys.argv[1:]:
+    if not "--using-mpi" in sys.argv:
         sys.argv.append("--using-mpi") # ;(
 
     test_WRApplication.Run(enable_mpi = True)
