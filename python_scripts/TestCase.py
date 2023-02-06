@@ -116,16 +116,24 @@ class TestCase(UnitTest.TestCase):
 
     suite_flags = SuiteFlags.ALL
 
-    def assertAlmostEqual(self, left: typing.Any, right: typing.Any, *args, **kwargs) -> None:
+    def assertAlmostEqual(self, left: typing.Any, right: typing.Any, **kwargs) -> None:
         """@brief Invoke super().assertAlmostEqual on each component of the input variables."""
         if not (type(left) is type(right)):
             raise TypeError(f"Input type mismatch: {type(left)} {type(right)}")
 
-        if hasattr(left, "__getitem__"):
+        if hasattr(left, "__iter__"):
             for left_item, right_item in zip(left, right):
-                self.assertAlmostEqual(left_item, right_item, *args, **kwargs)
+                self.assertAlmostEqual(left_item, right_item, **kwargs)
+        elif isinstance(left, KratosMultiphysics.Matrix):
+            self.assertEqual(left.Size1(), right.Size1(), **kwargs)
+            self.assertEqual(left.Size2(), right.Size2(), **kwargs)
+            base_message = kwargs.get("msg", "")
+            for i_row in range(left.Size1()):
+                for i_column in range(left.Size2()):
+                    kwargs["msg"] = base_message + f":row {i_row}, column {i_column}"
+                    self.assertAlmostEqual(left[(i_row, i_column)], right[(i_row, i_column)], **kwargs)
         else:
-            super().assertAlmostEqual(left, right, *args, **kwargs)
+            super().assertAlmostEqual(left, right, **kwargs)
 
 
 class TestSuite(UnitTest.TestSuite):
