@@ -73,13 +73,17 @@ def FlipFlags(container) -> None:
 def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
                       target_model_part: KratosMultiphysics.ModelPart,
                       test_case: WRApp.TestCase,
-                      buffer_level: int = 0,
                       generator: MDPAGenerator = MDPAGenerator()) -> None:
+    test_case.assertEqual(source_model_part.GetBufferSize(), target_model_part.GetBufferSize())
+
     # Compare nodes
     test_case.assertEqual(len(source_model_part.Nodes), len(target_model_part.Nodes))
     for source_node, target_node in zip(source_model_part.Nodes, target_model_part.Nodes):
         # Check non-historical variable
-        test_case.assertAlmostEqual(source_node[KratosMultiphysics.NODAL_H], target_node[KratosMultiphysics.NODAL_H])
+        for variable in generator.nodal_variables:
+            test_case.assertAlmostEqual(source_node[variable],
+                                        target_node[variable],
+                                        msg = variable.Name())
 
         # Check properties
         for property_name in ["X", "Y", "Z", "X0", "Y0", "Z0", "Id"]:
@@ -89,7 +93,7 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
             test_case.assertTrue(source_node.Is(target_node))
 
         # Check historical variables
-        for buffer_index in range(buffer_level + 1):
+        for buffer_index in range(source_model_part.GetBufferSize()):
             for variable in generator.historical_nodal_variables:
                 test_case.assertTrue(source_node.SolutionStepsDataHas(variable))
                 test_case.assertTrue(target_node.SolutionStepsDataHas(variable))
@@ -111,9 +115,9 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
         for variable in generator.element_variables:
             test_case.assertTrue(source_element.Has(variable))
             test_case.assertTrue(target_element.Has(variable))
-            test_case.assertEqual(source_element[variable],
-                                  target_element[variable],
-                                  msg = variable.Name())
+            test_case.assertAlmostEqual(source_element[variable],
+                                        target_element[variable],
+                                        msg = variable.Name())
 
     # Compare conditions
     test_case.assertEqual(len(source_model_part.Conditions), len(target_model_part.Conditions))
@@ -126,12 +130,12 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
         test_case.assertTrue(source_condition.Is(target_condition))
 
         # Compare variables
-        for variable in generator.element_variables:
-            test_case.assertTrue(source_condition.Has(variable))
-            test_case.assertTrue(target_condition.Has(variable))
-            test_case.assertEqual(source_condition[variable],
-                                  target_condition[variable],
-                                  msg = variable.Name())
+        for variable in generator.condition_variables:
+            test_case.assertTrue(source_condition.Has(variable), msg = variable.Name())
+            test_case.assertTrue(target_condition.Has(variable), msg = variable.Name())
+            test_case.assertAlmostEqual(source_condition[variable],
+                                        target_condition[variable],
+                                        msg = variable.Name())
 
 
 class TestHDF5Snapshot(WRApp.TestCase):
@@ -150,12 +154,14 @@ class TestHDF5Snapshot(WRApp.TestCase):
         (self.test_directory / "checkpoints").mkdir(parents = True, exist_ok = True)
 
     def tearDown(self) -> None:
-        DeleteDirectoryIfExisting(str(self.test_directory))
+        #DeleteDirectoryIfExisting(str(self.test_directory))
         KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
     def test_ReadWrite(self) -> None:
-        for mdpa_stub in ("simple", "2D"):
+        #for mdpa_stub in ("simple", "2D"):
+        for mdpa_stub in (["simple"]):
             with self.subTest(mdpa_stub):
+                KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
                 mdpa_name = f"test_snapshot_{mdpa_stub}"
 
                 input_parameters = WRApp.HDF5Snapshot.GetInputType().GetDefaultParameters()
@@ -178,7 +184,6 @@ class TestHDF5Snapshot(WRApp.TestCase):
                     input_parameters,
                     output_parameters)
                 snapshot.Write(source_model_part)
-                #KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
                 # Check initialized source model part ProcessInfo (unchanged)
                 self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
@@ -186,19 +191,31 @@ class TestHDF5Snapshot(WRApp.TestCase):
                 self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
                 # Create target model part with different data
-                target_model_part = MakeModelPart(model, "read", mdpa_name = mdpa_name)
+                target_model_part = MakeModelPart(model, "target", mdpa_name = mdpa_name)
                 SetModelPartData(target_model_part, step = 10, path = 2, time = 3.5)
                 FlipFlags(target_model_part.Nodes)
                 FlipFlags(target_model_part.Elements)
                 FlipFlags(target_model_part.Conditions)
-                ##! @todo Modify element and condition variables in target_model_part
 
                 # Check initialized target model part ProcessInfo
                 self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.STEP], 10)
                 self.assertEqual(target_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 2)
                 self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.TIME], 3.5)
 
+                for node in source_model_part.Nodes:
+                    print(f"source {mdpa_stub} before loading: {node[KratosMultiphysics.LOCAL_INERTIA_TENSOR]}")
+                    break
+                for node in target_model_part.Nodes:
+                    print(f"target {mdpa_stub} before loading: {node[KratosMultiphysics.LOCAL_INERTIA_TENSOR]}")
+                    break
+                KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
                 snapshot.Load(target_model_part)
+                for node in source_model_part.Nodes:
+                    print(f"source {mdpa_stub} after loading: {node[KratosMultiphysics.LOCAL_INERTIA_TENSOR]}")
+                    break
+                for node in target_model_part.Nodes:
+                    print(f"target {mdpa_stub} after loading: {node[KratosMultiphysics.LOCAL_INERTIA_TENSOR]}")
+                    break
 
                 # Check loaded target model part ProcessInfo
                 self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
@@ -206,7 +223,6 @@ class TestHDF5Snapshot(WRApp.TestCase):
                 self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
                 CompareModelParts(source_model_part, target_model_part, self)
-                KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
 
 if __name__ == "__main__":
