@@ -67,15 +67,14 @@ private:
      *                                 output pipe.
      */
     template <class TCompoundPipe, typename Dummy<decltype(TCompoundPipe::mInputPipe)>::Type = 0>
-    void Make(TCompoundPipe* pPipe, const Parameters& rParameters, std::size_t& rSubParamOffset, Compound)
+    static void Make(TCompoundPipe* pPipe, const Parameters& rParameters, std::size_t& rSubParamOffset, Compound)
     {
         static_assert(std::is_same_v<TPipe, TCompoundPipe>);
+        auto left = Factory<typename TPipe::InputPipe>::Make(rParameters, rSubParamOffset);
+        auto right = Factory<typename TPipe::OutputPipe>::Make(rParameters, rSubParamOffset);
         // Construct with placement new at the specified location.
         // This avoids move/copy assigning the pipe.
-        new(pPipe) TCompoundPipe(
-            Factory<typename TPipe::InputPipe>::Make(rParameters, rSubParamOffset),
-            Factory<typename TPipe::OutputPipe>::Make(rParameters, rSubParamOffset)
-        );
+        new(pPipe) TCompoundPipe(std::move(left), std::move(right));
     }
 
     /**
@@ -89,7 +88,7 @@ private:
      *                                 the segment with. This index is incremented once in this function.
      */
     template <class TSimplePipe>
-    void Make(TSimplePipe* pPipe, const Parameters& rParameters, std::size_t& rSubParamOffset, Simple)
+    static void Make(TSimplePipe* pPipe, const Parameters& rParameters, std::size_t& rSubParamOffset, Simple)
     {
         static_assert(std::is_same_v<TPipe, TSimplePipe>);
         KRATOS_ERROR_IF_NOT(rSubParamOffset < rParameters.size())
@@ -103,7 +102,7 @@ private:
         // Construct with placement new at the specified location.
         // This avoids move/copy assigning the pipe.
         KRATOS_TRY
-        new(pPipe) TSimplePipe(rParameters[rSubParamOffset]);
+        new(pPipe) TSimplePipe(rParameters.GetArrayItem(rSubParamOffset));
         KRATOS_CATCH(
             "Failed to construct a "
             << typeid(TSimplePipe).name()
@@ -129,7 +128,7 @@ private:
         // it from a different place.
         char buffer[sizeof(TPipe)];
         TPipe* p_pipe = reinterpret_cast<TPipe*>(buffer);
-        Factory().Make(
+        Factory::Make(
             p_pipe,
             rParameters,
             rSubParamOffset,
@@ -144,6 +143,7 @@ public:
     ///                         pipeline with.
     static TPipe Make(const Parameters& rParameters)
     {
+        KRATOS_ERROR_IF_NOT(rParameters.IsArray()) << "Expecting an array of subparameters, but got " << rParameters;
         std::size_t sub_param_offset = 0;
         return Factory::Make(rParameters, sub_param_offset);
     }
