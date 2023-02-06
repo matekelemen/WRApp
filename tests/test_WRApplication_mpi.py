@@ -4,7 +4,7 @@
 import KratosMultiphysics
 
 # --- WRApplication Imports ---
-import applications.WRApplication.tests.test_WRApplication as test_WRApplication
+import test_WRApplication
 
 # --- STD Imports ---
 import sys
