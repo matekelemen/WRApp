@@ -41,7 +41,7 @@ kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS}
 
 if (${INSTALL_TESTING_FILES} MATCHES ON)
     kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS}
-                                    "${CMAKE_CURRENT_SOURCE_DIR}/tests",
+                                    "${CMAKE_CURRENT_SOURCE_DIR}/tests"
                                     KratosMultiphysics/${application_name}/tests)
 endif()
 
