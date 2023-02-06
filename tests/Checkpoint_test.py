@@ -42,6 +42,7 @@ class TestCheckpoint(WRApp.TestCase):
                 for step in range(2):
                     analysis_path = 0
                     time = float(step)
+                    source_model_part.CloneSolutionStep()
                     SetModelPartData(source_model_part,
                                      step = step,
                                      path = analysis_path,
@@ -80,8 +81,7 @@ class TestCheckpoint(WRApp.TestCase):
                 checkpoint.Load(target_model_part)
                 CompareModelParts(source_model_part,
                                   target_model_part,
-                                  self,
-                                  buffer_level = 2)
+                                  self)
 
 
 if __name__ == "__main__":
