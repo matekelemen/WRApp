@@ -15,6 +15,7 @@
 #include "wrapp/utils/inc/AddUtilsToPython.hpp"
 #include "wrapp/multiprocessing/inc/AddMultiprocessingToPython.hpp"
 #include "wrapp/numeric/inc/AddNumericToPython.hpp"
+#include "wrapp/pipes/inc/AddPipesToPython.hpp"
 
 
 namespace Kratos::Python{
@@ -32,6 +33,7 @@ PYBIND11_MODULE(KratosWRApplication, module)
     AddIOToPython(module);
     AddMultiprocessingToPython(module);
     AddNumericToPython(module);
+    AddPipesToPython(module);
 
     // Register custom variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(module, ANALYSIS_PATH)
