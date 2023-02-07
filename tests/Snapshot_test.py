@@ -179,8 +179,8 @@ class TestHDF5Snapshot(WRApp.TestCase):
                 self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
                 snapshot = WRApp.HDF5Snapshot(
-                    source_model_part.ProcessInfo[KratosMultiphysics.STEP],
-                    source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH],
+                    WRApp.CheckpointID(source_model_part.ProcessInfo[KratosMultiphysics.STEP],
+                                       source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH]),
                     input_parameters,
                     output_parameters)
                 snapshot.Write(source_model_part)

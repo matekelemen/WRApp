@@ -25,9 +25,8 @@ class Snapshot(WRAppClass):
        @note Specialized for keeping data in memory or on disk.
     """
 
-    def __init__(self, analysis_path: int, step: int):
-        self.__analysis_path = analysis_path
-        self.__step = step
+    def __init__(self, id: WRApp.CheckpointID):
+        self.__id = id
 
 
     @abc.abstractmethod
@@ -73,7 +72,8 @@ class Snapshot(WRAppClass):
         return solution_path[::-1]
 
 
-    @abc.abstractstaticmethod
+    @staticmethod
+    @abc.abstractmethod
     def FromModelPart(model_part: KratosMultiphysics.ModelPart,
                       input_parameters: KratosMultiphysics.Parameters,
                       output_parameters: KratosMultiphysics.Parameters) -> "Snapshot":
@@ -82,38 +82,36 @@ class Snapshot(WRAppClass):
 
     @property
     def analysis_path(self) -> int:
-        return self.__analysis_path
+        return self.__id.GetAnalysisPath()
 
 
     @property
     def step(self) -> int:
-        return self.__step
+        return self.__id.GetStep()
+
+
+    @property
+    def id(self) -> WRApp.CheckpointID:
+        return self.__id
 
 
     def __lt__(self, other: "Snapshot") -> bool:
-        if self.__analysis_path == other.__analysis_path:
-            return self.__step < other.__step
-        else:
-            return self.__analysis_path < other.__analysis_path
+        return self.__id < other.__id
 
 
     def __gt__(self, other: "Snapshot") -> bool:
-        if self.__analysis_path == other.__analysis_path:
-            return self.__step > other.__step
-        else:
-            return self.__analysis_path > other.__analysis_path
+        return not (self < other)
 
 
     def __eq__(self, other: "Snapshot") -> bool:
-        return not (self < other) and not (self > other)
-
+        return self.__id == other.__id
 
     def __ne__(self, other: "Snapshot") -> bool:
         return not (self == other)
 
 
     def __str__(self) -> str:
-        return f"Snapshot on path {self.analysis_path} and step {self.step}"
+        return f"Snapshot (path: {self.analysis_path}, step: {self.step})"
 
 
     def __repr__(self) -> str:
@@ -133,8 +131,7 @@ class SnapshotOnDisk(Snapshot):
     """@brief Class representing a snapshot of a @ref ModelPart state and its associated output file."""
 
     def __init__(self,
-                 path_id: int,
-                 step: int,
+                 id: WRApp.CheckpointID,
                  input_parameters: KratosMultiphysics.Parameters,
                  output_parameters: KratosMultiphysics.Parameters):
         """@brief Constructor.
@@ -143,7 +140,7 @@ class SnapshotOnDisk(Snapshot):
            @param input_parameters: @ref Parameters to instantiate an input processor from.
            @param output_parameters: @ref Parameters to instantiate an output processor from.
         """
-        super().__init__(path_id, step)
+        super().__init__(id)
         self.__input = self.GetInputType()(input_parameters)
         self.__output = self.GetOutputType()(output_parameters)
 
@@ -197,8 +194,7 @@ class SnapshotOnDisk(Snapshot):
             output_parameters = derived_class.GetOutputType().GetDefaultParameters()
             output_parameters["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
 
-        return derived_class(analysis_path,
-                             step,
+        return derived_class(WRApp.CheckpointID(step, analysis_path),
                              input_parameters,
                              output_parameters)
 
