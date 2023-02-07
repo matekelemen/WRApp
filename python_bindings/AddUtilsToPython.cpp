@@ -1,5 +1,8 @@
 /// @author Máté Kelemen
 
+// --- External Includes ---
+#include <pybind11/operators.h>
+
 // --- Core Includes ---
 #include "includes/kratos_components.h"
 
@@ -8,6 +11,7 @@
 #include "wrapp/utils/inc/PatternUtility.hpp"
 #include "wrapp/utils/inc/TestingUtilities.hpp"
 #include "wrapp/utils/inc/MapKeyRange.hpp"
+#include "wrapp/utils/inc/CheckpointID.hpp"
 
 // --- STL Includes ---
 #include <vector>
@@ -86,6 +90,16 @@ void AddUtilsToPython(pybind11::module& rModule)
         .def("Apply",
              static_cast<std::string(CheckpointPattern::*)(const ModelPart&,std::size_t)const>(&CheckpointPattern::Apply),
              "Substitute values from the provided model part and path ID into the stored pattern.")
+        ;
+
+    pybind11::class_<WRApp::CheckpointID>(rModule, "CheckpointID")
+        .def(pybind11::init<>())
+        .def(pybind11::init<int,int>())
+        .def("GetStep", &WRApp::CheckpointID::GetStep)
+        .def("GetAnalysisPath", &WRApp::CheckpointID::GetAnalysisPath)
+        .def(pybind11::self == pybind11::self)
+        .def(pybind11::self != pybind11::self)
+        .def(pybind11::self < pybind11::self)
         ;
 
     #ifdef KRATOS_BUILD_TESTING // <== defined through CMake if cpp test sources are built
