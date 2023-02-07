@@ -18,6 +18,8 @@ void AddPipesToPython(pybind11::module& rModule)
             .def(pybind11::init<const Parameters&>())       \
             .def("__call__", &WRApp::NAME::operator())
 
+    KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(ConstModelPredicate);
+
     KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(TimeIntervalPredicate);
 
     KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(StepIntervalPredicate);

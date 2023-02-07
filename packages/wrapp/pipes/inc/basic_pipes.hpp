@@ -177,6 +177,31 @@ private:
 }; // class Modulo
 
 
+/// @brief Return a bool regardless of the input.
+/// @details Constructible from @ref Parameters with a "value" entry (@a bool).
+///          Defaults to @a false.
+template <class TInput>
+class ConstPredicate : public Traits<TInput,bool>
+{
+public:
+    ConstPredicate() noexcept;
+
+    ConstPredicate(bool value) noexcept;
+
+    ConstPredicate(const Parameters& rParameters);
+
+    ConstPredicate(ConstPredicate&& rOther) noexcept = default;
+
+    ConstPredicate(const ConstPredicate& rOther) noexcept = default;
+
+    bool operator()(TInput) const noexcept
+    {return mValue;}
+
+private:
+    bool mValue;
+}; // class ConstPredicate
+
+
 } // namespace Kratos::Pipes
 
 

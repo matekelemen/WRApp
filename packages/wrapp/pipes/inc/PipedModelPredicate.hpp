@@ -3,6 +3,7 @@
 #pragma once
 
 // --- WRApplication Includes ---
+#include "basic_pipes.hpp"
 #include "wrapp/pipes/inc/basic_pipes.hpp"
 
 // --- Core Includes ---
@@ -42,15 +43,27 @@ private:
 }; // class PipedModelPredicate
 
 
+/** @brief Always returns the boolean value it was constructed with, regardless of the input @ref Model.
+ *  @details Model => true/false
+ *           Required parameters:
+ *           @code
+ *           [
+ *               {"value" : <bool>}
+ *           ]
+ *           @endcode
+ */
+using ConstModelPredicate = PipedModelPredicate<Pipes::ConstPredicate<const Model&>>;
+
+
 /**
  *  @brief Check whether @ref TIME in a @ref ModelPart is within an interval.
  *  @details Model => ModelPart => ProcessInfo => TIME => IntervalUtility::IsIninterval.
  *           Required parameters (other settings ignored):
  *           @code
- *           {
- *              "model_part_name" : "",
- *              "interval" : ["Begin", "End"]
- *           }
+ *           [
+ *              {"model_part_name" : ""},
+ *              {"interval" : ["Begin", "End"]}
+ *           ]
  *           @endcode
  *  @note See @ref IntervalUtility for details.
  */
@@ -68,10 +81,10 @@ using TimeIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
  *  @details Model => ModelPart => ProcessInfo => STEP => DiscreteIntervalUtility::IsIninterval.
  *           Required parameters (other settings ignored):
  *           @code
- *           {
- *              "model_part_name" : "",
- *              "interval" : ["Begin", "End"]
- *           }
+ *           [
+ *              {"model_part_name" : ""},
+ *              {"interval" : ["Begin", "End"]}
+ *           ]
  *           @endcode
  *
  *  @note See @ref DiscreteIntervalUtility for details.
@@ -90,11 +103,11 @@ using StepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
  *  @details Model => ModelPart => ProcessInfo => TIME => Modulo => IntervalUtility::IsInInterval.
  *           Required parameters (other settings ignored):
  *           @code
- *           {
- *              "model_part_name" : "",
- *              "mod" : 0,
- *              "interval" : ["Begin", "End"]
- *           }
+ *           [
+ *              {"model_part_name" : ""},
+ *              {"mod" : 0},
+ *              {"interval" : ["Begin", "End"]}
+ *           ]
  *           @endcode
  *
  *           Example with @code {"mod" : 12.0, "interval" : [3.0, 6.0]} @endcode
@@ -121,11 +134,11 @@ using StepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
  *  @details Model => ModelPart => ProcessInfo => STEP => Modulo => DiscreteIntervalUtility::IsInInterval.
  *           Required parameters (other settings ignored):
  *           @code
- *           {
- *              "model_part_name" : "",
- *              "mod" : 0,
- *              "interval" : ["Begin", "End"]
- *           }
+ *           [
+ *              {"model_part_name" : ""},
+ *              {"mod" : 0},
+ *              {"interval" : ["Begin", "End"]}
+ *           ]
  *           @endcode
  *
  *           Example with @code {"mod" : 12, "interval" : [3, 6]} @endcode

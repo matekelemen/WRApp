@@ -58,4 +58,33 @@ StepFromProcessInfo::StepFromProcessInfo(const Parameters& rParameters)
 }
 
 
+template <class TInput>
+ConstPredicate<TInput>::ConstPredicate() noexcept
+    : ConstPredicate(false)
+{
+}
+
+
+template <class TInput>
+ConstPredicate<TInput>::ConstPredicate(bool value) noexcept
+    : mValue(value)
+{
+}
+
+
+template <class TInput>
+ConstPredicate<TInput>::ConstPredicate(const Parameters& rParameters)
+    : ConstPredicate()
+{
+    KRATOS_ERROR_IF_NOT(rParameters.Has("value") && rParameters["value"].Is<bool>())
+        << "Expecting parameters with a boolean entry for 'value', but got "
+        << rParameters;
+
+    this->mValue = rParameters["value"].Get<bool>();
+}
+
+
+template class ConstPredicate<const Model&>;
+
+
 } // namespace Kratos::Pipes
