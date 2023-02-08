@@ -48,6 +48,18 @@ class Snapshot(WRAppClass):
         pass
 
 
+    @abc.abstractmethod
+    def Exists(self) -> bool:
+        """@brief Check whether the data related to this @ref Snapshot has already been written."""
+        pass
+
+
+    @abc.abstractmethod
+    def IsValid(self) -> bool:
+        """@brief Check whether the stored data matches up the ID of the @ref Snapshot."""
+        pass
+
+
     @staticmethod
     def GetSolutionPath(snapshots: list) -> list:
         """@brief Pick snapshots from the provided list that are part of the solution path.
@@ -118,7 +130,7 @@ class Snapshot(WRAppClass):
 
 
     def __str__(self) -> str:
-        return f"Snapshot (path: {self.analysis_path}, step: {self.step})"
+        return f"Snapshot ({self.id})"
 
 
     def __repr__(self) -> str:
@@ -174,6 +186,16 @@ class SnapshotOnDisk(Snapshot):
         if communicator.Rank() == 0:
             for io in (self._input, self._output):
                 DeleteFileIfExisting(str(io.GetPath(self.id)))
+
+
+    def Exists(self) -> bool:
+        return any(io.GetPath(self.id).exists() for io in (self._input, self._output))
+
+
+    def IsValid(self) -> bool:
+        if not self.Exists():
+            raise FileNotFoundError(f"File associated to snapshot {self.id} not found: {self._input.GetPath(self.id)}")
+        return self._input.GetID() == self.id
 
 
     @classmethod
