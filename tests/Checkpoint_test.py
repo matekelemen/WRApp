@@ -33,55 +33,63 @@ class TestCheckpoint(WRApp.TestCase):
     def test_CheckpointWithHDF5Snapshots(self) -> None:
         for mdpa_stub in ("simple", "2D"):
             with self.subTest(mdpa_stub):
-                mdpa_name = f"test_snapshot_{mdpa_stub}"
-                model, source_model_part = MakeModel(buffer_size = 2,
-                                                     mdpa_name = mdpa_name)
-                snapshots: "list[WRApp.Snapshot]" = []
+                try:
+                    self.setUp()
+                    self.RunModel(mdpa_stub)
+                finally:
+                    self.tearDown()
 
-                # Generate snapshots
-                for step in range(2):
-                    analysis_path = 0
-                    time = float(step)
-                    source_model_part.CloneSolutionStep()
-                    SetModelPartData(source_model_part,
-                                     step = step,
-                                     path = analysis_path,
-                                     time = time)
 
-                    input_parameters = WRApp.HDF5Snapshot.GetInputType().GetDefaultParameters()
-                    output_parameters = WRApp.HDF5Snapshot.GetOutputType().GetDefaultParameters()
+    def RunModel(self, mdpa_stub: str) -> None:
+        mdpa_name = f"test_snapshot_{mdpa_stub}"
+        model, source_model_part = MakeModel(buffer_size = 2,
+                                            mdpa_name = mdpa_name)
+        snapshots: "list[WRApp.Snapshot]" = []
 
-                    for parameters in (input_parameters, output_parameters):
-                        parameters["io_settings"]["file_name"].SetString(str(self.test_directory / f"step_{step}_path_{analysis_path}.h5"))
+        # Generate snapshots
+        for step in range(2):
+            analysis_path = 0
+            time = float(step)
+            source_model_part.CloneSolutionStep()
+            SetModelPartData(source_model_part,
+                             step = step,
+                             path = analysis_path,
+                             time = time)
 
-                    snapshot = WRApp.HDF5Snapshot.FromModelPart(source_model_part,
-                                                                input_parameters,
-                                                                output_parameters)
-                    snapshot.Write(source_model_part)
-                    snapshots.append(snapshot)
+            input_parameters = WRApp.HDF5Snapshot.GetInputType().GetDefaultParameters()
+            output_parameters = WRApp.HDF5Snapshot.GetOutputType().GetDefaultParameters()
 
-                # Construct the checkpoint and create a target model part to read into
-                checkpoint = WRApp.Checkpoint(snapshots)
-                target_model_part = MakeModelPart(model,
-                                                  name = "target",
-                                                  buffer_size = 2,
-                                                  mdpa_name = mdpa_name)
+            for parameters in (input_parameters, output_parameters):
+                parameters["io_settings"]["file_name"].SetString(str(self.test_directory / "snapshots.h5"))
 
-                # Clobber the target model part and its buffer
-                for step in range(98, 102):
-                    SetModelPartData(target_model_part,
-                                     step = step,
-                                     path = 0,
-                                     time = float(step))
-                FlipFlags(target_model_part.Nodes)
-                FlipFlags(target_model_part.Elements)
-                FlipFlags(target_model_part.Conditions)
+            snapshot = WRApp.HDF5Snapshot.FromModelPart(source_model_part,
+                                                        input_parameters,
+                                                        output_parameters)
+            snapshot.Write(source_model_part)
+            snapshots.append(snapshot)
 
-                # Load the checkpoint and compare the model parts
-                checkpoint.Load(target_model_part)
-                CompareModelParts(source_model_part,
-                                  target_model_part,
-                                  self)
+        # Construct the checkpoint and create a target model part to read into
+        checkpoint = WRApp.Checkpoint(snapshots)
+        target_model_part = MakeModelPart(model,
+                                          name = "target",
+                                          buffer_size = 2,
+                                          mdpa_name = mdpa_name)
+
+        # Clobber the target model part and its buffer
+        for step in range(98, 102):
+            SetModelPartData(target_model_part,
+                             step = step,
+                             path = 0,
+                             time = float(step))
+        FlipFlags(target_model_part.Nodes)
+        FlipFlags(target_model_part.Elements)
+        FlipFlags(target_model_part.Conditions)
+
+        # Load the checkpoint and compare the model parts
+        checkpoint.Load(target_model_part)
+        CompareModelParts(source_model_part,
+                          target_model_part,
+                          self)
 
 
 if __name__ == "__main__":

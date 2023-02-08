@@ -158,71 +158,64 @@ class TestHDF5Snapshot(WRApp.TestCase):
         KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
     def test_ReadWrite(self) -> None:
-        #for mdpa_stub in ("simple", "2D"):
-        for mdpa_stub in (["simple"]):
+        for mdpa_stub in ("simple", "2D"):
             with self.subTest(mdpa_stub):
-                KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
-                mdpa_name = f"test_snapshot_{mdpa_stub}"
+                try:
+                    self.setUp()
+                    self.RunModel(mdpa_stub)
+                finally:
+                    self.tearDown()
 
-                input_parameters = WRApp.HDF5Snapshot.GetInputType().GetDefaultParameters()
-                output_parameters = WRApp.HDF5Snapshot.GetOutputType().GetDefaultParameters()
 
-                for parameters in (input_parameters, output_parameters):
-                    parameters["io_settings"]["file_name"].SetString(str(self.file_path))
+    def RunModel(self, mdpa_stub: str) -> None:
+        mdpa_name = f"test_snapshot_{mdpa_stub}"
 
-                model, source_model_part = MakeModel(mdpa_name = mdpa_name)
-                SetModelPartData(source_model_part, step = 2, path = 3, time = 1.5)
+        input_parameters = WRApp.HDF5Snapshot.GetInputType().GetDefaultParameters()
+        output_parameters = WRApp.HDF5Snapshot.GetOutputType().GetDefaultParameters()
 
-                # Check initialized source model part ProcessInfo
-                self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
-                self.assertEqual(source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 3)
-                self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
+        for parameters in (input_parameters, output_parameters):
+            parameters["io_settings"]["file_name"].SetString(str(self.file_path))
 
-                snapshot = WRApp.HDF5Snapshot(
-                    WRApp.CheckpointID(source_model_part.ProcessInfo[KratosMultiphysics.STEP],
-                                       source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH]),
-                    input_parameters,
-                    output_parameters)
-                snapshot.Write(source_model_part)
+        model, source_model_part = MakeModel(mdpa_name = mdpa_name)
+        SetModelPartData(source_model_part, step = 2, path = 3, time = 1.5)
 
-                # Check initialized source model part ProcessInfo (unchanged)
-                self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
-                self.assertEqual(source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 3)
-                self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
+        # Check initialized source model part ProcessInfo
+        self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
+        self.assertEqual(source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 3)
+        self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
-                # Create target model part with different data
-                target_model_part = MakeModelPart(model, "target", mdpa_name = mdpa_name)
-                SetModelPartData(target_model_part, step = 10, path = 2, time = 3.5)
-                FlipFlags(target_model_part.Nodes)
-                FlipFlags(target_model_part.Elements)
-                FlipFlags(target_model_part.Conditions)
+        snapshot = WRApp.HDF5Snapshot(
+            WRApp.CheckpointID(source_model_part.ProcessInfo[KratosMultiphysics.STEP],
+                               source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH]),
+            input_parameters,
+            output_parameters)
+        snapshot.Write(source_model_part)
 
-                # Check initialized target model part ProcessInfo
-                self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.STEP], 10)
-                self.assertEqual(target_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 2)
-                self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.TIME], 3.5)
+        # Check initialized source model part ProcessInfo (unchanged)
+        self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
+        self.assertEqual(source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 3)
+        self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
-                for node in source_model_part.Nodes:
-                    print(f"source {mdpa_stub} before loading: {node[KratosMultiphysics.LOCAL_INERTIA_TENSOR]}")
-                    break
-                for node in target_model_part.Nodes:
-                    print(f"target {mdpa_stub} before loading: {node[KratosMultiphysics.LOCAL_INERTIA_TENSOR]}")
-                    break
-                KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
-                snapshot.Load(target_model_part)
-                for node in source_model_part.Nodes:
-                    print(f"source {mdpa_stub} after loading: {node[KratosMultiphysics.LOCAL_INERTIA_TENSOR]}")
-                    break
-                for node in target_model_part.Nodes:
-                    print(f"target {mdpa_stub} after loading: {node[KratosMultiphysics.LOCAL_INERTIA_TENSOR]}")
-                    break
+        # Create target model part with different data
+        target_model_part = MakeModelPart(model, "target", mdpa_name = mdpa_name)
+        SetModelPartData(target_model_part, step = 10, path = 2, time = 3.5)
+        FlipFlags(target_model_part.Nodes)
+        FlipFlags(target_model_part.Elements)
+        FlipFlags(target_model_part.Conditions)
 
-                # Check loaded target model part ProcessInfo
-                self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
-                self.assertEqual(target_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 3)
-                self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
+        # Check initialized target model part ProcessInfo
+        self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.STEP], 10)
+        self.assertEqual(target_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 2)
+        self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.TIME], 3.5)
 
-                CompareModelParts(source_model_part, target_model_part, self)
+        snapshot.Load(target_model_part)
+
+        # Check loaded target model part ProcessInfo
+        self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
+        self.assertEqual(target_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 3)
+        self.assertEqual(target_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
+
+        CompareModelParts(source_model_part, target_model_part, self)
 
 
 if __name__ == "__main__":
