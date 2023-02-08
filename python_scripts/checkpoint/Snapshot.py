@@ -2,6 +2,7 @@
 
 # --- Core Imports ---
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 # --- WRApplication Imports ---
 from KratosMultiphysics import WRApplication as WRApp
@@ -38,6 +39,12 @@ class Snapshot(WRAppClass):
     @abc.abstractmethod
     def Write(self, model_part: KratosMultiphysics.ModelPart) -> None:
         """@brief Write data from the current state of the specified model part to the snapshot."""
+        pass
+
+
+    @abc.abstractmethod
+    def Erase(self, communicator: KratosMultiphysics.DataCommunicator) -> None:
+        """@brief Erase stored data related to this snapshot."""
         pass
 
 
@@ -141,12 +148,12 @@ class SnapshotOnDisk(Snapshot):
            @param output_parameters: @ref Parameters to instantiate an output processor from.
         """
         super().__init__(id)
-        self.__input = self.GetInputType()(input_parameters)
-        self.__output = self.GetOutputType()(output_parameters)
+        self._input = self.GetInputType()(input_parameters)
+        self._output = self.GetOutputType()(output_parameters)
 
 
     def Write(self, model_part: KratosMultiphysics.ModelPart) -> None:
-        self.__output(model_part)
+        self._output(model_part)
 
 
     def Load(self, model_part: KratosMultiphysics.ModelPart) -> None:
@@ -155,12 +162,18 @@ class SnapshotOnDisk(Snapshot):
         # wrong place.
         model_part.ProcessInfo[KratosMultiphysics.STEP] = self.id.GetStep()
         model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = self.id.GetAnalysisPath()
-        self.__input(model_part)
+        self._input(model_part)
 
         # Check whether the correct snapshot was loaded
         new_id = WRApp.CheckpointID(model_part.ProcessInfo[KratosMultiphysics.STEP], model_part.ProcessInfo[WRApp.ANALYSIS_PATH])
         if new_id != self.id:
             raise RuntimeError(f"Snapshot attempted to load {self.id} but read {new_id} instead")
+
+
+    def Erase(self, communicator: KratosMultiphysics.DataCommunicator) -> None:
+        if communicator.Rank() == 0:
+            for io in (self._input, self._output):
+                DeleteFileIfExisting(str(io.GetPath(self.id)))
 
 
     @classmethod
@@ -176,8 +189,8 @@ class SnapshotOnDisk(Snapshot):
         file_path = pathlib.Path(input_parameters["io_settings"]["file_path"].GetString())
         if file_path.is_file():
             input = derived_class.GetInputType()(input_parameters)
-            step, path_id = input.ReadID()
-            return derived_class(path_id, step, input_parameters, output_parameters)
+            id = input.GetID()
+            return derived_class(id, input_parameters, output_parameters)
         elif file_path.is_dir():
             raise FileExistsError(f"{file_path} is a directory")
         else:

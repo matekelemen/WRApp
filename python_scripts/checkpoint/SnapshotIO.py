@@ -9,6 +9,7 @@ from ..WRAppClass import WRAppClass
 
 # --- STD Imports ---
 import abc
+import pathlib
 
 
 class SnapshotIO(WRAppClass):
@@ -19,10 +20,16 @@ class SnapshotIO(WRAppClass):
 
 
     @abc.abstractmethod
-    def ReadID(self) -> WRApp.CheckpointID:
+    def GetID(self) -> WRApp.CheckpointID:
         """@brief Read data from a file that identifies a @ref Snapshot.
            @returns (STEP, ANALYSIS_PATH)"""
         return WRApp.CheckpointID()
+
+
+    @abc.abstractmethod
+    def GetPath(self, id: WRApp.CheckpointID = None) -> pathlib.Path:
+        """@brief Return the path to the associated file given the checkpoint ID, or the pattern if the ID is not provided."""
+        pass
 
 
     @classmethod

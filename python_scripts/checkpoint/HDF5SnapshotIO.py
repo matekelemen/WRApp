@@ -16,6 +16,7 @@ from ..mpi_utilities import MPIUnion
 
 # --- STD Imports ---
 import abc
+import pathlib
 
 
 class HDF5SnapshotIO(SnapshotIO):
@@ -26,7 +27,7 @@ class HDF5SnapshotIO(SnapshotIO):
         self.__parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
 
 
-    def ReadID(self) -> WRApp.CheckpointID:
+    def GetID(self) -> WRApp.CheckpointID:
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("temporary")
         with OpenHDF5File(self.__GetInputParameters(), model_part) as file:
@@ -35,6 +36,16 @@ class HDF5SnapshotIO(SnapshotIO):
         analysis_path = model_part.ProcessInfo[WRApp.ANALYSIS_PATH]
         model.DeleteModelPart("temporary")
         return WRApp.CheckpointID(step, analysis_path)
+
+
+    def GetPath(self, id: WRApp.CheckpointID = None) -> pathlib.Path():
+        string = self.__parameters["io_settings"]["file_name"].GetString()
+        if id is None:
+            string = WRApp.CheckpointPattern(string).Apply({
+                "<step>" : str(id.GetStep()),
+                "<path_id>" : str(id.GetAnalysisPath())
+            })
+        return pathlib.Path(string)
 
 
     @classmethod
