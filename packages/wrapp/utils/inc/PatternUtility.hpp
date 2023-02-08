@@ -305,6 +305,9 @@ protected:
     /// @brief Forwarding constructor for derived classes.
     ModelPartPattern(const std::string& rPattern, const PlaceholderMap& rPlaceholderMap);
 
+    /// @brief Populate a key-value map of registered placeholders from a @ref ModelPart.
+    virtual void PopulatePlaceholderMap(PlaceholderMap& rMap, const ModelPart& rModelPart) const;
+
     static const PlaceholderMap& GetPlaceholderMap();
 
     ///@}
@@ -358,27 +361,14 @@ public:
 
     using ModelPartPattern::operator=;
 
-    ///@}
-    ///@name Operations
-    ///@{
-
-    using PlaceholderPattern::Apply;
-
-    /** @brief Substitute values from the specified @ref ModelPart and path ID into the stored pattern.
-     *
-     *  @param rModelPart: Model part to extract the values of placeholders from.
-     *  @param PathID: path ID of the checkpoint.
-     *  @note @p rModelPart must store @ref STEP and @ref TIME.
-     */
-    std::string Apply(const ModelPart& rModelPart, std::size_t PathID) const;
-
-    ///@}
-
 protected:
     ///@name Protected Operations
     ///@{
 
     static const PlaceholderMap& GetPlaceholderMap();
+
+    /// @copydoc ModelPartPattern::PopulatePlaceholderMap
+    virtual void PopulatePlaceholderMap(PlaceholderMap& rMap, const ModelPart& rModelPart) const override;
 
     ///@}
 

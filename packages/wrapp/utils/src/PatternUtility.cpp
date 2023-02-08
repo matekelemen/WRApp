@@ -4,8 +4,9 @@
 #include "includes/define.h"
 #include "includes/exception.h"
 
-// --- WRApplication Includes ---
+// --- WRApp Includes ---
 #include "wrapp/utils/inc/PatternUtility.hpp"
+#include "wr_application/WRApplication_variables.hpp"
 
 // --- STL Includes ---
 #include <algorithm>
@@ -119,8 +120,7 @@ PlaceholderPattern::PlaceholderPattern(const std::string& rPattern,
     for (auto& r_pair : position_map) r_pair.first = index++;
 
     // Populate the placeholder - group index map
-    it_pair = rPlaceholderMap.begin();
-    for ( ; it_pair!=it_end; ++it_pair) {
+    for (auto it_pair=rPlaceholderMap.begin() ; it_pair!=it_end; ++it_pair) {
         // Move the placeholder string and construct an associated empty index array
         auto emplace_result = mPlaceholderGroupMap.emplace(it_pair->first, PlaceholderGroupMap::mapped_type());
 
@@ -296,34 +296,36 @@ ModelPartPattern::ModelPartPattern(const std::string& rPattern)
 std::string ModelPartPattern::Apply(const ModelPart& rModelPart) const
 {
     KRATOS_TRY
-
-    // TODO: implement formatting, see the documentation in the header. @matekelemen
-
     ModelPartPattern::PlaceholderMap map;
+    this->PopulatePlaceholderMap(map, rModelPart);
+    return this->Apply(map);
+    KRATOS_CATCH("");
+}
+
+
+void ModelPartPattern::PopulatePlaceholderMap(PlaceholderMap& rMap, const ModelPart& rModelPart) const
+{
+    // TODO: implement formatting, see the documentation in the header. @matekelemen
     const auto& r_pattern = this->GetPatternString();
 
     if (r_pattern.find("<model_part_name>") != r_pattern.npos) {
-        map.emplace("<model_part_name>", rModelPart.Name());
+        rMap.emplace("<model_part_name>", rModelPart.Name());
     }
 
     if (r_pattern.find("<step>") != r_pattern.npos) {
-        map.emplace("<step>", std::to_string(rModelPart.GetProcessInfo().GetValue(STEP)));
+        rMap.emplace("<step>", std::to_string(rModelPart.GetProcessInfo().GetValue(STEP)));
     }
 
     if (r_pattern.find("<time>") != r_pattern.npos) {
         // Hardcoded formatting - to be changed later
         std::stringstream stream;
         stream << std::scientific << std::setprecision(4) << rModelPart.GetProcessInfo().GetValue(TIME);
-        map.emplace("<time>", stream.str());
+        rMap.emplace("<time>", stream.str());
     }
 
     if (r_pattern.find("<rank>") != r_pattern.npos) {
-        map.emplace("<rank>", std::to_string(rModelPart.GetCommunicator().MyPID()));
+        rMap.emplace("<rank>", std::to_string(rModelPart.GetCommunicator().MyPID()));
     }
-
-    return this->Apply(map);
-
-    KRATOS_CATCH("");
 }
 
 
@@ -339,16 +341,12 @@ CheckpointPattern::CheckpointPattern(const std::string& rPattern)
 }
 
 
-std::string CheckpointPattern::Apply(const ModelPart& rModelPart, std::size_t PathID) const
+void CheckpointPattern::PopulatePlaceholderMap(PlaceholderMap& rMap, const ModelPart& rModelPart) const
 {
     KRATOS_TRY
-
-    std::string output = ModelPartPattern::Apply(rModelPart);
-    PlaceholderMap map {{"path_id", std::to_string(PathID)}};
-    this->Apply(map);
-    return output;
-
-    KRATOS_CATCH("")
+    ModelPartPattern::PopulatePlaceholderMap(rMap, rModelPart);
+    rMap.emplace("<path_id>", std::to_string(rModelPart.GetProcessInfo().GetValue(ANALYSIS_PATH)));
+    KRATOS_CATCH("");
 }
 
 
