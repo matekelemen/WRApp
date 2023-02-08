@@ -16,6 +16,7 @@
 // --- STL Includes ---
 #include <vector>
 #include <filesystem>
+#include <sstream>
 
 
 namespace Kratos::Python {
@@ -84,12 +85,6 @@ void AddUtilsToPython(pybind11::module& rModule)
 
     pybind11::class_<CheckpointPattern, CheckpointPattern::Pointer, ModelPartPattern>(rModule, "CheckpointPattern")
         .def(pybind11::init<const std::string&>())
-        .def("Apply",
-             static_cast<std::string(CheckpointPattern::*)(const CheckpointPattern::PlaceholderMap&)const>(&CheckpointPattern::Apply),
-             "Substitute values from the input map into the stored pattern.")
-        .def("Apply",
-             static_cast<std::string(CheckpointPattern::*)(const ModelPart&,std::size_t)const>(&CheckpointPattern::Apply),
-             "Substitute values from the provided model part and path ID into the stored pattern.")
         ;
 
     pybind11::class_<WRApp::CheckpointID>(rModule, "CheckpointID")
@@ -100,6 +95,11 @@ void AddUtilsToPython(pybind11::module& rModule)
         .def(pybind11::self == pybind11::self)
         .def(pybind11::self != pybind11::self)
         .def(pybind11::self < pybind11::self)
+        .def("__str__", [](const WRApp::CheckpointID& rThis) {
+                std::stringstream stream;
+                stream << rThis;
+                return stream.str();
+            })
         ;
 
     #ifdef KRATOS_BUILD_TESTING // <== defined through CMake if cpp test sources are built
