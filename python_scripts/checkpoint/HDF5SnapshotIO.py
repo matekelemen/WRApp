@@ -26,19 +26,22 @@ class HDF5SnapshotIO(SnapshotIO):
         self.__parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
 
 
-    def ReadID(self) -> "tuple[int,int]":
+    def ReadID(self) -> WRApp.CheckpointID:
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("temporary")
         with OpenHDF5File(self.__GetInputParameters(), model_part) as file:
             HDF5Operations.ReadProcessInfo(self.__parameters["operation_settings"])(model_part, file)
         step = model_part.ProcessInfo[KratosMultiphysics.STEP]
         analysis_path = model_part.ProcessInfo[WRApp.ANALYSIS_PATH]
-        return step, analysis_path
+        model.DeleteModelPart("temporary")
+        return WRApp.CheckpointID(step, analysis_path)
 
 
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        parameters = KratosMultiphysics.Parameters()
+        parameters = KratosMultiphysics.Parameters(R"""{
+            "prefix" : "/snapshots/step_<step>_path_<path_id>"
+        }""")
         parameters.AddValue("io_settings", cls.GetDefaultIOParameters())
         return parameters
 
@@ -95,6 +98,17 @@ class HDF5SnapshotIO(SnapshotIO):
 
 
     @staticmethod
+    def _ApplyPrefix(prefix: str,
+                     operation_parameters: KratosMultiphysics.Parameters,
+                     model_part: KratosMultiphysics.ModelPart) -> None:
+        for parameters in operation_parameters["list_of_operations"]:
+            prefix_full = WRApp.CheckpointPattern(prefix + "/" + parameters["prefix"].GetString()).Apply(model_part)
+            while "//" in prefix_full:
+                prefix_full = prefix_full.replace("//", "/")
+            parameters["prefix"].SetString(prefix_full)
+
+
+    @staticmethod
     @abc.abstractmethod
     def GetDefaultIOParameters() -> KratosMultiphysics.Parameters:
         raise RuntimeError("Attempt to call a pure virtual function")
@@ -123,8 +137,8 @@ class HDF5SnapshotOutput(HDF5SnapshotIO):
     @staticmethod
     def GetDefaultIOParameters() -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
-            "file_name" : "checkpoints/<model_part_name>_snapshot_<path_id>_<step>.h5",
-            "file_access_mode" : "truncate",
+            "file_name" : "",
+            "file_access_mode" : "read_write",
             "echo_level" : 0
         }""")
 
@@ -159,7 +173,11 @@ class HDF5SnapshotOutput(HDF5SnapshotIO):
         # IO settings
         aggregate_parameters.AddValue("io_settings", self.parameters["io_settings"])
 
-        return HDF5Operations.AggregateOperation(model_part.GetModel(), aggregate_parameters)
+        # Construct the operation and apply the snapshot root prefix
+        aggregate_operation = HDF5Operations.AggregateOperation(model_part.GetModel(), aggregate_parameters)
+        self._ApplyPrefix(self.parameters["prefix"].GetString(), aggregate_parameters, model_part)
+
+        return aggregate_operation
 
 
 
@@ -214,4 +232,8 @@ class HDF5SnapshotInput(HDF5SnapshotIO):
         # IO settings
         aggregate_parameters.AddValue("io_settings", self.parameters["io_settings"])
 
-        return HDF5Operations.AggregateOperation(model_part.GetModel(), aggregate_parameters)
+        # Construct the operation and apply the snapshot root prefix
+        aggregate_operation = HDF5Operations.AggregateOperation(model_part.GetModel(), aggregate_parameters)
+        self._ApplyPrefix(self.parameters["prefix"].GetString(), aggregate_parameters, model_part)
+
+        return aggregate_operation

@@ -4,6 +4,7 @@
 import KratosMultiphysics
 
 # --- WRApp Imports ---
+import KratosMultiphysics.WRApplication as WRApp
 from ..WRAppClass import WRAppClass
 
 # --- STD Imports ---
@@ -18,10 +19,10 @@ class SnapshotIO(WRAppClass):
 
 
     @abc.abstractmethod
-    def ReadID(self) -> "tuple[int,int]":
+    def ReadID(self) -> WRApp.CheckpointID:
         """@brief Read data from a file that identifies a @ref Snapshot.
            @returns (STEP, ANALYSIS_PATH)"""
-        return (0, 0)
+        return WRApp.CheckpointID()
 
 
     @classmethod
