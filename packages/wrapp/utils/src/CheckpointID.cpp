@@ -32,4 +32,11 @@ int CheckpointID::GetAnalysisPath() const noexcept
 }
 
 
+std::ostream& operator<<(std::ostream& rStream, CheckpointID ID)
+{
+    rStream << "(step: " << ID.mStep << ", path: " << ID.mPath << ')';
+    return rStream;
+}
+
+
 } // namespace Kratos::WRApp

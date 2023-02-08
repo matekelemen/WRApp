@@ -2,6 +2,9 @@
 
 #pragma once
 
+// --- STL Includes ---
+#include <ostream>
+
 
 namespace Kratos::WRApp {
 
@@ -34,6 +37,8 @@ public:
 
     /// @brief Lexicographical comparison on [@ref STEP, @ref ANALYSIS_PATH].
     friend bool operator<(CheckpointID left, CheckpointID right) noexcept;
+
+    friend std::ostream& operator<<(std::ostream& rStream, CheckpointID ID);
 
 private:
     /// @brief @ref STEP
