@@ -150,7 +150,17 @@ class SnapshotOnDisk(Snapshot):
 
 
     def Load(self, model_part: KratosMultiphysics.ModelPart) -> None:
+        # Data in the ProcessInfo needs to be set before reading,
+        # otherwise the IO class might look for the data in the
+        # wrong place.
+        model_part.ProcessInfo[KratosMultiphysics.STEP] = self.id.GetStep()
+        model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = self.id.GetAnalysisPath()
         self.__input(model_part)
+
+        # Check whether the correct snapshot was loaded
+        new_id = WRApp.CheckpointID(model_part.ProcessInfo[KratosMultiphysics.STEP], model_part.ProcessInfo[WRApp.ANALYSIS_PATH])
+        if new_id != self.id:
+            raise RuntimeError(f"Snapshot attempted to load {self.id} but read {new_id} instead")
 
 
     @classmethod
