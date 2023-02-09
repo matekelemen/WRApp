@@ -51,7 +51,7 @@ class HDF5SnapshotIO(SnapshotIO):
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         parameters = KratosMultiphysics.Parameters(R"""{
-            "prefix" : "/snapshots/step_<step>_path_<path_id>"
+            "prefix" : "/snapshot_step_<step>_path_<path_id>"
         }""")
         parameters.AddValue("io_settings", cls.GetDefaultIOParameters())
         return parameters

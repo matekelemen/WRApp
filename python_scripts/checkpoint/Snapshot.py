@@ -14,6 +14,7 @@ from ..WRAppClass import WRAppClass
 import abc
 import typing
 import pathlib
+import inspect
 
 
 class Snapshot(WRAppClass):
@@ -57,6 +58,12 @@ class Snapshot(WRAppClass):
     @abc.abstractmethod
     def IsValid(self) -> bool:
         """@brief Check whether the stored data matches up the ID of the @ref Snapshot."""
+        pass
+
+
+    @classmethod
+    @abc.abstractmethod
+    def GetManagerType(cls) -> typing.Type["Manager"]:
         pass
 
 
@@ -287,3 +294,84 @@ class SnapshotOnDisk(Snapshot):
            @note Override this member if you need a custom write logic.
         """
         raise RuntimeError("Attempt to call a pure virtual function")
+
+
+
+class DefaultSnapshotErasePredicate(WRAppClass):
+    def __call__(self, id: WRApp.CheckpointID) -> bool:
+        return False
+
+
+
+class Manager(metaclass = abc.ABCMeta):
+    """@brief Interface for @ref Snapshot lifetime management.
+        @details @ref Manager supports adding, retrieving and erasing @ref Snapshot s.
+                 Added (or discovered) snapshots are tracked via @ref Journal, and erased
+                 based on the return value of a predicate (@ref CheckpointID -> @a bool)."""
+
+    def __init__(self,
+                    model_part: KratosMultiphysics.ModelPart,
+                    parameters: KratosMultiphysics.Parameters):
+        parameters.AddMissingParameters(self.GetDefaultParameters())
+        self._parameters = parameters
+        self._model_part = model_part
+        self._journal = WRApp.Journal(pathlib.Path(parameters["journal_path"].GetString()))
+
+        # Instantiate the predicate (from registered class or instance)
+        registered_item = KratosMultiphysics.Registry[parameters["erase_predicate"]["type"].GetString()]
+        registered_class = registered_item if inspect.isclass(registered_item) else type(registered_item)
+        self._predicate = registered_class(parameters["erase_predicate"]["parameters"])
+
+
+    @abc.abstractmethod
+    def Add(self, model_part: KratosMultiphysics.ModelPart) -> None:
+        """@brief Construct a snapshot and add it to the internal journal."""
+        pass
+
+
+    @abc.abstractmethod
+    def Get(self, id: WRApp.CheckpointID) -> "Snapshot":
+        """@brief Retrieve a snapshot from the internal journal that matches the provided ID."""
+        pass
+
+
+    @abc.abstractmethod
+    def Erase(self, id: WRApp.CheckpointID) -> None:
+        """@brief Erase an entry from the internal journal that matches the provided ID and delete its related snapshot."""
+        pass
+
+
+    def EraseObsolete(self) -> None:
+        """@brief Call @ref Manager.Erase on all IDs that return true for the provided predicate."""
+        # Collect erased IDs into a list while erasing from the Journal
+        erase_ids: "list[WRApp.CheckpointID]" = []
+        def predicate_wrapper(entry: KratosMultiphysics.Parameters) -> bool:
+            id = self._IDFromEntry(entry)
+            result = self._predicate(id)
+            if result:
+                erase_ids.append(id)
+            return result
+
+        # Erase snapshots and the related journal entries
+        if erase_ids:
+            if self._model_part.GetCommunicator().GetDataCommunicator().GetRank() == 0:
+                self._journal.EraseIf(predicate_wrapper)
+            for id in erase_ids:
+                self.Erase(id)
+
+
+    @classmethod
+    @abc.abstractmethod
+    def _IDFromEntry(cls, journal_entry: KratosMultiphysics.Parameters) -> WRApp.CheckpointID:
+        pass
+
+
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters(R"""{
+            "erase_predicate" : {
+                "type" : "DefaultSnapshotPredicate",
+                "parameters" : {}
+            },
+            "journal_path" : "snapshots.jrn"
+        }""")
