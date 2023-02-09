@@ -198,6 +198,9 @@ public:
     ///@name Inquiry
     ///@{
 
+    /// @brief Return true if the input pattern contains no placeholders.
+    bool IsConst() const;
+
     /// @brief Get the regex for the input pattern.
     const std::regex& GetRegex() const;
 

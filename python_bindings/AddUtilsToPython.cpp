@@ -68,6 +68,9 @@ void AddUtilsToPython(pybind11::module& rModule)
         .def("GetRegexString",
              &PlaceholderPattern::GetRegexString,
              "Get the string representation of the regex.")
+        .def("IsConst",
+             &PlaceholderPattern::IsConst,
+             "Return true if the input pattern contains no placeholders.")
         ;
 
     pybind11::class_<ModelPartPattern, ModelPartPattern::Pointer, PlaceholderPattern>(rModule, "ModelPartPattern")

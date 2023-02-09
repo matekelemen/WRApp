@@ -216,6 +216,12 @@ std::string PlaceholderPattern::Apply(const PlaceholderMap& rPlaceholderValueMap
 }
 
 
+bool PlaceholderPattern::IsConst() const
+{
+    return mPlaceholderGroupMap.empty();
+}
+
+
 const std::regex& PlaceholderPattern::GetRegex() const
 {
     return mRegex;
