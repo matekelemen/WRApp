@@ -3,94 +3,120 @@
 # --- Core Imports ---
 import KratosMultiphysics
 
-# --- HDF5 Imports ---
-import KratosMultiphysics.HDF5Application
-
-# --- WRApplication Imports ---
-from KratosMultiphysics.WRApplication.checkpoint.Snapshot import Snapshot
+# --- WRApp Imports ---
+import KratosMultiphysics.WRApplication as WRApp
+from ..WRAppClass import WRAppClass
+from .Snapshot import Snapshot
+from .Checkpoint import Checkpoint
 
 # --- STD Imports ---
 import abc
+import typing
+
+
+class CheckpointSelector(WRAppClass):
+    """@brief A functor taking a @ref Model and returning a @ref CheckpointID to load or @a None.
+       @note A C++ bound selector should return an @a std::optional<CheckpointID>."""
+
+    def __init__(self, _: KratosMultiphysics.Parameters):
+        pass
+
+    @abc.abstractmethod
+    def __call__(self, model: KratosMultiphysics.Model) -> typing.Union[WRApp.CheckpointID,None]:
+        pass
+
+
+
+class DefaultCheckpointSelector(CheckpointSelector):
+    """@brief Always returns @a None, i.e. never loads checkpoints."""
+
+    def __init__(self, parameters: KratosMultiphysics.Parameters):
+        super().__init__(parameters)
+
+
+    def __call__(self, model: KratosMultiphysics.Model) -> None:
+        return None
+
 
 
 # Resolve metaclass conflicts
 if type(KratosMultiphysics.Process) != type(abc.ABC):
-    class AbstractProcessMetaClass(type(abc.ABC), type(KratosMultiphysics.Process)):
-        pass
+    class ProcessABC(type(abc.ABC), type(KratosMultiphysics.Process)): pass
 else:
-    class AbstractProcessMetaClass(type(KratosMultiphysics.Process)):
-        pass
+    class ProcessABC(type(KratosMultiphysics.Process)): pass
 
 
-class CheckpointProcessBase(KratosMultiphysics.Process):
 
-    def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters):
+class CheckpointProcess(KratosMultiphysics.Process):
+    """ @brief Main interface process for checkpointing.
+        """
+
+    def __init__(self,
+                 model: KratosMultiphysics.Model,
+                 parameters: KratosMultiphysics.Parameters):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
-        self.parameters = parameters
-        self.__model_part = model.GetModelPart(parameters["model_part_name"])
-        self.__snapshot_type = KratosMultiphysics.Registry[parameters["checkpoint_settings"]["snapshot_settings"].GetString()]
-        self.__condition = ImportUtility(parameters["checkpoint_settings"]["io_condition"])()
+        self.__model = model
+        self.__model_part = self.__model.GetModelPart(parameters["model_part_name"].GetString())
 
-    @property
-    def model_part(self) -> KratosMultiphysics.ModelPart:
-        return self.__model_part
+        # Snapshot setup
+        snapshot_type: typing.Type[Snapshot] = KratosMultiphysics.Registry[parameters["snapshot_type"].GetString()]
+        manager_type = snapshot_type.GetManagerType()
+        self.__snapshot_manager = manager_type(self.__model_part, parameters["snapshot_parameters"])
 
-    @property
-    def snapshot_type(self) -> type:
-        return self.__snapshot_type
+        # Construct predicates
+        self.__write_predicate: typing.Callable[[KratosMultiphysics.Model],bool] = KratosMultiphysics.Registry[parameters["write_predicate"]["type"]](
+            parameters["write_predicate"]["parameters"])
+        self.__checkpoint_selector: CheckpointSelector = KratosMultiphysics.Registry[parameters["checkpoint_selector"]["type"]](
+            parameters["checkpoint_selector"]["parameters"])
 
-    def CheckCondition(self) -> bool:
-        return self.__condition(self.model_part)
 
-    def _GetCurrentPathID(self) -> int:
-        """@brief Determine which analysis path is currently active."""
-        # TODO
+    def ExecuteInitializeSolutionStep(self) -> None:
+        """@brief Load data from a checkpoint if the checkpoint selector returns an ID."""
+        checkpoint_id = self.__checkpoint_selector(self.__model)
+        if checkpoint_id is not None:
+            checkpoint_begin = checkpoint_id.GetStep() - self.__model_part.GetBufferSize() + 1
+            checkpoint_end = checkpoint_id.GetStep() + 1
+            snapshots: "list[Snapshot]" = []
+            for step in range(checkpoint_begin, checkpoint_end):
+                id = WRApp.CheckpointID(step, checkpoint_id.GetAnalysisPath())
+                snapshots.append(self.__snapshot_manager.Get(id))
 
-    @abc.abstractmethod
-    def _CreateSnapshot(self) -> Snapshot:
-        pass
+            Checkpoint(snapshots).Load(self.__model_part)
 
-    @staticmethod
-    def GetDefaultParameters() -> KratosMultiphysics.Parameters:
-        return KratosMultiphysics.Parameters("""{
+
+    def ExecuteFinalizeSolutionStep(self) -> None:
+        """@brief Write a new snapshot if the write predicate returns true."""
+        if self.__write_predicate(self.__model):
+            self.__snapshot_manager.Add(self.__model_part)
+
+
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        output = KratosMultiphysics.Parameters(R"""{
             "model_part_name" : "",
-            "checkpoint_settings" : {
-                "prefix" : "",
-                "io_condition" : {
-                    "import_module" : "KratosMultiphysics.WRApplication.Checkpoint",
-                    "import_name" : "ConstantCondition",
-                    "value" : true
-                },
-                "snapshot_settings" : {
-                    "import_module" : "KratosMultiphysics.WRApplication.Checkpoint",
-                    "import_name" : "SnapshotOnDisk",
-                    "file_settings" : {
-                        "file_name" : "checkpoints/<model_part_name>_snapshot_<path_id>_<step>.h5",
-                        "file_access_mode" : "read_write",
-                        "echo_level" : 0
-                    }
-                }
+            "snapshot_type" : "Snapshot.HDF5Snapshot",
+            "snapshot_parameters" : {},
+            "write_predicate" : {
+                "type" : "PipedModelPredicate.ConstModelPredicate",
+                "parameters" : [
+                    {"value" : true}
+                ]
+            },
+            "checkpoint_selector" : {
+                "type" : "CheckpointSelector.DefaultCheckpointSelector",
+                "parameters" : []
             }
         }""")
 
+        # Populate nested defaults
+        snapshot_type: typing.Type[Snapshot] = KratosMultiphysics.Registry[output["snapshot_type"].GetString()]
+        manager_type = snapshot_type.GetManagerType()
+        output["snapshot_parameters"] = manager_type.GetDefaultParameters()
 
-class CheckpointOutputProcess(KratosMultiphysics.OutputProcess, CheckpointProcessBase):
-    """@brief A process for writing checkpoints."""
+        return output
 
-    def IsOutputStep(self) -> bool:
-        return self.CheckCondition()
 
-    def PrintOutput(self) -> None:
-        self._CreateSnapshot().Write(self.model_part)
 
-    def _CreateSnapshot(self) -> Snapshot:
-        path_id = self._GetCurrentPathID()
-        step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-        return self.snapshot_type(path_id, step, output_parameters = self.parameters["checkpoint_settings"]["snapshot_settings"]["file_settings"])
-
-    @staticmethod
-    def GetDefaultParameters() -> KratosMultiphysics.Parameters:
-        parameters = CheckpointProcessBase.GetDefaultParameters()
-        parameters["checkpoint_settings"]["snapshot_settings"]["file_settings"]["file_access_mode"].SetString("truncate")
-        return parameters
-
+def Factory(parameters: KratosMultiphysics.Parameters,
+            model: KratosMultiphysics.Model) -> "CheckpointProcess":
+    return CheckpointProcess(model, parameters)
