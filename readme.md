@@ -29,7 +29,7 @@ add_app("path_to_the_cloned_repo")
 ...
 ```
 
-*Note this application requires a few extra commits that have been in limbo in the KratosMultiphysics repository. Use the ['wrapp' branch of this fork](https://github.com/matekelemen/kratos/tree/wrapp) instead.*
+*Note this application requires a few extra commits that have been in limbo in the KratosMultiphysics repository. Use the ['wrapp' branch](https://github.com/kratosmultiphysics/kratos/tree/wrapp) instead.*
 
 # <a name="checkpointing"></a> Checkpointing
 
