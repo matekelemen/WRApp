@@ -36,7 +36,7 @@ jobs:
         run: |
           git add -f .
           git commit -m "update docs"
-          git push -f https://$USER_NAME:$GITHUB_TOKEN@github.com/matekelemen/WRApplication.git doc
+          git push -f https://$USER_NAME:$GITHUB_TOKEN@github.com/matekelemen/WRApp.git doc
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           USER_NAME: matekelemen
