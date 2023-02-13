@@ -11,6 +11,7 @@
 #include <vector>
 #include <map>
 #include <filesystem>
+#include <optional>
 
 
 namespace Kratos {
@@ -123,7 +124,7 @@ public:
 
     using PlaceholderMap = std::map<std::string,std::string>;
 
-    using PlaceholderGroupMap = std::map<std::string,std::vector<std::size_t>>;
+    using PlaceholderGroupMap = std::map<std::string,std::optional<std::vector<std::size_t>>>;
 
     using MatchType = std::map<std::string,std::vector<std::string>>;
 
@@ -229,7 +230,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    /// Escape characters in the input that interfere with regex syntax
+    /// @brief Escape characters in the input that interfere with regex syntax.
     static std::string FormatRegexLiteral(const std::string& rLiteral);
 
     ///@}

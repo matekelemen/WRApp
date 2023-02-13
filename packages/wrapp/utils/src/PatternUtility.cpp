@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
+#include <algorithm>
 
 
 namespace Kratos {
@@ -122,23 +123,22 @@ PlaceholderPattern::PlaceholderPattern(const std::string& rPattern,
     // Populate the placeholder - group index map
     for (auto it_pair=rPlaceholderMap.begin() ; it_pair!=it_end; ++it_pair) {
         // Move the placeholder string and construct an associated empty index array
-        auto emplace_result = mPlaceholderGroupMap.emplace(it_pair->first, PlaceholderGroupMap::mapped_type());
+        auto emplace_result = mPlaceholderGroupMap.emplace(it_pair->first, PlaceholderGroupMap::mapped_type(
+            PlaceholderGroupMap::mapped_type::value_type()
+        ));
 
         // Fill the index array with the group indices
         for (const auto& r_pair : position_map) {
-            if (r_pair.second == it_pair) emplace_result.first->second.push_back(r_pair.first);
+            if (r_pair.second == it_pair) emplace_result.first->second.value().push_back(r_pair.first);
         }
     }
 
-    // Remove placeholders that aren't in the pattern
-    auto it_erase = mPlaceholderGroupMap.begin();
-    while (it_erase!=mPlaceholderGroupMap.end()) {
-        if (it_erase->second.empty()) {
-            it_erase = mPlaceholderGroupMap.erase(it_erase);
-        } else {
-            ++it_erase;
-        }
-    }
+    // Disable placeholders that aren't in the pattern
+    for (auto& r_pair : mPlaceholderGroupMap) {
+        if (r_pair.second.value().empty()) {
+            r_pair.second = PlaceholderGroupMap::mapped_type();
+        } // if placeholder was not found in the pattern
+    } // for key, value in mPlaceholderGroupMap
 
     // Construct the regex
     mRegexString = "^" + mRegexString + "$";
@@ -168,20 +168,22 @@ PlaceholderPattern::MatchType PlaceholderPattern::Match(const std::string& rStri
     // Perform regex search and extract matches
     if (std::regex_match(rString, results, mRegex)) {
         for (auto& r_pair : mPlaceholderGroupMap) {
-            // Construct empty group matches
-            auto emplace_result = output.emplace(r_pair.first, MatchType::value_type::second_type());
+            if (r_pair.second.has_value()) {
+                // Construct empty group matches
+                auto emplace_result = output.emplace(r_pair.first, MatchType::value_type::second_type());
 
-            // Collect matches for the current placeholder
-            for (auto i_group : r_pair.second) {
-                // First match (index 0) is irrelevant because it's the entire pattern,
-                // the rest is offset by 1
-                const auto i_group_match = i_group + 1;
+                // Collect matches for the current placeholder
+                for (auto i_group : r_pair.second.value()) {
+                    // First match (index 0) is irrelevant because it's the entire pattern,
+                    // the rest is offset by 1
+                    const auto i_group_match = i_group + 1;
 
-                if (!results.str(i_group_match).empty()) {
-                    emplace_result.first->second.push_back(results.str(i_group_match));
-                }
-            } // for i_group
-        } // for placeholder, group_indices
+                    if (!results.str(i_group_match).empty()) {
+                        emplace_result.first->second.push_back(results.str(i_group_match));
+                    }
+                } // for i_group
+            } // for placeholder, group_indices
+        } // if group_indices is not None
     } /*if regex_match*/ else {
         KRATOS_ERROR << "'" << rString << "' is not a match for '" << this->GetRegexString() << "'";
     }
@@ -197,17 +199,24 @@ std::string PlaceholderPattern::Apply(const PlaceholderMap& rPlaceholderValueMap
     KRATOS_TRY
 
     auto output = mPattern;
+    const auto it_group_map_end = mPlaceholderGroupMap.end();
 
     for (const auto& r_pair : rPlaceholderValueMap) {
-        KRATOS_ERROR_IF(mPlaceholderGroupMap.find(r_pair.first)==mPlaceholderGroupMap.end()) << r_pair.first << " is not a registered placeholder in " << mPattern;
-        while (true) {
-            auto position = output.find(r_pair.first);
-            if (position != output.npos) {
-                output.replace(position, r_pair.first.size(), r_pair.second);
-            } else {
-                break;
-            }
-        } // while placeholder in output
+        auto it_pair = mPlaceholderGroupMap.find(r_pair.first);
+        if (it_pair != it_group_map_end) {
+            if (it_pair->second.has_value()) {
+                while (true) {
+                    auto position = output.find(r_pair.first);
+                    if (position != output.npos) {
+                        output.replace(position, r_pair.first.size(), r_pair.second);
+                    } else {
+                        break;
+                    }
+                } // while placeholder in output
+            } // if placeholder in pattern
+        } else {
+            KRATOS_ERROR << r_pair.first << " is not a registered placeholder in " << mPattern;
+        } // unrecognized placeholder
     } // for placeholder, value in map
 
     return output;
@@ -218,7 +227,11 @@ std::string PlaceholderPattern::Apply(const PlaceholderMap& rPlaceholderValueMap
 
 bool PlaceholderPattern::IsConst() const
 {
-    return mPlaceholderGroupMap.empty();
+    return std::none_of(mPlaceholderGroupMap.begin(),
+                        mPlaceholderGroupMap.end(),
+                        [](const auto& rPair) {
+                            return rPair.second.has_value();
+                        });
 }
 
 
