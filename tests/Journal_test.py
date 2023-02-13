@@ -6,7 +6,6 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 # --- WRApplication Imports ---
 import KratosMultiphysics.WRApplication as WRApp
-from KratosMultiphysics.WRApplication import TestCase
 
 # --- STD Imports ---
 import pathlib
