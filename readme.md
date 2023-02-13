@@ -150,9 +150,10 @@ from .RegisteredClass import *
 ...
 ```
 
-Registered classes are accessible under their full inheritance tree, with `WRAppClass` replaced by `WRApplication`:
+Registered classes are accessible in a dictionary under `WRApplication`, followed by their inheritance sequence after `WRAppClass`:
 ```py
-registered_sub_type = KratosMultiphysics.Registry["WRApplication.Registered.RegisteredSub"]
+registered_dict = KratosMultiphysics.Registry["WRApplication.Registered.RegisteredSub"] # <== {"type" : RegisteredSub}
+registered_sub_type = registered_dict["type"] # <== RegisteredSub
 ```
 
 **C++ classes** are also automatically registered in the python `Registry` if they are exposed via `pybind` and inherit from the C++ `WRAppClass`. Note that intermediate base classes will only appear on their access path if those intermediates are also exposed to python.
