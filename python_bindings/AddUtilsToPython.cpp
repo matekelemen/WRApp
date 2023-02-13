@@ -7,7 +7,9 @@
 #include "includes/kratos_components.h"
 
 // --- WRApplication Includes ---
+#include "pybind11/pybind11.h"
 #include "wrapp/utils/inc/AddUtilsToPython.hpp"
+#include "wrapp/utils/inc/WRAppClass.hpp"
 #include "wrapp/utils/inc/PatternUtility.hpp"
 #include "wrapp/utils/inc/TestingUtilities.hpp"
 #include "wrapp/utils/inc/MapKeyRange.hpp"
@@ -23,6 +25,21 @@ namespace Kratos::Python {
 
 
 namespace {
+
+
+/// @brief Trampoline class for binding pure virtual @ref WRAppClass.
+struct WRAppClassTrampoline : WRApp::WRAppClass
+{
+    Parameters GetDefaultParameters() const override
+    {
+        using WRAppClass = WRApp::WRAppClass;
+        PYBIND11_OVERRIDE_PURE(
+            Parameters,
+            WRAppClass,
+            GetDefaultParameters
+        );
+    }
+}; // struct WRAppClassTrampoline
 
 
 /// @brief Collect globbed paths to an array of strings.
@@ -53,6 +70,11 @@ void AddUtilsToPython(pybind11::module& rModule)
     rModule.def("GetGlobalFlagNames",
                 GetComponentNames<Flags>,
                 "Get a list of all registered global flag names.");
+
+    pybind11::class_<WRApp::WRAppClass, WRApp::WRAppClass::Pointer, WRAppClassTrampoline>(rModule, "WRAppClass")
+        .def(pybind11::init<>())
+        .def("GetDefaultParameters", &WRApp::WRAppClass::GetDefaultParameters)
+        ;
 
     pybind11::class_<PlaceholderPattern, PlaceholderPattern::Pointer>(rModule, "PlaceholderPattern")
         .def(pybind11::init<const std::string&,const PlaceholderPattern::PlaceholderMap&>())
