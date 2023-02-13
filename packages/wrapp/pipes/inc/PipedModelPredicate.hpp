@@ -2,9 +2,10 @@
 
 #pragma once
 
-// --- WRApplication Includes ---
+// --- WRApp Includes ---
 #include "basic_pipes.hpp"
 #include "wrapp/pipes/inc/basic_pipes.hpp"
+#include "wrapp/utils/inc/WRAppClass.hpp"
 
 // --- Core Includes ---
 #include "includes/smart_pointers.h"
@@ -18,7 +19,10 @@ namespace Kratos::WRApp {
 
 
 template <class TPipe>
-class KRATOS_API(WR_APPLICATION) PipedModelPredicate : public ModelPredicate, public Pipes::Traits<const Model&, bool>
+class KRATOS_API(WR_APPLICATION) PipedModelPredicate
+    : public ModelPredicate,
+      public Pipes::Traits<const Model&, bool>,
+      public WRAppClass
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PipedModelPredicate);
@@ -38,6 +42,9 @@ public:
     bool operator()(const Model& rModel) const override
     {return mPipe(rModel);}
 
+    virtual Parameters GetDefaultParameters() const override
+    {return TPipe::GetDefaultParameters();}
+
 private:
     TPipe mPipe;
 }; // class PipedModelPredicate
@@ -52,7 +59,9 @@ private:
  *           ]
  *           @endcode
  */
-using ConstModelPredicate = PipedModelPredicate<Pipes::ConstPredicate<const Model&>>;
+using ConstModelPredicate = PipedModelPredicate<Pipes::SingleSegmentPipeline<
+    Pipes::ConstPredicate<const Model&>
+>>;
 
 
 /**
