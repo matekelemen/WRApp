@@ -5,7 +5,6 @@ import KratosMultiphysics
 
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
-from ..WRAppClass import WRAppClass
 from .Snapshot import Snapshot
 from .Checkpoint import Checkpoint
 
@@ -14,12 +13,12 @@ import abc
 import typing
 
 
-class CheckpointSelector(WRAppClass):
+class CheckpointSelector(WRApp.WRAppClass):
     """@brief A functor taking a @ref Model and returning a @ref CheckpointID to load or @a None.
        @note A C++ bound selector should return an @a std::optional<CheckpointID>."""
 
     def __init__(self, _: KratosMultiphysics.Parameters):
-        pass
+        super().__init__()
 
     @abc.abstractmethod
     def __call__(self, model: KratosMultiphysics.Model) -> typing.Union[WRApp.CheckpointID,None]:
@@ -39,34 +38,31 @@ class DefaultCheckpointSelector(CheckpointSelector):
 
 
 
-# Resolve metaclass conflicts
-if type(KratosMultiphysics.Process) != type(abc.ABC):
-    class ProcessABC(type(abc.ABC), type(KratosMultiphysics.Process)): pass
-else:
-    class ProcessABC(type(KratosMultiphysics.Process)): pass
-
-
-
-class CheckpointProcess(KratosMultiphysics.Process):
+class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass = WRApp.WRAppMeta):
     """ @brief Main interface process for checkpointing.
         """
 
     def __init__(self,
                  model: KratosMultiphysics.Model,
                  parameters: KratosMultiphysics.Parameters):
+        KratosMultiphysics.Process.__init__(self)
+        WRApp.WRAppClass.__init__(self)
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.__model = model
         self.__model_part = self.__model.GetModelPart(parameters["model_part_name"].GetString())
 
         # Snapshot setup
-        snapshot_type: typing.Type[Snapshot] = KratosMultiphysics.Registry[parameters["snapshot_type"].GetString()]
+        snapshot_type: typing.Type[Snapshot] = KratosMultiphysics.Registry[parameters["snapshot_type"].GetString()]["type"]
         manager_type = snapshot_type.GetManagerType()
         self.__snapshot_manager = manager_type(self.__model_part, parameters["snapshot_parameters"])
 
-        # Construct predicates
-        self.__write_predicate: typing.Callable[[KratosMultiphysics.Model],bool] = KratosMultiphysics.Registry[parameters["write_predicate"]["type"]](
+        # Construct logic functors
+        predicate_type = KratosMultiphysics.Registry[parameters["write_predicate"]["type"].GetString()]["type"]
+        self.__write_predicate: typing.Callable[[KratosMultiphysics.Model],bool] = predicate_type(
             parameters["write_predicate"]["parameters"])
-        self.__checkpoint_selector: CheckpointSelector = KratosMultiphysics.Registry[parameters["checkpoint_selector"]["type"]](
+
+        selector_type = KratosMultiphysics.Registry[parameters["checkpoint_selector"]["type"].GetString()]["type"]
+        self.__checkpoint_selector: CheckpointSelector = selector_type(
             parameters["checkpoint_selector"]["parameters"])
 
 
@@ -94,22 +90,22 @@ class CheckpointProcess(KratosMultiphysics.Process):
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         output = KratosMultiphysics.Parameters(R"""{
             "model_part_name" : "",
-            "snapshot_type" : "Snapshot.HDF5Snapshot",
+            "snapshot_type" : "WRApplication.Snapshot.SnapshotOnDisk.HDF5Snapshot",
             "snapshot_parameters" : {},
             "write_predicate" : {
-                "type" : "PipedModelPredicate.ConstModelPredicate",
+                "type" : "WRApplication.ConstModelPredicate",
                 "parameters" : [
                     {"value" : true}
                 ]
             },
             "checkpoint_selector" : {
-                "type" : "CheckpointSelector.DefaultCheckpointSelector",
+                "type" : "WRApplication.CheckpointSelector.DefaultCheckpointSelector",
                 "parameters" : []
             }
         }""")
 
         # Populate nested defaults
-        snapshot_type: typing.Type[Snapshot] = KratosMultiphysics.Registry[output["snapshot_type"].GetString()]
+        snapshot_type: typing.Type[Snapshot] = KratosMultiphysics.Registry[output["snapshot_type"].GetString()]["type"]
         manager_type = snapshot_type.GetManagerType()
         output["snapshot_parameters"] = manager_type.GetDefaultParameters()
 

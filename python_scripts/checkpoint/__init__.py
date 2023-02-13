@@ -7,4 +7,4 @@ from .HDF5Snapshot import *
 
 from .Checkpoint import *
 
-from .processes import *
+from .CheckpointProcess import *
