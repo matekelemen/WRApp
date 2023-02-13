@@ -34,7 +34,7 @@ jobs:
         run: echo "<meta http-equiv=\"refresh\" content=\"0; docs/html/index.html\">" > index.html
       - name: Update remote
         run: |
-          git add .
+          git add -f .
           git commit -m "update docs"
           git push -f https://$USER_NAME:$GITHUB_TOKEN@github.com/matekelemen/WRApplication.git doc
         env:
