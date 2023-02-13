@@ -128,7 +128,7 @@ class Manager(SnapshotManager):
         """@brief Perform init checks to avoid overwriting snapshots."""
         # Require snapshots to have unique paths or prefixes
         # (prevent overwriting older snapshots)
-        unique_prefix = self.__prefix_pattern.IsConst()
+        unique_prefix = not self.__prefix_pattern.IsConst()
         if not (self.__enable_erase or unique_prefix):
             raise ValueError(f"'snapshot_path' or 'prefix' must be a pattern, otherwise snapshots can get overwritten\n{self._parameters}")
 
