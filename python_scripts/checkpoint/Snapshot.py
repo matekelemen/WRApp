@@ -227,7 +227,7 @@ class SnapshotOnDisk(Snapshot):
 
 
     @classmethod
-    def FromModelPart(derived_class: typing.Type["SnapshotOnDisk"],
+    def FromModelPart(cls: typing.Type["SnapshotOnDisk"],
                       model_part: KratosMultiphysics.ModelPart,
                       input_parameters: KratosMultiphysics.Parameters = None,
                       output_parameters: KratosMultiphysics.Parameters = None) -> "SnapshotOnDisk":
@@ -239,16 +239,16 @@ class SnapshotOnDisk(Snapshot):
         analysis_path = model_part.ProcessInfo[WRApp.ANALYSIS_PATH]
 
         if input_parameters is None:
-            input_parameters = derived_class.GetInputType().GetDefaultParameters()
+            input_parameters = cls.GetInputType().GetDefaultParameters()
             input_parameters["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
 
         if output_parameters is None:
-            output_parameters = derived_class.GetOutputType().GetDefaultParameters()
+            output_parameters = cls.GetOutputType().GetDefaultParameters()
             output_parameters["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
 
-        return derived_class(WRApp.CheckpointID(step, analysis_path),
-                             input_parameters,
-                             output_parameters)
+        return cls(WRApp.CheckpointID(step, analysis_path),
+                   input_parameters,
+                   output_parameters)
 
 
     @classmethod
