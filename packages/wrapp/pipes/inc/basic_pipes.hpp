@@ -43,6 +43,8 @@ public:
     const ModelPart& operator()(const Model& rModel) const
     {return rModel.GetModelPart(mModelPartName);}
 
+    static Parameters GetDefaultParameters();
+
 private:
     std::string mModelPartName;
 }; // class ModelPartFromModel
@@ -62,6 +64,8 @@ struct ProcessInfoFromModelPart : public Traits<const ModelPart&, const ProcessI
 
     const ProcessInfo& operator()(const ModelPart& rModelPart) const
     {return rModelPart.GetProcessInfo();}
+
+    static Parameters GetDefaultParameters();
 }; // struct ProcessInfoFromModelPart
 
 
@@ -89,6 +93,8 @@ public:
         KRATOS_ERROR_IF_NOT(bool(mVariable)) << "uninitialized variable in VariableFromProcessInfo";
         return rProcessInfo[mVariable.value().get()];
     }
+
+    static Parameters GetDefaultParameters();
 
 private:
     std::optional<std::reference_wrapper<const TVariable>> mVariable;
@@ -142,6 +148,8 @@ public:
     bool operator()(TValue Value) const
     {return mInterval.IsInInterval(Value);}
 
+    static Parameters GetDefaultParameters();
+
 private:
     WRApp::Detail::IntervalUtility<TValue> mInterval;
 }; // class IntervalPredicate
@@ -172,6 +180,8 @@ public:
         }
     }
 
+    static Parameters GetDefaultParameters();
+
 private:
     TValue mModulo;
 }; // class Modulo
@@ -196,6 +206,8 @@ public:
 
     bool operator()(TInput) const noexcept
     {return mValue;}
+
+    static Parameters GetDefaultParameters();
 
 private:
     bool mValue;

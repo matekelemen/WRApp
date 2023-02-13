@@ -3,7 +3,6 @@
 #pragma once
 
 // --- WRApplication Includes ---
-// Included from "custom_utilities/pipe.hpp"
 #include "wrapp/pipes/inc/pipe.hpp" // unnecessary include to get language servers working
 
 
@@ -112,6 +111,19 @@ private:
         ++rSubParamOffset;
     }
 
+    template <class TCompoundPipe, typename Dummy<decltype(TCompoundPipe::mInputPipe)>::Type = 0>
+    static void PopulateDefaultParameters(Parameters& rParameters, TCompoundPipe* p_dummy, Compound)
+    {
+        Factory<typename TCompoundPipe::InputPipe>::PopulateDefaultParameters(rParameters);
+        Factory<typename TCompoundPipe::OutputPipe>::PopulateDefaultParameters(rParameters);
+    }
+
+    template <class TSimplePipe>
+    static void PopulateDefaultParameters(Parameters& rParameters, TSimplePipe* p_dummy, Simple)
+    {
+        rParameters.Append(TSimplePipe::GetDefaultParameters());
+    }
+
     /**
      *  @brief Pipe factory for simple or compound pipes.
      *  @param[in] rParameters: @ref Parameters consisting of an array of subparameters to
@@ -146,6 +158,16 @@ public:
         KRATOS_ERROR_IF_NOT(rParameters.IsArray()) << "Expecting an array of subparameters, but got " << rParameters;
         std::size_t sub_param_offset = 0;
         return Factory::Make(rParameters, sub_param_offset);
+    }
+
+    static void PopulateDefaultParameters(Parameters& rParameters)
+    {
+        TPipe* p_dummy = nullptr;
+        Factory::PopulateDefaultParameters(
+            rParameters,
+            p_dummy, // dummy pointer to make SFINAE work
+            Compound() // assume a compound pipe, the compiler will cast it up to Simple if that's not the case
+        );
     }
 }; // struct Factory
 
@@ -187,6 +209,16 @@ CompoundPipe<TInputPipe,TOutputPipe>::operator()(typename CompoundPipe::InputTyp
 }
 
 
+template <class TInputPipe, class TOutputPipe>
+inline Parameters
+CompoundPipe<TInputPipe,TOutputPipe>::GetDefaultParameters() noexcept
+{
+    Parameters parameters("[]");
+    Detail::Factory<CompoundPipe>::PopulateDefaultParameters(parameters);
+    return parameters;
+}
+
+
 template <class TInputPipe,
           class TOutputPipe,
           std::enable_if_t<
@@ -208,6 +240,30 @@ template <class TInputPipe,
 CompoundPipe<TInputPipe,TOutputPipe> operator|(const TInputPipe& rInputPipe, const TOutputPipe& rOutputPipe)
 {
     return CompoundPipe<TInputPipe,TOutputPipe>(rInputPipe, rOutputPipe);
+}
+
+
+template <class TPipe>
+SingleSegmentPipeline<TPipe>::SingleSegmentPipeline(const Parameters& rParameters)
+    : mPipe(rParameters.GetArrayItem(0))
+{
+}
+
+
+template <class TPipe>
+typename TPipe::OutputType
+SingleSegmentPipeline<TPipe>::operator()(typename TPipe::InputType input) const
+{
+    return mPipe(input);
+}
+
+
+template <class TPipe>
+Parameters SingleSegmentPipeline<TPipe>::GetDefaultParameters()
+{
+    Parameters parameters("[]");
+    parameters.Append(TPipe::GetDefaultParameters());
+    return parameters;
 }
 
 

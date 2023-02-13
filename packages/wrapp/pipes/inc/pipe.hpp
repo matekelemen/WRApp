@@ -159,6 +159,9 @@ public:
     /// @brief Feed the result of the input pipe into the output pipe.
     typename CompoundPipe::OutputType operator()(typename CompoundPipe::InputType Input) const;
 
+    /// @brief Return an array of subparameters, containing the defaults for each pipe segment in order.
+    static Parameters GetDefaultParameters() noexcept;
+
 private:
     template <class>
     friend class Detail::Factory;
@@ -187,6 +190,28 @@ template <class TInputPipe,
             bool> = true
           >
 CompoundPipe<TInputPipe,TOutputPipe> operator|(const TInputPipe& rInputPipe, const TOutputPipe& rOutputPipe);
+
+
+/// @brief An adaptor class for pipelines consisting of a single segment.
+template <class TPipe>
+class SingleSegmentPipeline : public Traits<typename TPipe::InputType,typename TPipe::OutputType>
+{
+public:
+    SingleSegmentPipeline() = default;
+
+    SingleSegmentPipeline(SingleSegmentPipeline&& rOther) noexcept = default;
+
+    SingleSegmentPipeline(const SingleSegmentPipeline& rOther) = default;
+
+    SingleSegmentPipeline(const Parameters& rParameters);
+
+    typename TPipe::OutputType operator()(typename TPipe::InputType input) const;
+
+    static Parameters GetDefaultParameters();
+
+private:
+    TPipe mPipe;
+}; // class SingleSegmentPipeline
 
 
 /// @brief Convenience type alias for complex pipes.

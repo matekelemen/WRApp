@@ -34,6 +34,18 @@ ModelPartFromModel::ModelPartFromModel(const Parameters& rParameters)
 }
 
 
+Parameters ModelPartFromModel::GetDefaultParameters()
+{
+    return Parameters(R"({"model_part_name" : ""})");
+}
+
+
+Parameters ProcessInfoFromModelPart::GetDefaultParameters()
+{
+    return Parameters();
+}
+
+
 TimeFromProcessInfo::TimeFromProcessInfo()
     : VariableFromProcessInfo<decltype(TIME)>(TIME)
 {
@@ -81,6 +93,13 @@ ConstPredicate<TInput>::ConstPredicate(const Parameters& rParameters)
         << rParameters;
 
     this->mValue = rParameters["value"].Get<bool>();
+}
+
+
+template <class TInput>
+Parameters ConstPredicate<TInput>::GetDefaultParameters()
+{
+    return Parameters(R"({"value" : false})");
 }
 
 

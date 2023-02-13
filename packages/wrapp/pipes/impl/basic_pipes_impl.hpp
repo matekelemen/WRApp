@@ -23,6 +23,13 @@ VariableFromProcessInfo<TVariable>::VariableFromProcessInfo(const Parameters& rP
 }
 
 
+template <class TVariable>
+Parameters VariableFromProcessInfo<TVariable>::GetDefaultParameters()
+{
+    return Parameters();
+}
+
+
 template <class TValue>
 IntervalPredicate<TValue>::IntervalPredicate(TValue Begin, TValue End)
     : mInterval(Begin, End)
@@ -34,6 +41,13 @@ template <class TValue>
 IntervalPredicate<TValue>::IntervalPredicate(const Parameters& rParameters)
     : mInterval(rParameters)
 {
+}
+
+
+template <class TValue>
+Parameters IntervalPredicate<TValue>::GetDefaultParameters()
+{
+    return WRApp::Detail::IntervalUtility<TValue>::GetDefaultParameters();
 }
 
 
@@ -58,6 +72,15 @@ template <>
 inline double Modulo<double>::operator()(double Value) const
 {
     return std::fmod(Value, mModulo);
+}
+
+
+template <class TValue>
+Parameters Modulo<TValue>::GetDefaultParameters()
+{
+    Parameters parameters(R"({"mod" : 0})");
+    parameters["mod"].Set<TValue>(std::numeric_limits<TValue>::max());
+    return parameters;
 }
 
 
