@@ -19,25 +19,25 @@ namespace Kratos::WRApp {
 
 
 template <class TPipe>
-class KRATOS_API(WR_APPLICATION) PipedModelPredicate
+class KRATOS_API(WR_APPLICATION) ModelPredicatePipe
     : public ModelPredicate,
       public Pipes::Traits<const Model&, bool>,
       public WRAppClass
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(PipedModelPredicate);
+    KRATOS_CLASS_POINTER_DEFINITION(ModelPredicatePipe);
 
-    PipedModelPredicate()
+    ModelPredicatePipe()
         : mPipe()
     {}
 
-    PipedModelPredicate(const Parameters& rParameters)
+    ModelPredicatePipe(const Parameters& rParameters)
         : mPipe(rParameters)
     {}
 
-    PipedModelPredicate(PipedModelPredicate&& rOther) noexcept = default;
+    ModelPredicatePipe(ModelPredicatePipe&& rOther) noexcept = default;
 
-    PipedModelPredicate(const PipedModelPredicate& rOther) = default;
+    ModelPredicatePipe(const ModelPredicatePipe& rOther) = default;
 
     bool operator()(const Model& rModel) const override
     {return mPipe(rModel);}
@@ -47,7 +47,7 @@ public:
 
 private:
     TPipe mPipe;
-}; // class PipedModelPredicate
+}; // class ModelPredicatePipe
 
 
 /** @brief Always returns the boolean value it was constructed with, regardless of the input @ref Model.
@@ -59,7 +59,7 @@ private:
  *           ]
  *           @endcode
  */
-using ConstModelPredicate = PipedModelPredicate<Pipes::SingleSegmentPipeline<
+using ConstModelPredicate = ModelPredicatePipe<Pipes::SingleSegmentPipeline<
     Pipes::ConstPredicate<const Model&>
 >>;
 
@@ -76,7 +76,7 @@ using ConstModelPredicate = PipedModelPredicate<Pipes::SingleSegmentPipeline<
  *           @endcode
  *  @note See @ref IntervalUtility for details.
  */
-using TimeIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
+using TimeIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
     Pipes::ModelPartFromModel,
     Pipes::ProcessInfoFromModelPart,
     Pipes::TimeFromProcessInfo,
@@ -98,7 +98,7 @@ using TimeIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
  *
  *  @note See @ref DiscreteIntervalUtility for details.
  */
-using StepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
+using StepIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
     Pipes::ModelPartFromModel,
     Pipes::ProcessInfoFromModelPart,
     Pipes::StepFromProcessInfo,
@@ -128,7 +128,7 @@ using StepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
  *
  *  @note See @ref IntervalUtility for details.
  */
- using PeriodicTimeIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
+ using PeriodicTimeIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
     Pipes::ModelPartFromModel,
     Pipes::ProcessInfoFromModelPart,
     Pipes::TimeFromProcessInfo,
@@ -159,7 +159,7 @@ using StepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
  *
  *  @note See @ref DiscreteIntervalUtility for details.
  */
- using PeriodicStepIntervalPredicate = PipedModelPredicate<Pipes::Pipeline<
+ using PeriodicStepIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
     Pipes::ModelPartFromModel,
     Pipes::ProcessInfoFromModelPart,
     Pipes::StepFromProcessInfo,

@@ -2,7 +2,7 @@
 
 // --- WRApplication Includes ---
 #include "wrapp/pipes/inc/AddPipesToPython.hpp"
-#include "wrapp/pipes/inc/PipedModelPredicate.hpp"
+#include "wrapp/pipes/inc/ModelPredicatePipe.hpp"
 
 
 namespace Kratos::Python {

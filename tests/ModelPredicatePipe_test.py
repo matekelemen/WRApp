@@ -6,7 +6,7 @@ from KratosMultiphysics.KratosUnittest import TestCase, main
 import KratosMultiphysics.WRApplication as WRApp
 
 
-class TestPipedModelPredicates(WRApp.TestCase):
+class TestModelPredicatePipes(WRApp.TestCase):
 
     @staticmethod
     def __GetModel() -> "tuple[KratosMultiphysics.Model, KratosMultiphysics.ModelPart]":
