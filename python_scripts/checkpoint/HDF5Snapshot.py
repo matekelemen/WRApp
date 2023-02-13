@@ -40,7 +40,7 @@ class Manager(SnapshotManager):
 
         # Set up IO parameters
         self.__input_parameters = HDF5Snapshot.GetInputType().GetDefaultParameters()
-        self.__output_parameters = HDF5Snapshot.GetInputType().GetDefaultParameters()
+        self.__output_parameters = HDF5Snapshot.GetOutputType().GetDefaultParameters()
         for io in (self.__input_parameters, self.__output_parameters):
             io["prefix"].SetString(prefix_pattern_string)
             io["io_settings"]["file_name"].SetString(path_pattern_string)
