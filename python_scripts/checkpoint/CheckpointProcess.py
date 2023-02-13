@@ -17,7 +17,7 @@ class CheckpointSelector(WRApp.WRAppClass):
     """@brief A functor taking a @ref Model and returning a @ref CheckpointID to load or @a None.
        @note A C++ bound selector should return an @a std::optional<CheckpointID>."""
 
-    def __init__(self, _: KratosMultiphysics.Parameters):
+    def __init__(self, *args):
         super().__init__()
 
     @abc.abstractmethod
@@ -29,8 +29,8 @@ class CheckpointSelector(WRApp.WRAppClass):
 class DefaultCheckpointSelector(CheckpointSelector):
     """@brief Always returns @a None, i.e. never loads checkpoints."""
 
-    def __init__(self, parameters: KratosMultiphysics.Parameters):
-        super().__init__(parameters)
+    def __init__(self, *args):
+        super().__init__(*args)
 
 
     def __call__(self, model: KratosMultiphysics.Model) -> None:
