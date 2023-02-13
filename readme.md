@@ -1,4 +1,5 @@
 # <a name="table-of-contents"></a> Table of Contents
+- [Setup](#setup)
 - [Checkpointing](#checkpointing)
   - [Purpose](#checkpointing.purpose)
   - [Definitions](#checkpointing.definitions)
