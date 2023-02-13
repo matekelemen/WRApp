@@ -5,13 +5,14 @@
 // --- Core Includes ---
 #include "includes/kratos_parameters.h"
 #include "includes/smart_pointers.h"
+#include "includes/kratos_export_api.h"
 
 
 namespace Kratos::WRApp {
 
 
 /// @brief Dummy base class for registering and exporting exposed classes in @a WRApplication.
-struct WRAppClass
+struct KRATOS_API(WR_APPLICATION) WRAppClass
 {
     KRATOS_CLASS_POINTER_DEFINITION(WRAppClass);
 
