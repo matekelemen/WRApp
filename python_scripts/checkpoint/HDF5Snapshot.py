@@ -26,7 +26,7 @@ class Manager(SnapshotManager):
         raw_path_pattern = WRApp.CheckpointPattern(parameters["snapshot_path"].GetString())
         raw_prefix_pattern = WRApp.CheckpointPattern(parameters["prefix"].GetString())
         partial_map = {"<model_part_name>" : model_part.Name,
-                       "<rank>" : model_part.GetCommunicator().GetDataCommunicator().GetRank()}
+                       "<rank>" : str(model_part.GetCommunicator().GetDataCommunicator().Rank())}
         path_pattern_string = raw_path_pattern.Apply(partial_map)
         prefix_pattern_string = raw_prefix_pattern.Apply(partial_map)
         self.__path_pattern = WRApp.CheckpointPattern(path_pattern_string)
@@ -63,7 +63,7 @@ class Manager(SnapshotManager):
 
     def Add(self, model_part: KratosMultiphysics.ModelPart) -> None:
         # Mutating operations on the journal can only be executed on the main rank
-        if model_part.GetCommunicator().GetDataCommunicator().GetRank() == 0:
+        if model_part.GetCommunicator().GetDataCommunicator().Rank() == 0:
             if self.__check_duplicates: # <== check whether a snapshot with the current ID exists
                 id = WRApp.CheckpointID(model_part.ProcessInfo[KratosMultiphysics.STEP],
                                         model_part.ProcessInfo[WRApp.ANALYSIS_PATH])
@@ -91,7 +91,7 @@ class Manager(SnapshotManager):
                                                "<path_id>" : id.GetAnalysisPath()})
         if self.__enable_erase:
             # Mutating operations on the journal can only be executed on the main rank
-            if self._model_part.GetCommunicator().GetDataCommunicator().GetRank() == 0:
+            if self._model_part.GetCommunicator().GetDataCommunicator().Rank() == 0:
                 DeleteFileIfExisting(file_path)
         else:
             KratosMultiphysics.Logger.PrintWarning("Blocked request to delete snapshot at {file_path}")
@@ -120,6 +120,7 @@ class Manager(SnapshotManager):
         output = super().GetDefaultParameters()
         output.AddString("snapshot_path", "snapshots.h5")
         output.AddString("prefix", "/snapshot_step_<step>_path_<path_id>")
+        output.AddBool("check_duplicates", False)
         return output
 
 
@@ -129,7 +130,7 @@ class Manager(SnapshotManager):
         # (prevent overwriting older snapshots)
         unique_prefix = self.__prefix_pattern.IsConst()
         if not (self.__enable_erase or unique_prefix):
-            raise ValueError(f"'snapshot_path' or 'prefix' must be a pattern, otherwise snapshots would get overwritten\n{self._parameters}")
+            raise ValueError(f"'snapshot_path' or 'prefix' must be a pattern, otherwise snapshots can get overwritten\n{self._parameters}")
 
         # Check for existing snapshots
         existing_snapshots = [str(path) for path in self.__path_pattern.Glob()]
@@ -141,6 +142,13 @@ class Manager(SnapshotManager):
 
 class HDF5Snapshot(SnapshotOnDisk):
     """@brief Class representing a snapshot of a @ref ModelPart state and its associated output file in HDF5 format."""
+
+    def __init__(self,
+                 id: WRApp.CheckpointID,
+                 input_parameters: KratosMultiphysics.Parameters,
+                 output_parameters: KratosMultiphysics.Parameters):
+        super().__init__(id, input_parameters, output_parameters)
+
 
     def Erase(self, communicator: KratosMultiphysics.DataCommunicator) -> None:
         """@details Don't allow deleting the associated file if all snapshots are written into the same file."""

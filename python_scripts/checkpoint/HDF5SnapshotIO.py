@@ -23,6 +23,7 @@ class HDF5SnapshotIO(SnapshotIO):
     """@brief Base class with common functionality to writing/loading snapshots to/from disk."""
 
     def __init__(self, parameters: KratosMultiphysics.Parameters):
+        super().__init__()
         self.__parameters = parameters
         self.__parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
 
@@ -145,6 +146,10 @@ class HDF5SnapshotOutput(HDF5SnapshotIO):
                               - process info
     """
 
+    def __init__(self, parameters: KratosMultiphysics.Parameters):
+        super().__init__(parameters)
+
+
     @staticmethod
     def GetDefaultIOParameters() -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
@@ -203,6 +208,10 @@ class HDF5SnapshotInput(HDF5SnapshotIO):
                            - condition flag
                            - process info
     """
+
+    def __init__(self, parameters: KratosMultiphysics.Parameters):
+        super().__init__(parameters)
+
 
     @staticmethod
     def GetDefaultIOParameters() -> KratosMultiphysics.Parameters:

@@ -4,17 +4,18 @@
 import KratosMultiphysics
 
 # --- WRApplication Imports ---
-from ..WRAppClass import WRAppClass
+import KratosMultiphysics.WRApplication as WRApp
 from .Snapshot import Snapshot
 
 
-class Checkpoint(WRAppClass):
+class Checkpoint(WRApp.WRAppClass):
     """@brief Class representing a checkpoint, consisting of one or more consecutive @ref Snapshot s."""
 
     def __init__(self, snapshots: "list[Snapshot]"):
         """@brief Construct a Checkpoint from a list of @ref Snapshot s.
            @param snapshots: list of @ref Snapshot s that make up the checkpoint. The number of snapshots must
                              match the buffer size of the model part the checkpoint will be loaded into."""
+        super().__init__()
         self.__snapshots = sorted(snapshots)
         if not self.IsValid():
             new_line = "\n"

@@ -5,15 +5,18 @@ import KratosMultiphysics
 
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
-from ..WRAppClass import WRAppClass
 
 # --- STD Imports ---
 import abc
 import pathlib
 
 
-class SnapshotIO(WRAppClass):
+class SnapshotIO(WRApp.WRAppClass):
     """@brief Interface for writing/loading snapshots to/from disk."""
+
+    def __init__(self):
+        super().__init__()
+
 
     def __call__(self, model_part: KratosMultiphysics.ModelPart) -> None:
         self._GetOperation(model_part).Execute()

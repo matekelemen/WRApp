@@ -8,7 +8,6 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics import WRApplication as WRApp
 from KratosMultiphysics.WRApplication import CheckpointPattern
 from .SnapshotIO import SnapshotIO
-from ..WRAppClass import WRAppClass
 
 # --- Core Imports ---
 import abc
@@ -17,7 +16,7 @@ import pathlib
 import inspect
 
 
-class Snapshot(WRAppClass):
+class Snapshot(WRApp.WRAppClass):
     """@brief Class representing a snapshot of a @ref ModelPart state.
        @details A snapshot is uniquely defined by its path ID and step index
                 for a specific analysis. The path ID indicates how many times
@@ -28,6 +27,7 @@ class Snapshot(WRAppClass):
     """
 
     def __init__(self, id: WRApp.CheckpointID):
+        super().__init__()
         self.__id = id
 
 
@@ -297,7 +297,16 @@ class SnapshotOnDisk(Snapshot):
 
 
 
-class DefaultSnapshotErasePredicate(WRAppClass):
+class SnapshotErasePredicate(WRApp.WRAppClass):
+
+    @abc.abstractmethod
+    def __call__(self, id: WRApp.CheckpointID) -> bool:
+        pass
+
+
+
+class NeverEraseSnapshots(SnapshotErasePredicate):
+
     def __call__(self, id: WRApp.CheckpointID) -> bool:
         return False
 
@@ -354,7 +363,7 @@ class Manager(metaclass = abc.ABCMeta):
 
         # Erase snapshots and the related journal entries
         if erase_ids:
-            if self._model_part.GetCommunicator().GetDataCommunicator().GetRank() == 0:
+            if self._model_part.GetCommunicator().GetDataCommunicator().Rank() == 0:
                 self._journal.EraseIf(predicate_wrapper)
             for id in erase_ids:
                 self.Erase(id)
@@ -370,7 +379,7 @@ class Manager(metaclass = abc.ABCMeta):
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters(R"""{
             "erase_predicate" : {
-                "type" : "DefaultSnapshotPredicate",
+                "type" : "WRApplication.SnapshotErasePredicate.NeverEraseSnapshots",
                 "parameters" : {}
             },
             "journal_path" : "snapshots.jrn"
