@@ -137,6 +137,13 @@ def CompareModelParts(source_model_part: KratosMultiphysics.ModelPart,
                                         target_condition[variable],
                                         msg = variable.Name())
 
+    # Compare process infos
+    test_case.assertEqual(len(source_model_part.ProcessInfo), len(target_model_part.ProcessInfo))
+    for variable in generator.process_info_variables:
+        test_case.assertTrue(source_model_part.ProcessInfo.Has(variable))
+        test_case.assertTrue(target_model_part.ProcessInfo.Has(variable))
+        test_case.assertAlmostEqual(source_model_part.ProcessInfo[variable], target_model_part.ProcessInfo[variable])
+
 
 class TestHDF5Snapshot(WRApp.TestCase):
 
