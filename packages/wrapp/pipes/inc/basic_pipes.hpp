@@ -155,7 +155,7 @@ private:
 }; // class IntervalPredicate
 
 
-/// @brief Compue the mod of the input.
+/// @brief Compute the mod of the input.
 /// @note Constructible from @ref Parameters with a "mod" entry (@a int or @a double).
 template <class TValue>
 class Modulo : public Traits<TValue,TValue>
