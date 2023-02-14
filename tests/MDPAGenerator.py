@@ -4,6 +4,9 @@
 import KratosMultiphysics
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
+# --- WRApp Imports ---
+#import KratosMultiphysics.WRApplication as WRApp
+
 # --- STD Imports ---
 import typing
 import pathlib
@@ -53,6 +56,15 @@ class MDPAGenerator:
             KratosMultiphysics.END_TIME,                    # double
             KratosMultiphysics.REACTION_MOMENT,             # double array
             KratosMultiphysics.CAUCHY_STRESS_TENSOR         # double matrix
+        ]
+
+
+    @property
+    def process_info_variables(self) -> "list[typing.Any]":
+        return [
+            KratosMultiphysics.STEP,
+            KratosMultiphysics.TIME
+            #WRApp.ANALYSIS_PATH # <== ANALYSIS_PATH is not supposed to be identical across checkpoints
         ]
 
 
@@ -116,6 +128,10 @@ class MDPAGenerator:
         for condition in model_part.Conditions:
             for variable in self.condition_variables:
                 condition[variable] = self.SetAll(variable, 0)
+
+        # Add process info variables
+        for variable in self.process_info_variables:
+            model_part.ProcessInfo[variable] = self.SetAll(variable, 0)
 
         return model_part
 
