@@ -106,7 +106,6 @@ class TestCheckpointProcess(WRApp.TestCase):
                 step = process_info[KratosMultiphysics.STEP]
                 analysis_path = process_info[WRApp.ANALYSIS_PATH]
                 checkpoint_id = WRApp.CheckpointID(step, analysis_path)
-                print(f"step {step}, path {analysis_path}")
                 return WRApp.CheckpointID(5, max(0, analysis_path - 1)) if checkpoint_id == WRApp.CheckpointID(15, analysis_path) else None
 
         selector_registry_path = "WRApplication.CheckpointSelector.TestCheckpointSelector"
