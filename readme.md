@@ -26,7 +26,7 @@
 
 # Setup
 
-Being an *"application"* of [KratosMultiphysics](https://github.com/KratosMultiphysics/Kratos), this project is meant to be compiled along kratos as an external app. Clone this repo and invoke `add_app` with its path in the kratos configure script.
+Being an *"application"* of [KratosMultiphysics](https://github.com/KratosMultiphysics/Kratos), this project is meant to be compiled along kratos as an external app. Clone this repo and invoke `add_app` with its path in the kratos configure script. Note this application requires a few extra PRs that have been in limbo in the KratosMultiphysics repository. Use the ['wrapp' branch](https://github.com/kratosmultiphysics/kratos/tree/wrapp) instead.
 ```
 # configure.sh
 ...
@@ -34,7 +34,7 @@ add_app("path_to_the_cloned_repo")
 ...
 ```
 
-*Note this application requires a few extra commits that have been in limbo in the KratosMultiphysics repository. Use the ['wrapp' branch](https://github.com/kratosmultiphysics/kratos/tree/wrapp) instead.*
+See the full documentation [here](https://matekelemen.github.io/WRApp/docs/html/index.html).
 
 <a name="checkpointing"></a>
 
