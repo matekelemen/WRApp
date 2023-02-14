@@ -41,6 +41,8 @@ class Checkpoint(WRApp.WRAppClass):
         if self.GetBufferSize() != model_part.GetBufferSize():
             raise RuntimeError(f"Buffer size mismatch! (model part: {model_part.GetBufferSize()}, checkpoint: {self.GetBufferSize()})")
 
+        current_analysis_path = model_part.ProcessInfo[WRApp.ANALYSIS_PATH]
+
         if self.__snapshots:
             # No need to cycle the buffer on the first snapshot.
             self.__snapshots[0].Load(model_part)
@@ -49,3 +51,6 @@ class Checkpoint(WRApp.WRAppClass):
             for snapshot in self.__snapshots[1:]:
                 model_part.CloneSolutionStep() # TODO: ModelPart::CreateSolutionStep would suffice but throws an exception for now
                 snapshot.Load(model_part)
+
+        # Increment ANALYSIS_PATH
+        model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = current_analysis_path + 1
