@@ -59,7 +59,7 @@ An analysis path is an ordered set of continuous solution steps from which no ch
 <a name="checkpointing.definitions.snapshot"></a>
 
 ###  Snapshot
-A ```Snapshot``` stores all data of a model part's nodes, elements, conditions and ```ProcessInfo``` at the state when it was created. The data can either be stored on disk in an HDF5 file (```SnapshotOnDisk```) or in memory (```SnapshotInMemory``` - not implemented yet). A ```Snapshot``` stores no data related to previous steps. This allows changing time integration schemes on the fly, provided that enough snapshots are available to fill the buffer.
+A ```Snapshot``` stores all data of a model part's nodes, elements, conditions and ```ProcessInfo``` at the state when it was created. The data can either be stored on disk in an HDF5 file (```HDF5Snapshot```) or in memory (```SnapshotInMemory``` - not implemented yet). A ```Snapshot``` stores no data related to previous steps. This allows changing time integration schemes on the fly, provided that enough snapshots are available to fill the buffer.
 
 <a name="checkpointing.definitions.checkpoint"></a>
 
