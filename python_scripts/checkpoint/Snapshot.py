@@ -33,9 +33,14 @@ class Snapshot(WRApp.WRAppClass):
         @note Specialized for keeping data in memory or on disk.
     """
 
-    def __init__(self, id: WRApp.CheckpointID):
+    def __init__(self,
+                 id: WRApp.CheckpointID,
+                 input_parameters: KratosMultiphysics.Parameters,
+                 output_parameters: KratosMultiphysics.Parameters):
         super().__init__()
         self.__id = id
+        self._input = self.GetInputType()(input_parameters)
+        self._output = self.GetOutputType()(output_parameters)
 
 
     @abc.abstractmethod
@@ -65,6 +70,24 @@ class Snapshot(WRApp.WRAppClass):
     @abc.abstractmethod
     def IsValid(self) -> bool:
         """@brief Check whether the stored data matches up the ID of the @ref Snapshot."""
+        pass
+
+
+    @staticmethod
+    @abc.abstractmethod
+    def GetInputType() -> typing.Type[SnapshotIO]:
+        """ @brief Get the class responsible for reading snapshot data.
+            @note Override this member if you need a custom read logic.
+        """
+        pass
+
+
+    @staticmethod
+    @abc.abstractmethod
+    def GetOutputType() -> typing.Type[SnapshotIO]:
+        """ @brief Get the class responsible for writing snapshot data.
+            @note Override this member if you need a custom write logic.
+        """
         pass
 
 
@@ -162,9 +185,9 @@ class SnapshotInMemory(Snapshot):
 
 
 
-class SnapshotOnDisk(Snapshot):
-    """ @brief Class representing a snapshot of a @ref ModelPart state and its associated output file.
-        @classname SnapshotOnDisk
+class SnapshotFS(Snapshot):
+    """ @brief Class representing a snapshot of a @ref ModelPart state and its associated output file on the filesystem.
+        @classname SnapshotFS
     """
 
     def __init__(self,
@@ -217,9 +240,9 @@ class SnapshotOnDisk(Snapshot):
 
 
     @classmethod
-    def FromFile(derived_class: typing.Type["SnapshotOnDisk"],
+    def FromFile(derived_class: typing.Type["SnapshotFS"],
                  input_parameters: KratosMultiphysics.Parameters,
-                 output_parameters: KratosMultiphysics.Parameters) -> "SnapshotOnDisk":
+                 output_parameters: KratosMultiphysics.Parameters) -> "SnapshotFS":
         """ @brief Construct a @ref Snapshot instance from a snapshot file.
             @param file_path: path to a snapshot file to parse.
             @param input_parameters: @ref Parameters to instantiate an input processor from.
@@ -238,11 +261,11 @@ class SnapshotOnDisk(Snapshot):
 
 
     @classmethod
-    def FromModelPart(cls: typing.Type["SnapshotOnDisk"],
+    def FromModelPart(cls: typing.Type["SnapshotFS"],
                       model_part: KratosMultiphysics.ModelPart,
                       input_parameters: KratosMultiphysics.Parameters = None,
-                      output_parameters: KratosMultiphysics.Parameters = None) -> "SnapshotOnDisk":
-        """@brief Deduce variables from an input @ref ModelPart and construct a @ref SnapshotOnDisk.
+                      output_parameters: KratosMultiphysics.Parameters = None) -> "SnapshotFS":
+        """@brief Deduce variables from an input @ref ModelPart and construct a @ref SnapshotFS.
            @details Input- and output parameters are defaulted if they are not specified by the user.
                     The related file name defaults to "<model_part_name>_step_<step>_path_<path>.h5"."""
         model_part_name = model_part.Name
@@ -263,7 +286,7 @@ class SnapshotOnDisk(Snapshot):
 
 
     @classmethod
-    def Collect(derived_class: typing.Type["SnapshotOnDisk"],
+    def Collect(derived_class: typing.Type["SnapshotFS"],
                 pattern: str,
                 input_parameters: KratosMultiphysics.Parameters,
                 output_parameters: KratosMultiphysics.Parameters) -> list:
@@ -287,24 +310,6 @@ class SnapshotOnDisk(Snapshot):
 
         snapshots.sort()
         return snapshots
-
-
-    @staticmethod
-    @abc.abstractmethod
-    def GetInputType() -> typing.Type[SnapshotIO]:
-        """@brief Get the class responsible for reading snapshot data.
-           @note Override this member if you need a custom read logic.
-        """
-        raise RuntimeError("Attempt to call a pure virtual function")
-
-
-    @staticmethod
-    @abc.abstractmethod
-    def GetOutputType() -> typing.Type[SnapshotIO]:
-        """@brief Get the class responsible for writing snapshot data.
-           @note Override this member if you need a custom write logic.
-        """
-        raise RuntimeError("Attempt to call a pure virtual function")
 
 
 

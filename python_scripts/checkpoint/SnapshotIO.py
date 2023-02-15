@@ -18,12 +18,26 @@ import pathlib
 
 
 class SnapshotIO(WRApp.WRAppClass):
-    """ @brief Interface for writing/loading snapshots to/from disk.
+    """ @brief Interface for performing @ref Snapshot input/output operations.
         @classname SnapshotIO
+        @details Default parameters:
+                 @code
+                 {
+                    "nodal_historical_variables" : [],
+                    "nodal_variables" : [],
+                    "nodal_flags" : [],
+                    "element_variables" : [],
+                    "element_flags" : [],
+                    "condition_variables" : [],
+                    "condition_flags" : []
+                 }
+                 @endcode
     """
 
-    def __init__(self):
+    def __init__(self, parameters: KratosMultiphysics.Parameters):
         super().__init__()
+        self._parameters = parameters
+        self._parameters.AddMissingParameters(self.GetDefaultParameters())
 
 
     def __call__(self, model_part: KratosMultiphysics.ModelPart) -> None:
@@ -36,22 +50,37 @@ class SnapshotIO(WRApp.WRAppClass):
         return WRApp.CheckpointID()
 
 
-    @abc.abstractmethod
-    def GetPath(self, id: WRApp.CheckpointID = None) -> pathlib.Path:
-        """ @brief Return the path to the associated file given the checkpoint ID, or the pattern if the ID is not provided."""
-        pass
-
-
     @classmethod
-    @abc.abstractmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        raise RuntimeError("Attempt to call a pure virtual function")
+        return KratosMultiphysics.Parameters(R"""{
+            "nodal_historical_variables" : [],
+            "nodal_variables" : [],
+            "nodal_flags" : [],
+            "element_variables" : [],
+            "element_flags" : [],
+            "condition_variables" : [],
+            "condition_flags" : []
+        }""")
 
 
     @abc.abstractmethod
     def _GetOperation(self, model_part: KratosMultiphysics.ModelPart) -> KratosMultiphysics.Operation:
         """ @brief Get the IO operation to execute on the provided @ref ModelPart."""
         return KratosMultiphysics.Operation()
+
+
+
+class SnapshotFSIO(SnapshotIO):
+    """ @brief Base class for @ref Snapshot s that store their data on the filesystem."""
+
+    def __init__(self, parameters: KratosMultiphysics.Parameters):
+        super().__init__(parameters)
+
+
+    @abc.abstractmethod
+    def GetPath(self, id: WRApp.CheckpointID = None) -> pathlib.Path:
+        """ @brief Return the path to the associated file given the checkpoint ID, or the pattern if the ID is not provided."""
+        pass
 
 
 ## @}

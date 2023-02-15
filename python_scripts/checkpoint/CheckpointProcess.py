@@ -90,7 +90,7 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
                   @code
                   {
                       "model_part_name" : "",
-                      "snapshot_type" : "WRApplication.Snapshot.SnapshotOnDisk.HDF5Snapshot",
+                      "snapshot_type" : "WRApplication.Snapshot.SnapshotFS.HDF5Snapshot",
                       "snapshot_parameters" : {...},
                       "write_predicate" : {
                           "type" : "WRApplication.ConstModelPredicate",
@@ -159,7 +159,7 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         output = KratosMultiphysics.Parameters(R"""{
             "model_part_name" : "",
-            "snapshot_type" : "WRApplication.Snapshot.SnapshotOnDisk.HDF5Snapshot",
+            "snapshot_type" : "WRApplication.Snapshot.SnapshotFS.HDF5Snapshot",
             "snapshot_parameters" : {},
             "write_predicate" : {
                 "type" : "WRApplication.ConstModelPredicate",

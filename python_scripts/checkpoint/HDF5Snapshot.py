@@ -6,7 +6,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 # --- WRApp Imports --
 import KratosMultiphysics.WRApplication as WRApp
-from .Snapshot import SnapshotOnDisk, SnapshotManager
+from .Snapshot import SnapshotFS, SnapshotManager
 from .HDF5SnapshotIO import HDF5SnapshotInput, HDF5SnapshotOutput
 
 # --- STD Imports ---
@@ -150,7 +150,7 @@ class HDF5SnapshotManager(SnapshotManager):
 
 
 
-class HDF5Snapshot(SnapshotOnDisk):
+class HDF5Snapshot(SnapshotFS):
     """ @brief Class representing a snapshot of a @ref ModelPart state and its associated output file in HDF5 format.
         @classname HDF5Snapshot
     """
