@@ -35,12 +35,13 @@ class Snapshot(WRApp.WRAppClass):
 
     def __init__(self,
                  id: WRApp.CheckpointID,
-                 input_parameters: KratosMultiphysics.Parameters,
-                 output_parameters: KratosMultiphysics.Parameters):
+                 parameters: KratosMultiphysics.Parameters):
         super().__init__()
+        self._parameters = parameters
+        self._parameters.AddMissingParameters(self.GetDefaultParameters())
         self.__id = id
-        self._input = self.GetInputType()(input_parameters)
-        self._output = self.GetOutputType()(output_parameters)
+        self._input = self.GetInputType()(self._parameters["input_parameters"])
+        self._output = self.GetOutputType()(self._parameters["output_parameters"])
 
 
     @abc.abstractmethod
@@ -94,7 +95,23 @@ class Snapshot(WRApp.WRAppClass):
     @classmethod
     @abc.abstractmethod
     def GetManagerType(cls) -> typing.Type["SnapshotManager"]:
+        """ @brief Return the manager type associated with the specialized @ref Snapshot type."""
         pass
+
+
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        """ @code
+            {
+                "input_parameters" : "default parameters for the input type",
+                "output_parameters" : "default parameters for the output type"
+            }
+            @endcode
+        """
+        parameters = KratosMultiphysics.Parameters()
+        parameters.AddValue("input_parameters", cls.GetInputType().GetDefaultParameters())
+        parameters.AddValue("output_parameters", cls.GetOutputType().GetDefaultParameters())
+        return parameters
 
 
     @staticmethod
@@ -132,8 +149,7 @@ class Snapshot(WRApp.WRAppClass):
     @staticmethod
     @abc.abstractmethod
     def FromModelPart(model_part: KratosMultiphysics.ModelPart,
-                      input_parameters: KratosMultiphysics.Parameters,
-                      output_parameters: KratosMultiphysics.Parameters) -> "Snapshot":
+                      parameters: KratosMultiphysics.Parameters) -> "Snapshot":
         pass
 
 
@@ -192,17 +208,9 @@ class SnapshotFS(Snapshot):
 
     def __init__(self,
                  id: WRApp.CheckpointID,
-                 input_parameters: KratosMultiphysics.Parameters,
-                 output_parameters: KratosMultiphysics.Parameters):
-        """ @brief Constructor.
-            @param path_id: Lowest ID of the analysis path the snapshot belongs to.
-            @param step: step index of the snapshot.
-            @param input_parameters: @ref Parameters to instantiate an input processor from.
-            @param output_parameters: @ref Parameters to instantiate an output processor from.
-        """
-        super().__init__(id)
-        self._input = self.GetInputType()(input_parameters)
-        self._output = self.GetOutputType()(output_parameters)
+                 parameters: KratosMultiphysics.Parameters):
+        """ @copydoc Snapshot.__init__"""
+        super().__init__(id, parameters)
 
 
     def Write(self, model_part: KratosMultiphysics.ModelPart) -> None:
@@ -240,20 +248,19 @@ class SnapshotFS(Snapshot):
 
 
     @classmethod
-    def FromFile(derived_class: typing.Type["SnapshotFS"],
-                 input_parameters: KratosMultiphysics.Parameters,
-                 output_parameters: KratosMultiphysics.Parameters) -> "SnapshotFS":
+    def FromFile(cls: typing.Type["SnapshotFS"],
+                 parameters: KratosMultiphysics.Parameters) -> "SnapshotFS":
         """ @brief Construct a @ref Snapshot instance from a snapshot file.
             @param file_path: path to a snapshot file to parse.
             @param input_parameters: @ref Parameters to instantiate an input processor from.
             @param output_parameters: @ref Parameters to instantiate an output processor from.
         """
-        input_parameters.ValidateAndAssignDefaults(derived_class.GetInputType().GetDefaultParameters())
-        file_path = pathlib.Path(input_parameters["io_settings"]["file_path"].GetString())
+        parameters["input_parameters"].ValidateAndAssignDefaults(cls.GetIntputType().GetDefaultParameters())
+        file_path = pathlib.Path(parameters["input_parameters"]["io_settings"]["file_path"].GetString())
         if file_path.is_file():
-            input = derived_class.GetInputType()(input_parameters)
+            input = cls.GetInputType()(parameters["input_parameters"])
             id = input.GetID()
-            return derived_class(id, input_parameters, output_parameters)
+            return cls(id, parameters)
         elif file_path.is_dir():
             raise FileExistsError(f"{file_path} is a directory")
         else:
@@ -263,8 +270,7 @@ class SnapshotFS(Snapshot):
     @classmethod
     def FromModelPart(cls: typing.Type["SnapshotFS"],
                       model_part: KratosMultiphysics.ModelPart,
-                      input_parameters: KratosMultiphysics.Parameters = None,
-                      output_parameters: KratosMultiphysics.Parameters = None) -> "SnapshotFS":
+                      parameters: KratosMultiphysics.Parameters = None) -> "SnapshotFS":
         """@brief Deduce variables from an input @ref ModelPart and construct a @ref SnapshotFS.
            @details Input- and output parameters are defaulted if they are not specified by the user.
                     The related file name defaults to "<model_part_name>_step_<step>_path_<path>.h5"."""
@@ -272,41 +278,46 @@ class SnapshotFS(Snapshot):
         step = model_part.ProcessInfo[KratosMultiphysics.STEP]
         analysis_path = model_part.ProcessInfo[WRApp.ANALYSIS_PATH]
 
-        if input_parameters is None:
-            input_parameters = cls.GetInputType().GetDefaultParameters()
-            input_parameters["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
+        if not parameters.Has("input_parameters"):
+            parameters.AddValue("input_parameters", cls.GetInputType().GetDefaultParameters())
+            parameters["input_parameters"]["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
+        else:
+            parameters["input_parameters"].ValidateAndAssignDefaults(cls.GetInputType().GetDefaultParameters())
 
-        if output_parameters is None:
-            output_parameters = cls.GetOutputType().GetDefaultParameters()
-            output_parameters["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
+        if not parameters.Has("output_parameters"):
+            parameters.AddValue("output_parameters", cls.GetOutputType().GetDefaultParameters())
+            parameters["output_parameters"]["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
 
-        return cls(WRApp.CheckpointID(step, analysis_path),
-                   input_parameters,
-                   output_parameters)
+        return cls(WRApp.CheckpointID(step, analysis_path), parameters)
 
 
     @classmethod
-    def Collect(derived_class: typing.Type["SnapshotFS"],
+    def Collect(cls: typing.Type["SnapshotFS"],
                 pattern: str,
-                input_parameters: KratosMultiphysics.Parameters,
-                output_parameters: KratosMultiphysics.Parameters) -> list:
+                parameters: KratosMultiphysics.Parameters) -> list:
         """@brief Find and read all snapshot files that match the provided file name pattern.
            @param pattern: the file name pattern compatible with @ref CheckpointPattern to search for.
-           @param input_parameters: @ref Parameters to instantiate an input processor from.
-           @param output_parameters: @ref Parameters to instantiate an output processor from.
-           @return A list of @ref SnapsotOnDisk loaded from discovered snapshot files, sorted in
-                   ascending order (comparison is performed lexicographically over {path_id, step_index}).
+           @param parameters: @ref Parameters to instantiate the @ref Snapshot with.
+           @return A list of @ref SnapsotFS loaded from discovered snapshot files, sorted in
+                   ascending order (comparison is performed with respect to @ref CheckpointID).
         """
-        input_parameters.ValidateAndAssignDefaults(derived_class.GetInputType().GetDefaultParameters())
-        output_parameters.ValidateAndAssignDefaults(derived_class.GetOutputType().GetDefaultParameters())
+        # Assign default config
+        if not parameters.Has("input_parameters"):
+            parameters.AddValue("input_parameters", cls.GetInputType().GetDefaultParameters())
+        else:
+            parameters["input_parameters"].ValidateAndAssignDefaults(cls.GetInputType().GetDefaultParameters())
+
+        if not parameters.Has("output_parameters"):
+            parameters.AddValue("output_parameters", cls.GetOutputType().GetDefaultParameters())
+        else:
+            parameters["output_parameters"].ValidateAndAssignDefaults(cls.GetOutputType().GetDefaultParameters())
         snapshots = []
 
         for file_path in CheckpointPattern(pattern).Glob():
-            current_input_parameters = input_parameters.Clone()
-            current_output_parameters = output_parameters.Clone()
-            current_input_parameters["io_settings"]["file_path"].SetString(str(file_path))
-            current_output_parameters["io_settings"]["file_path"].SetString(str(file_path))
-            snapshots.append(derived_class.FromFile(current_input_parameters, current_output_parameters))
+            tmp_parameters = parameters.Clone()
+            tmp_parameters["input_parameters"]["io_settings"]["file_path"].SetString(str(file_path))
+            tmp_parameters["output_parameters"]["io_settings"]["file_path"].SetString(str(file_path))
+            snapshots.append(cls.FromFile(tmp_parameters))
 
         snapshots.sort()
         return snapshots
@@ -320,6 +331,7 @@ class SnapshotPredicate(WRApp.WRAppClass):
 
     @abc.abstractmethod
     def __call__(self, id: WRApp.CheckpointID) -> bool:
+        """ @brief Evaluate the predicate."""
         pass
 
 
@@ -337,7 +349,7 @@ class NeverEraseSnapshots(SnapshotPredicate):
 class SnapshotManager(metaclass = abc.ABCMeta):
     """ @brief Interface for @ref Snapshot lifetime management.
         @classname SnapshotManager
-        @details @ref Manager supports adding, retrieving and erasing @ref Snapshot s.
+        @details @ref SnapshotManager supports adding, retrieving and erasing @ref Snapshot s.
                  Added (or discovered) snapshots are tracked via @ref Journal, and erased
                  based on the return value of a predicate (@ref CheckpointID -> @a bool)."""
 
@@ -346,8 +358,10 @@ class SnapshotManager(metaclass = abc.ABCMeta):
                     parameters: KratosMultiphysics.Parameters):
         parameters.AddMissingParameters(self.GetDefaultParameters())
         self._parameters = parameters
+
         self._model_part = model_part
         self._journal = WRApp.Journal(pathlib.Path(parameters["journal_path"].GetString()))
+        self.__check_duplicates = self._parameters["check_duplicates"].GetBool()
 
         # Instantiate the predicate (from registered class or instance)
         registered_item = KratosMultiphysics.Registry[parameters["erase_predicate"]["type"].GetString()]
@@ -355,16 +369,30 @@ class SnapshotManager(metaclass = abc.ABCMeta):
         self._predicate = registered_class(parameters["erase_predicate"]["parameters"])
 
 
-    @abc.abstractmethod
     def Add(self, model_part: KratosMultiphysics.ModelPart) -> None:
         """ @brief Construct a snapshot and add it to the internal journal."""
-        pass
+        # Mutating operations on the journal can only be executed on the main rank
+        if model_part.GetCommunicator().GetDataCommunicator().Rank() == 0:
+            if self.__check_duplicates: # <== check whether a snapshot with the current ID exists
+                id = WRApp.CheckpointID(model_part.ProcessInfo[KratosMultiphysics.STEP],
+                                        model_part.ProcessInfo[WRApp.ANALYSIS_PATH])
+                duplicate_entry = next((entry for entry in self._journal if id == self._IDFromEntry(entry)), None)
+                if not (duplicate_entry is None):
+                    raise RuntimeError(f"Duplicate snapshot ({id}) at {duplicate_entry['path'].GetString()}: {duplicate_entry['prefix'].GetString()}")
+
+            # Recurd the new snapshot in the journal
+            self._journal.Push(model_part.GetModel())
+
+        # Construct and write the snapshot
+        self._GetSnapshotType().FromModelPart(
+            model_part,
+            self._parameters
+        ).Write(model_part)
 
 
-    @abc.abstractmethod
     def Get(self, id: WRApp.CheckpointID) -> "Snapshot":
         """ @brief Retrieve a snapshot from the internal journal that matches the provided ID."""
-        pass
+        return self._GetSnapshotType()(id, self._parameters)
 
 
     @abc.abstractmethod
@@ -395,18 +423,29 @@ class SnapshotManager(metaclass = abc.ABCMeta):
     @classmethod
     @abc.abstractmethod
     def _IDFromEntry(cls, journal_entry: KratosMultiphysics.Parameters) -> WRApp.CheckpointID:
+        """ @brief Get the @ref CheckpointID from an entry in the internal @ref Journal."""
         pass
 
 
     @classmethod
+    @abc.abstractmethod
+    def _GetSnapshotType(cls) -> typing.Type[Snapshot]:
+        return Snapshot
+
+
+    @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        return KratosMultiphysics.Parameters(R"""{
+        parameters = KratosMultiphysics.Parameters(R"""{
+            snapshot_parameters : {},
             "erase_predicate" : {
                 "type" : "WRApplication.SnapshotPredicate.NeverEraseSnapshots",
                 "parameters" : {}
             },
-            "journal_path" : "snapshots.jrn"
+            "journal_path" : "snapshots.jrn",
+            "check_duplicates" : false
         }""")
+        parameters["snapshot_parameters"] = cls._GetSnapshotType().GetDefaultParameters()
+        return parameters
 
 
 ## @}

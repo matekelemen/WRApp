@@ -70,27 +70,6 @@ class HDF5SnapshotManager(SnapshotManager):
         self.__Check()
 
 
-    def Add(self, model_part: KratosMultiphysics.ModelPart) -> None:
-        # Mutating operations on the journal can only be executed on the main rank
-        if model_part.GetCommunicator().GetDataCommunicator().Rank() == 0:
-            if self.__check_duplicates: # <== check whether a snapshot with the current ID exists
-                id = WRApp.CheckpointID(model_part.ProcessInfo[KratosMultiphysics.STEP],
-                                        model_part.ProcessInfo[WRApp.ANALYSIS_PATH])
-                duplicate_entry = next((entry for entry in self._journal if id == self._IDFromEntry(entry)), None)
-                if not (duplicate_entry is None):
-                    raise RuntimeError(f"Duplicate snapshot ({id}) at {duplicate_entry['path'].GetString()}: {duplicate_entry['prefix'].GetString()}")
-
-            # Recurd the new snapshot in the journal
-            self._journal.Push(model_part.GetModel())
-
-        # Construct and write the snapshot
-        HDF5Snapshot.FromModelPart(
-            model_part,
-            self.__input_parameters,
-            self.__output_parameters
-        ).Write(model_part)
-
-
     def Get(self, id: WRApp.CheckpointID) -> "HDF5Snapshot":
         return HDF5Snapshot(id, self.__input_parameters, self.__output_parameters)
 
