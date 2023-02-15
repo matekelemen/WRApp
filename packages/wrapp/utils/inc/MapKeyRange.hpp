@@ -12,6 +12,12 @@
 namespace Kratos::WRApp {
 
 
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup utilities
+/// @{
+
+
 /**
  *  @brief Iterator providing access to the keys of an std::map or std::unordered_map.
  *  @tparam TIterator Iterator type of the map.
@@ -65,6 +71,10 @@ private:
 }; // class MapKeyIterator
 
 
+
+/**
+ *  @brief Range class iterating over the keys of a standard-conforming map type.
+ */
 template <class TMap>
 using MapKeyRange = Range<MapKeyIterator<typename TMap::const_iterator>>;
 
@@ -78,6 +88,10 @@ MapKeyRange<TMap> MakeConstMapKeyRange(const TMap& rMap)
 {
     return Range<MapKeyIterator<typename TMap::const_iterator>>(rMap.begin(), rMap.end());
 }
+
+
+/// @}
+/// @}
 
 
 } // namespace Kratos::WRApp

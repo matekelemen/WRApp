@@ -17,10 +17,10 @@
 namespace Kratos {
 
 
-///@addtogroup WRApplication
-///@{
-///@name Kratos Classes
-///@{
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup utilities
+/// @{
 
 
 /** @brief Static-only utility class for common regexes.

@@ -9,6 +9,12 @@
 namespace Kratos::WRApp {
 
 
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup multiprocessing
+/// @{
+
+
 struct MPIUtils
 {
     /**
@@ -22,6 +28,10 @@ struct MPIUtils
                            TOutputIterator itOutput,
                            DataCommunicator& rCommunicator);
 }; // struct MPIUtils
+
+
+/// @}
+/// @}
 
 
 } // namespace Kratos::WRApp

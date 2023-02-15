@@ -6,14 +6,23 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
 # --- WRApp Imports --
 import KratosMultiphysics.WRApplication as WRApp
-from .Snapshot import SnapshotOnDisk, Manager as SnapshotManager
+from .Snapshot import SnapshotOnDisk, SnapshotManager
 from .HDF5SnapshotIO import HDF5SnapshotInput, HDF5SnapshotOutput
 
 # --- STD Imports ---
 import typing
 
 
-class Manager(SnapshotManager):
+## @addtogroup WRApplication
+## @{
+## @addtogroup checkpointing
+## @{
+
+
+class HDF5SnapshotManager(SnapshotManager):
+    """ @brief Snapshot manager specialized for @ref HDF5Snapshot.
+        @classname HDF5SnapshotManager
+    """
 
     def __init__(self,
                  model_part: KratosMultiphysics.ModelPart,
@@ -105,18 +114,19 @@ class Manager(SnapshotManager):
 
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        """@code
-            {
-                "erase_predicate" : {
-                    "type" : "DefaultSnapshotPredicate",
-                    "parameters" : {}
-                },
-                "journal_path" : "snapshots.jrn",
-                "snapshot_path" : "snapshots.h5",
-                "prefix" : "/snapshot_step_<step>_path_<path_id>",
-                "check_duplicates" : false
-            }
-           @endcode"""
+        """ @code
+             {
+                 "erase_predicate" : {
+                     "type" : "DefaultSnapshotPredicate",
+                     "parameters" : {}
+                 },
+                 "journal_path" : "snapshots.jrn",
+                 "snapshot_path" : "snapshots.h5",
+                 "prefix" : "/snapshot_step_<step>_path_<path_id>",
+                 "check_duplicates" : false
+             }
+            @endcode
+        """
         output = super().GetDefaultParameters()
         output.AddString("snapshot_path", "snapshots.h5")
         output.AddString("prefix", "/snapshot_step_<step>_path_<path_id>")
@@ -141,7 +151,9 @@ class Manager(SnapshotManager):
 
 
 class HDF5Snapshot(SnapshotOnDisk):
-    """@brief Class representing a snapshot of a @ref ModelPart state and its associated output file in HDF5 format."""
+    """ @brief Class representing a snapshot of a @ref ModelPart state and its associated output file in HDF5 format.
+        @classname HDF5Snapshot
+    """
 
     def __init__(self,
                  id: WRApp.CheckpointID,
@@ -169,5 +181,9 @@ class HDF5Snapshot(SnapshotOnDisk):
 
 
     @classmethod
-    def GetManagerType(cls) -> typing.Type[Manager]:
-        return Manager
+    def GetManagerType(cls) -> typing.Type[HDF5SnapshotManager]:
+        return HDF5SnapshotManager
+
+
+## @}
+## @}

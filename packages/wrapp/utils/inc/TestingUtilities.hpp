@@ -18,6 +18,12 @@
 namespace Kratos::Testing {
 
 
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup testing
+/// @{
+
+
 struct KRATOS_API(WR_APPLICATION) TestingUtilities
 {
     /**
@@ -27,6 +33,10 @@ struct KRATOS_API(WR_APPLICATION) TestingUtilities
      */
     static void TestJournal(const Model& rModel, Journal& rJournal);
 };
+
+
+/// @}
+/// @}
 
 
 } // namespace Kratos::Testing

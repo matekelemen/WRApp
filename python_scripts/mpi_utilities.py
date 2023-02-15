@@ -9,5 +9,16 @@ import KratosMultiphysics
 from KratosMultiphysics import WRApplication as WRApp
 
 
-def MPIUnion(container: "set[str]", data_communicator: KratosMultiphysics.DataCommunicator) -> set:
+## @addtogroup WRApplication
+## @{
+## @addtogroup utilities
+## @{
+
+
+def MPIUnion(container: "set[str]", data_communicator: KratosMultiphysics.DataCommunicator) -> "set[str]":
+    """ @brief Return a union of strings across all MPI ranks."""
     return set(WRApp.MPIAllGatherVStrings(list(container), data_communicator))
+
+
+## @}
+## @}

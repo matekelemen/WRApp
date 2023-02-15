@@ -13,9 +13,17 @@ import abc
 import typing
 
 
+## @addtogroup WRApplication
+## @{
+## @addtogroup checkpointing
+## @{
+
+
 class CheckpointSelector(WRApp.WRAppClass):
-    """@brief A functor taking a @ref Model and returning a @ref CheckpointID to load or @a None.
-       @note A C++ bound selector should return an @a std::optional<CheckpointID>."""
+    """ @brief A functor taking a @ref Model and returning a @ref CheckpointID to load or @a None.
+        @classname CheckpointSelector
+        @note A C++ bound selector should return an @a std::optional<CheckpointID>.
+    """
 
     def __init__(self, *args):
         super().__init__()
@@ -27,7 +35,9 @@ class CheckpointSelector(WRApp.WRAppClass):
 
 
 class DefaultCheckpointSelector(CheckpointSelector):
-    """@brief Always returns @a None, i.e. never loads checkpoints."""
+    """ @brief Always returns @a None, i.e. never loads checkpoints.
+        @classname DefaultCheckpointSelector
+    """
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -40,7 +50,66 @@ class DefaultCheckpointSelector(CheckpointSelector):
 
 class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass = WRApp.WRAppMeta):
     """ @brief Main interface process for checkpointing.
-        """
+        @classname CheckpointProcess
+        @details @ref CheckpointProcess optionally executes load operations in @ref ExecuteInitializeSolutionStep and
+                  write operations in @ref ExecuteFinalizeSolutionStep. The process itself implements minimal logic and
+                  defers the execution of tasks to the following components:
+                  - <em>IO Format</em> : The checkpointing format can be configured via the "snapshot_type" subparameter
+                                         in the input parameters, which must refer to a valid implementation of @ref Snapshot
+                                         that is accessible from the @ref Registry. Check out @ref HDF5Snapshot for a reference
+                                         implementation. The checkpoint system can be configured by specifying the "snapshot_parameters"
+                                         subparameter in the input parameters, that gets forwarded to the selected snapshot's
+                                         @ref Snapshot.Manager. The default settings configure HDF5 input/output that covers all
+                                         nodal, element, and condition variables and flags, as well as the entire @ref ProcessInfo.
+                  - <em>Output control</em>: a @ref ModelPredicate that decides whether a snapshot should be written
+                                             based on the current state of the input model. The predicate type must be
+                                             accessible from the @ref Registry, and can be configured via the
+                                             <em>"write_predicate"</em> subparameter in the input parameters.
+                                             @code
+                                             "write_predicate" : {
+                                                "type" : "name-of-the-predicate-type-in-the-registry",
+                                                "parameters" : {<parameters-passed-to-the-predicate-instance>}
+                                             }
+                                             @endcode
+                                             The default behaviour is writing a snapshot at each time step.
+                  - <em>Input control</em>: a callable with the following signature:
+                                            @code std::optional<WRApp::CheckpointID> (const Model&) @endcode
+                                            that decides whether a checkpoint should be loaded, and if yes, which
+                                            one; based on the current state of the provided model.
+                                            The callable type must be accessible through the @ref Registry, and
+                                            can be configured via the <em>"checkpoint_selector"</em> subparameter
+                                            in the input parameters.
+                                            @code
+                                            "checkpoint_selector" : {
+                                                "type" : "name-of-the-callable-type-in-the-registry",
+                                                "parameters" : {<parameters-passed-to-the-callable-instance>}
+                                            }
+                                            @endcode
+                                            The default behaviour is never to load any checkpoints.
+                  Default parameters:
+                  @code
+                  {
+                      "model_part_name" : "",
+                      "snapshot_type" : "WRApplication.Snapshot.SnapshotOnDisk.HDF5Snapshot",
+                      "snapshot_parameters" : {...},
+                      "write_predicate" : {
+                          "type" : "WRApplication.ConstModelPredicate",
+                          "parameters" : [{"value" : true}]
+                      },
+                      "checkpoint_selector" : {
+                          "type" : "WRApplication.CheckpointSelector.DefaultCheckpointSelector",
+                          "parameters" : []
+                      }
+                  }
+                  @endcode
+        @note This process should only be constructed <b>after</b> the mesh was loaded, and all variables
+              (historical/non-historical nodal, element, condition, process info) were added in the target
+              @ref ModelPart. Although new @ref Snapshot implementations can be added that relax this requirement,
+              all current implementations assume that the topology of the mesh does not change throughout the
+              analysis, and no variables are added/removed to/from any component in the subject @ref ModelPart.
+        @note The default implementation assumes that the list of (non-historical) variables is uniform within
+              component types of the @ref ModelPart (eg: all elements have the exact same list of variables).
+    """
 
     def __init__(self,
                  model: KratosMultiphysics.Model,
@@ -112,7 +181,11 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
         return output
 
 
+## @}
+## @}
+
 
 def Factory(parameters: KratosMultiphysics.Parameters,
             model: KratosMultiphysics.Model) -> "CheckpointProcess":
     return CheckpointProcess(model, parameters)
+

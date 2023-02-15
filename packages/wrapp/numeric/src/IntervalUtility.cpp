@@ -7,7 +7,7 @@
 #include <cmath>
 
 
-namespace Kratos::WRApp::Detail {
+namespace Kratos::WRApp::Impl {
 
 
 namespace {
@@ -151,4 +151,4 @@ template class IntervalUtility<double>;
 
 template class IntervalUtility<int>;
 
-} // namespace Kratos::Detail
+} // namespace Kratos::Impl

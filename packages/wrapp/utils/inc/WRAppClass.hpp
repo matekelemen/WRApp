@@ -11,6 +11,10 @@
 namespace Kratos::WRApp {
 
 
+/// @addtogroup WRApplication
+/// @{
+
+
 /// @brief Dummy base class for registering and exporting exposed classes in @a WRApplication.
 struct KRATOS_API(WR_APPLICATION) WRAppClass
 {
@@ -28,6 +32,9 @@ struct KRATOS_API(WR_APPLICATION) WRAppClass
 
     virtual Parameters GetDefaultParameters() const = 0;
 }; // struct WRAppClass
+
+
+/// @}
 
 
 } // namespace Kratos::WRApp

@@ -13,8 +13,13 @@
 #include <mutex> // std::unique_lock
 
 
-namespace Kratos
-{
+namespace Kratos {
+
+
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup io
+/// @{
 
 
 /**
@@ -168,6 +173,10 @@ public:
 private:
     FileContentIterator mWrapped;
 }; // class FileStringIterator
+
+
+/// @}
+/// @}
 
 
 } // namespace Kratos

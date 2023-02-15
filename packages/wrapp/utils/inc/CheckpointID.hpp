@@ -9,6 +9,13 @@
 namespace Kratos::WRApp {
 
 
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup checkpointing
+/// @{
+
+
+/// @brief Class enapsulating data and functionality for uniquely identifying a @ref Checkpoint or @ref Snapshot.
 class CheckpointID
 {
 public:
@@ -46,7 +53,11 @@ private:
 
     /// @brief @ref ANALYSIS_PATH
     int mPath;
-}; // class CheckpointID
+}; // class
+
+
+/// @}
+/// @}
 
 
 } // namespace Kratos::WRApp

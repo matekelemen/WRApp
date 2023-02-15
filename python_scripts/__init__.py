@@ -5,7 +5,6 @@ import KratosMultiphysics
 from KratosWRApplication import *
 
 # --- STD Imports ---
-import typing
 import abc
 
 # Rename WRAppClass because it'll have to be replaced
@@ -32,14 +31,13 @@ for subclass in __WRAppClass.__subclasses__():
 KratosMultiphysics._ImportApplication(application, application_name)
 
 
-# Define a metaclass to replace that of the C++ WRAppClass
-# to make a python class able to derive from both abc.ABCMeta
-# and a C++ class.
-class WRAppMeta(type(abc.ABC), type(__WRAppClass)): pass
+class WRAppMeta(type(abc.ABC), type(__WRAppClass)):
+    """ @brief Metaclass replacing that of the C++ WRAppClass to provide derived classes access to abc.ABCMeta."""
+    pass
 
 
 class WRAppClass(__WRAppClass, metaclass = WRAppMeta):
-    """@brief @ref WRApp::WRAppClass with a replaced metaclass for compatibility with abc."""
+    """ @brief @ref WRApp::WRAppClass with a replaced metaclass for compatibility with abc."""
 
     def __init__(self):
         super().__init__()

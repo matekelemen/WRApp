@@ -23,6 +23,12 @@
 namespace Kratos::Pipes {
 
 
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup pipes
+/// @{
+
+
 /// @brief Get a @ref ModelPart from a @ref Model by name.
 /// @note Constructible from @ref Parameters with a "model_part_name" string entry.
 class ModelPartFromModel : public Traits<const Model&, const ModelPart&>
@@ -151,7 +157,7 @@ public:
     static Parameters GetDefaultParameters();
 
 private:
-    WRApp::Detail::IntervalUtility<TValue> mInterval;
+    WRApp::Impl::IntervalUtility<TValue> mInterval;
 }; // class IntervalPredicate
 
 
@@ -212,6 +218,10 @@ public:
 private:
     bool mValue;
 }; // class ConstPredicate
+
+
+/// @}
+/// @}
 
 
 } // namespace Kratos::Pipes

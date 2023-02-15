@@ -10,6 +10,9 @@
 namespace Kratos::WRApp {
 
 
+/// @cond DETAIL
+
+
 #define KRATOS_DEFINE_RANGE(ITERATOR_TYPE, CONST)                            \
 {                                                                            \
 public:                                                                      \
@@ -35,7 +38,11 @@ private:                                                                     \
 }
 
 
+/// @endcond
+
+
 namespace Detail {
+/// @cond DETAIL
 template <class T>
 struct IsConstPointer
 {};
@@ -56,7 +63,14 @@ struct IsConstIterator
 {
     static constexpr const bool value = IsConstPointer<typename std::iterator_traits<TIterator>::pointer>::value;
 };
+/// @endcond
 } // namespace Detail
+
+
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup utilities
+/// @{
 
 
 /**
@@ -75,6 +89,10 @@ KRATOS_DEFINE_RANGE(TIterator, ); // class Range (non-const version)
 template <class TIterator>
 class Range<TIterator, typename std::enable_if<Detail::IsConstIterator<TIterator>::value>::type>
 KRATOS_DEFINE_RANGE(TIterator, const); // class Range (const version)
+
+
+/// @}
+/// @}
 
 
 #undef KRATOS_DEFINE_RANGE

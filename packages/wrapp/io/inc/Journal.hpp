@@ -19,8 +19,13 @@
 #endif
 
 
-namespace Kratos
-{
+namespace Kratos {
+
+
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup io
+/// @{
 
 
 /**
@@ -324,6 +329,10 @@ public:
 private:
     JournalBase mBase;
 }; // class Journal
+
+
+/// @}
+/// @}
 
 
 } // namespace Kratos

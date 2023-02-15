@@ -47,7 +47,7 @@ IntervalPredicate<TValue>::IntervalPredicate(const Parameters& rParameters)
 template <class TValue>
 Parameters IntervalPredicate<TValue>::GetDefaultParameters()
 {
-    return WRApp::Detail::IntervalUtility<TValue>::GetDefaultParameters();
+    return WRApp::Impl::IntervalUtility<TValue>::GetDefaultParameters();
 }
 
 

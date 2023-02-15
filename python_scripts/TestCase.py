@@ -102,7 +102,14 @@ class _SuiteFlags:
         return bool(self.__flags)
 
 
+## @addtogroup WRApplication
+## @{
+## @addtogroup testing
+## @{
+
+
 class SuiteFlags:
+    """ @brief Enum bitfield controlling which suites a test case should be added to."""
     SMALL       = _SuiteFlags.FromSuiteName("SMALL")
     NIGHTLY     = _SuiteFlags.FromSuiteName("NIGHTLY")
     VALIDATION  = _SuiteFlags.FromSuiteName("VALIDATION")
@@ -149,3 +156,7 @@ class TestSuite(UnitTest.TestSuite):
 
 def TestMain() -> None:
     return UnitTest.main()
+
+
+## @}
+## @}

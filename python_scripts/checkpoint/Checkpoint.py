@@ -8,13 +8,22 @@ import KratosMultiphysics.WRApplication as WRApp
 from .Snapshot import Snapshot
 
 
+## @addtogroup WRApplication
+## @{
+## @addtogroup checkpointing
+## @{
+
+
 class Checkpoint(WRApp.WRAppClass):
-    """@brief Class representing a checkpoint, consisting of one or more consecutive @ref Snapshot s."""
+    """ @brief Class representing a checkpoint, consisting of one or more consecutive @ref Snapshot s.
+        @classname Checkpoint
+    """
 
     def __init__(self, snapshots: "list[Snapshot]"):
-        """@brief Construct a Checkpoint from a list of @ref Snapshot s.
-           @param snapshots: list of @ref Snapshot s that make up the checkpoint. The number of snapshots must
-                             match the buffer size of the model part the checkpoint will be loaded into."""
+        """ @brief Construct a Checkpoint from a list of @ref Snapshot s.
+            @param snapshots: list of @ref Snapshot s that make up the checkpoint. The number of snapshots must
+                              match the buffer size of the model part the checkpoint will be loaded into.
+        """
         super().__init__()
         self.__snapshots = sorted(snapshots)
         if not self.IsValid():
@@ -31,12 +40,13 @@ class Checkpoint(WRApp.WRAppClass):
 
 
     def GetBufferSize(self) -> int:
+        """@brief Get the minimum buffer size required to load this @ref Checkpoint."""
         return len(self.__snapshots)
 
 
     def Load(self, model_part: KratosMultiphysics.ModelPart) -> None:
-        """@brief Load data from the Snapshots to the provided @ref ModelPart.
-           @note The model part's buffer size must match the number of stored snapshots.
+        """ @brief Load data from the Snapshots to the provided @ref ModelPart.
+            @note The model part's buffer size must match the number of stored snapshots.
         """
         if self.GetBufferSize() != model_part.GetBufferSize():
             raise RuntimeError(f"Buffer size mismatch! (model part: {model_part.GetBufferSize()}, checkpoint: {self.GetBufferSize()})")
@@ -54,3 +64,7 @@ class Checkpoint(WRApp.WRAppClass):
 
         # Increment ANALYSIS_PATH
         model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = current_analysis_path + 1
+
+
+## @}
+## @}

@@ -16,14 +16,21 @@ import pathlib
 import inspect
 
 
+## @addtogroup WRApplication
+## @{
+## @addtogroup checkpointing
+## @{
+
+
 class Snapshot(WRApp.WRAppClass):
-    """@brief Class representing a snapshot of a @ref ModelPart state.
-       @details A snapshot is uniquely defined by its path ID and step index
-                for a specific analysis. The path ID indicates how many times
-                the solution loop jumped back and continued from an earlier @ref Checkpoint,
-                while the step index counts the number of steps since the analysis
-                began, disregarding steps that branched off the current analysis path.
-       @note Specialized for keeping data in memory or on disk.
+    """ @brief Class representing a snapshot of a @ref ModelPart state.
+        @classname Snapshot
+        @details A snapshot is uniquely defined by its path ID and step index
+                 for a specific analysis. The path ID indicates how many times
+                 the solution loop jumped back and continued from an earlier @ref Checkpoint,
+                 while the step index counts the number of steps since the analysis
+                 began, disregarding steps that branched off the current analysis path.
+        @note Specialized for keeping data in memory or on disk.
     """
 
     def __init__(self, id: WRApp.CheckpointID):
@@ -63,18 +70,19 @@ class Snapshot(WRApp.WRAppClass):
 
     @classmethod
     @abc.abstractmethod
-    def GetManagerType(cls) -> typing.Type["Manager"]:
+    def GetManagerType(cls) -> typing.Type["SnapshotManager"]:
         pass
 
 
     @staticmethod
     def GetSolutionPath(snapshots: list) -> list:
-        """@brief Pick snapshots from the provided list that are part of the solution path.
-           @param snapshots: list of snapshots of the analysis.
-           @return A sorted list of snapshots that make up the solution path.
-           @details A path is assembled backtracking from the last snapshot, recreating the
-                    solution path iff the input list contains the solution path. Otherwise
-                    the assembled path is the one that has a dead-end at the last snapshot."""
+        """ @brief Pick snapshots from the provided list that are part of the solution path.
+            @param snapshots: list of snapshots of the analysis.
+            @return A sorted list of snapshots that make up the solution path.
+            @details A path is assembled backtracking from the last snapshot, recreating the
+                     solution path iff the input list contains the solution path. Otherwise
+                     the assembled path is the one that has a dead-end at the last snapshot.
+        """
         solution_path = []
 
         # Assemble the reversed solution path
@@ -146,25 +154,28 @@ class Snapshot(WRApp.WRAppClass):
 
 
 class SnapshotInMemory(Snapshot):
-    """@brief Class representing a snapshot of a @ref ModelPart state in memory (stores a deep copy of the model part).
-       @todo Implement in-memory snapshots if necessary (@matekelemen).
+    """ @brief Class representing a snapshot of a @ref ModelPart state in memory (stores a deep copy of the model part).
+        @classname SnapshotInMemory
+        @todo Implement in-memory snapshots if necessary (@matekelemen).
     """
     pass
 
 
 
 class SnapshotOnDisk(Snapshot):
-    """@brief Class representing a snapshot of a @ref ModelPart state and its associated output file."""
+    """ @brief Class representing a snapshot of a @ref ModelPart state and its associated output file.
+        @classname SnapshotOnDisk
+    """
 
     def __init__(self,
                  id: WRApp.CheckpointID,
                  input_parameters: KratosMultiphysics.Parameters,
                  output_parameters: KratosMultiphysics.Parameters):
-        """@brief Constructor.
-           @param path_id: Lowest ID of the analysis path the snapshot belongs to.
-           @param step: step index of the snapshot.
-           @param input_parameters: @ref Parameters to instantiate an input processor from.
-           @param output_parameters: @ref Parameters to instantiate an output processor from.
+        """ @brief Constructor.
+            @param path_id: Lowest ID of the analysis path the snapshot belongs to.
+            @param step: step index of the snapshot.
+            @param input_parameters: @ref Parameters to instantiate an input processor from.
+            @param output_parameters: @ref Parameters to instantiate an output processor from.
         """
         super().__init__(id)
         self._input = self.GetInputType()(input_parameters)
@@ -209,10 +220,10 @@ class SnapshotOnDisk(Snapshot):
     def FromFile(derived_class: typing.Type["SnapshotOnDisk"],
                  input_parameters: KratosMultiphysics.Parameters,
                  output_parameters: KratosMultiphysics.Parameters) -> "SnapshotOnDisk":
-        """@brief Construct a @ref Snapshot instance from a snapshot file.
-           @param file_path: path to a snapshot file to parse.
-           @param input_parameters: @ref Parameters to instantiate an input processor from.
-           @param output_parameters: @ref Parameters to instantiate an output processor from.
+        """ @brief Construct a @ref Snapshot instance from a snapshot file.
+            @param file_path: path to a snapshot file to parse.
+            @param input_parameters: @ref Parameters to instantiate an input processor from.
+            @param output_parameters: @ref Parameters to instantiate an output processor from.
         """
         input_parameters.ValidateAndAssignDefaults(derived_class.GetInputType().GetDefaultParameters())
         file_path = pathlib.Path(input_parameters["io_settings"]["file_path"].GetString())
@@ -297,7 +308,10 @@ class SnapshotOnDisk(Snapshot):
 
 
 
-class SnapshotErasePredicate(WRApp.WRAppClass):
+class SnapshotPredicate(WRApp.WRAppClass):
+    """ @brief Base class for a predicate that takes a @ref CheckpointID.
+        @classname SnapshotPredicate
+    """
 
     @abc.abstractmethod
     def __call__(self, id: WRApp.CheckpointID) -> bool:
@@ -305,15 +319,19 @@ class SnapshotErasePredicate(WRApp.WRAppClass):
 
 
 
-class NeverEraseSnapshots(SnapshotErasePredicate):
+class NeverEraseSnapshots(SnapshotPredicate):
+    """ @brief Always returns false.
+        @classname NeverEraseSnapshots
+    """
 
     def __call__(self, id: WRApp.CheckpointID) -> bool:
         return False
 
 
 
-class Manager(metaclass = abc.ABCMeta):
-    """@brief Interface for @ref Snapshot lifetime management.
+class SnapshotManager(metaclass = abc.ABCMeta):
+    """ @brief Interface for @ref Snapshot lifetime management.
+        @classname SnapshotManager
         @details @ref Manager supports adding, retrieving and erasing @ref Snapshot s.
                  Added (or discovered) snapshots are tracked via @ref Journal, and erased
                  based on the return value of a predicate (@ref CheckpointID -> @a bool)."""
@@ -334,24 +352,24 @@ class Manager(metaclass = abc.ABCMeta):
 
     @abc.abstractmethod
     def Add(self, model_part: KratosMultiphysics.ModelPart) -> None:
-        """@brief Construct a snapshot and add it to the internal journal."""
+        """ @brief Construct a snapshot and add it to the internal journal."""
         pass
 
 
     @abc.abstractmethod
     def Get(self, id: WRApp.CheckpointID) -> "Snapshot":
-        """@brief Retrieve a snapshot from the internal journal that matches the provided ID."""
+        """ @brief Retrieve a snapshot from the internal journal that matches the provided ID."""
         pass
 
 
     @abc.abstractmethod
     def Erase(self, id: WRApp.CheckpointID) -> None:
-        """@brief Erase an entry from the internal journal that matches the provided ID and delete its related snapshot."""
+        """ @brief Erase an entry from the internal journal that matches the provided ID and delete its related snapshot."""
         pass
 
 
     def EraseObsolete(self) -> None:
-        """@brief Call @ref Manager.Erase on all IDs that return true for the provided predicate."""
+        """ @brief Call @ref Manager.Erase on all IDs that return true for the provided predicate."""
         # Collect erased IDs into a list while erasing from the Journal
         erase_ids: "list[WRApp.CheckpointID]" = []
         def predicate_wrapper(entry: KratosMultiphysics.Parameters) -> bool:
@@ -379,8 +397,12 @@ class Manager(metaclass = abc.ABCMeta):
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters(R"""{
             "erase_predicate" : {
-                "type" : "WRApplication.SnapshotErasePredicate.NeverEraseSnapshots",
+                "type" : "WRApplication.SnapshotPredicate.NeverEraseSnapshots",
                 "parameters" : {}
             },
             "journal_path" : "snapshots.jrn"
         }""")
+
+
+## @}
+## @}

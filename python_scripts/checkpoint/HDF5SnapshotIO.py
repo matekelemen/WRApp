@@ -19,8 +19,16 @@ import abc
 import pathlib
 
 
+## @addtogroup WRApplication
+## @{
+## @addtogroup checkpointing
+## @{
+
+
 class HDF5SnapshotIO(SnapshotIO):
-    """@brief Base class with common functionality to writing/loading snapshots to/from disk."""
+    """ @brief Base class with common functionality to writing/loading snapshots to/from disk.
+        @classname HDF5SnapshotIO
+    """
 
     def __init__(self, parameters: KratosMultiphysics.Parameters):
         super().__init__()
@@ -39,7 +47,7 @@ class HDF5SnapshotIO(SnapshotIO):
         return WRApp.CheckpointID(step, analysis_path)
 
 
-    def GetPath(self, id: WRApp.CheckpointID = None) -> pathlib.Path():
+    def GetPath(self, id: WRApp.CheckpointID = None) -> pathlib.Path:
         string = self.__parameters["io_settings"]["file_name"].GetString()
         if id is None:
             string = WRApp.CheckpointPattern(string).Apply({
@@ -135,15 +143,17 @@ class HDF5SnapshotIO(SnapshotIO):
 
 
 class HDF5SnapshotOutput(HDF5SnapshotIO):
-    """@brief Output class for writing most data in the model part to an HDF5 snapshot.
-       @details Data written: - nodal solution step data
-                              - nodal data value
-                              - nodal flag
-                              - element data value
-                              - element flag
-                              - condition data value
-                              - condition flag
-                              - process info
+    """ @brief Output class for writing most data in the model part to an HDF5 snapshot.
+        @classname HDF5SnapshotOutput
+        @details Data written:
+                 - nodal solution step data
+                 - nodal data value
+                 - nodal flag
+                 - element data value
+                 - element flag
+                 - condition data value
+                 - condition flag
+                 - process info
     """
 
     def __init__(self, parameters: KratosMultiphysics.Parameters):
@@ -198,15 +208,17 @@ class HDF5SnapshotOutput(HDF5SnapshotIO):
 
 
 class HDF5SnapshotInput(HDF5SnapshotIO):
-    """@brief Input class for reading most data from an HDF5 snapshot to a model part.
-       @details Data read: - nodal solution step data
-                           - nodal data value
-                           - nodal flag
-                           - element data value
-                           - element flag
-                           - condition data value
-                           - condition flag
-                           - process info
+    """ @brief Input class for reading most data from an HDF5 snapshot to a model part.
+        @classname HDF5SnapshotInput
+        @details Data read:
+                 - nodal solution step data
+                 - nodal data value
+                 - nodal flag
+                 - element data value
+                 - element flag
+                 - condition data value
+                 - condition flag
+                 - process info
     """
 
     def __init__(self, parameters: KratosMultiphysics.Parameters):
@@ -257,3 +269,7 @@ class HDF5SnapshotInput(HDF5SnapshotIO):
         self._ApplyPrefix(self.parameters["prefix"].GetString(), aggregate_parameters, model_part)
 
         return aggregate_operation
+
+
+## @}
+## @}

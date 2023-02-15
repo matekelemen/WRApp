@@ -13,6 +13,12 @@
 
 namespace Kratos {
 
+
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup pipes
+/// @{
+
 /**
  *  @brief Unix-inspired pipes in C++.
  *
@@ -217,6 +223,10 @@ private:
 /// @brief Convenience type alias for complex pipes.
 template <class ...TPipes>
 using Pipeline = decltype((... | std::declval<TPipes>()));
+
+
+/// @}
+/// @}
 
 
 } // namespace Pipes

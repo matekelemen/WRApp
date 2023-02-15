@@ -9,13 +9,17 @@
 
 namespace Kratos::WRApp {
 
-namespace Detail {
+namespace Impl {
+
+
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup numeric
+/// @{
 
 /**
  *  @brief Utility class for membership tests on a 1D interval.
- *
  *  @note This class template has specializations for @a double and @a int but is not implemented for other types.
- *  @ingroup KratosCore
  */
 template <class TValue>
 class KRATOS_API(WR_APPLICATION) IntervalUtility
@@ -102,12 +106,26 @@ std::ostream& operator << (std::ostream& rOStream, const IntervalUtility<TValue>
 }
 
 
-} // namespace Detail
+/// @}
+/// @}
+
+
+} // namespace Impl
+
+
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup numeric
+/// @{
 
 /// A class providing membership tests on 1D rational intervals (eg.: time intervals).
-using IntervalUtility = Detail::IntervalUtility<double>;
+using IntervalUtility = Impl::IntervalUtility<double>;
 
 /// A class providing membership tests on 1D integer intervals (eg.: step intervals).
-using DiscreteIntervalUtility = Detail::IntervalUtility<int>;
+using DiscreteIntervalUtility = Impl::IntervalUtility<int>;
+
+
+/// @}
+/// @}
 
 } // namespace Kratos

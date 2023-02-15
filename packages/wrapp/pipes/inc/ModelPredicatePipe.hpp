@@ -18,6 +18,12 @@
 namespace Kratos::WRApp {
 
 
+/// @addtogroup WRApplication
+/// @{
+/// @addtogroup pipes
+/// @{
+
+
 template <class TPipe>
 class KRATOS_API(WR_APPLICATION) ModelPredicatePipe
     : public ModelPredicate,
@@ -166,6 +172,10 @@ using StepIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
     Pipes::Modulo<int>,
     Pipes::IntervalPredicate<int>
 >>;
+
+
+/// @}
+/// @}
 
 
 } // namespace Kratos::WRApp
