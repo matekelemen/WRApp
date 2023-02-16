@@ -71,7 +71,9 @@ class SnapshotIO(WRApp.WRAppClass):
 
 
 class SnapshotFSIO(SnapshotIO):
-    """ @brief Base class for @ref Snapshot s that store their data on the filesystem."""
+    """ @brief Base class for @ref Snapshot s that store their data on the filesystem.
+        @classname SnapshotFSIO
+    """
 
     def __init__(self, parameters: KratosMultiphysics.Parameters):
         super().__init__(parameters)

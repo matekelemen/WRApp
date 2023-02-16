@@ -32,12 +32,16 @@ KratosMultiphysics._ImportApplication(application, application_name)
 
 
 class WRAppMeta(type(abc.ABC), type(__WRAppClass)):
-    """ @brief Metaclass replacing that of the C++ WRAppClass to provide derived classes access to abc.ABCMeta."""
+    """ @brief Metaclass replacing that of the C++ WRAppClass to provide derived classes access to abc.ABCMeta.
+        @classname WRAppMeta
+    """
     pass
 
 
 class WRAppClass(__WRAppClass, metaclass = WRAppMeta):
-    """ @brief @ref WRApp::WRAppClass with a replaced metaclass for compatibility with abc."""
+    """ @brief @ref WRApp::WRAppClass with a replaced metaclass for compatibility with abc.
+        @classname WRAppClass
+    """
 
     def __init__(self):
         super().__init__()

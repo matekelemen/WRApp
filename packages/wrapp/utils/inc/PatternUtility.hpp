@@ -141,8 +141,8 @@ public:
 
     /** @brief Construct from a placeholder pattern and its associated map.
      *  @param rPattern Pattern string with placeholders.
-     *  @param rPlaceholders Pairs of placeholders and their corresponding regex strings.
-     *                       Example: {{"<name>", ".+"}, {"<identifier>", "[0-9]+"}}
+     *  @param rPlaceholderMap Pairs of placeholders and their corresponding regex strings.
+     *                         Example: {{"<name>", ".+"}, {"<identifier>", "[0-9]+"}}
      *
      *  @warning The corresponding regexes must be bare, not containing groups (checked)
      *           or position constraints such as line begin or end modifiers (not checked).

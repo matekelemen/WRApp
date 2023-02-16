@@ -11,7 +11,7 @@ from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 
 # --- WRApp Imports ---
 from KratosMultiphysics import WRApplication as WRApp
-from .SnapshotIO import SnapshotIO
+from .SnapshotIO import SnapshotFSIO
 # --- STD Imports ---
 import abc
 import pathlib
@@ -23,7 +23,7 @@ import pathlib
 ## @{
 
 
-class HDF5SnapshotIO(SnapshotIO):
+class HDF5SnapshotIO(SnapshotFSIO):
     """ @brief Base class with common functionality to writing/loading snapshots to/from disk.
         @classname HDF5SnapshotIO
     """
