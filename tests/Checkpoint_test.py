@@ -6,7 +6,9 @@ from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 
 # --- WRApplication Imports ---
 from KratosMultiphysics import WRApplication as WRApp
+from KratosMultiphysics.WRApplication.MPIUtils import MPIUtils
 from Snapshot_test import SetModelPartData, MakeModel, MakeModelPart, CompareModelParts, FlipFlags
+from MDPAGenerator import MDPAGenerator
 
 # --- STD Imports ---
 import pathlib
@@ -42,11 +44,23 @@ class TestCheckpoint(WRApp.TestCase):
 
     def RunModel(self, mdpa_stub: str) -> None:
         mdpa_name = f"test_snapshot_{mdpa_stub}"
+        generator = MDPAGenerator()
         model, source_model_part = MakeModel(buffer_size = 2,
-                                            mdpa_name = mdpa_name)
-        snapshots: "list[WRApp.Snapshot]" = []
+                                             mdpa_name = mdpa_name)
 
         # Generate snapshots
+        snapshots: "list[WRApp.Snapshot]" = []
+        snapshot_parameters = WRApp.HDF5Snapshot.GetDefaultParameters()
+        for io in (snapshot_parameters["input_parameters"], snapshot_parameters["output_parameters"]):
+            io["io_settings"]["file_name"].SetString(str(self.test_directory / "snapshots.h5"))
+            io["nodal_historical_variables"].SetStringArray([variable.Name() for variable in generator.historical_nodal_variables])
+            io["nodal_variables"].SetStringArray([variable.Name() for variable in generator.nodal_variables])
+            io["nodal_flags"].SetStringArray(MPIUtils.ExtractNodalFlagNames(source_model_part))
+            io["element_variables"].SetStringArray([variable.Name() for variable in generator.element_variables])
+            io["element_flags"].SetStringArray(MPIUtils.ExtractElementFlagNames(source_model_part))
+            io["condition_variables"].SetStringArray([variable.Name() for variable in generator.condition_variables])
+            io["condition_flags"].SetStringArray(MPIUtils.ExtractConditionFlagNames(source_model_part))
+
         for step in range(2):
             analysis_path = 0
             time = float(step)
@@ -56,15 +70,8 @@ class TestCheckpoint(WRApp.TestCase):
                              path = analysis_path,
                              time = time)
 
-            input_parameters = WRApp.HDF5Snapshot.GetInputType().GetDefaultParameters()
-            output_parameters = WRApp.HDF5Snapshot.GetOutputType().GetDefaultParameters()
-
-            for parameters in (input_parameters, output_parameters):
-                parameters["io_settings"]["file_name"].SetString(str(self.test_directory / "snapshots.h5"))
-
             snapshot = WRApp.HDF5Snapshot.FromModelPart(source_model_part,
-                                                        input_parameters,
-                                                        output_parameters)
+                                                        snapshot_parameters)
             snapshot.Write(source_model_part)
             snapshots.append(snapshot)
 

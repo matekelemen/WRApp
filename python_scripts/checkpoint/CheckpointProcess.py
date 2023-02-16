@@ -116,9 +116,34 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
                  parameters: KratosMultiphysics.Parameters):
         KratosMultiphysics.Process.__init__(self)
         WRApp.WRAppClass.__init__(self)
-        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
+        default_parameters = self.GetDefaultParameters()
+        if not parameters.Has("model_part_name"):
+            parameters.ValidateAndAssignDefaults(default_parameters) # <== throws an exception with a more informative message
         self.__model = model
         self.__model_part = self.__model.GetModelPart(parameters["model_part_name"].GetString())
+
+        # Construct default parameters, collecting all variables
+        # and flags from the specified model part
+        nodal_historical_variables = WRApp.MPIUtils.ExtractNodalSolutionStepDataNames(self.__model_part)
+        nodal_variables = WRApp.MPIUtils.ExtractNodalDataNames(self.__model_part)
+        nodal_flags = WRApp.MPIUtils.ExtractNodalFlagNames(self.__model_part)
+        element_variables = WRApp.MPIUtils.ExtractElementDataNames(self.__model_part)
+        element_flags = WRApp.MPIUtils.ExtractElementFlagNames(self.__model_part)
+        condition_variables = WRApp.MPIUtils.ExtractConditionDataNames(self.__model_part)
+        condition_flags = WRApp.MPIUtils.ExtractConditionFlagNames(self.__model_part)
+
+        for io_name in ("input_parameters", "output_parameters"):
+            io_parameters = default_parameters["snapshot_parameters"]["io"][io_name]
+            io_parameters["nodal_historical_variables"].SetStringArray(nodal_historical_variables)
+            io_parameters["nodal_variables"].SetStringArray(nodal_variables)
+            io_parameters["nodal_flags"].SetStringArray(nodal_flags)
+            io_parameters["element_variables"].SetStringArray(element_variables)
+            io_parameters["element_flags"].SetStringArray(element_flags)
+            io_parameters["condition_variables"].SetStringArray(condition_variables)
+            io_parameters["condition_flags"].SetStringArray(condition_flags)
+
+        parameters.ValidateAndAssignDefaults(default_parameters)
 
         # Snapshot setup
         snapshot_type: typing.Type[Snapshot] = KratosMultiphysics.Registry[parameters["snapshot_type"].GetString()]["type"]

@@ -44,12 +44,9 @@ class HDF5SnapshotManager(SnapshotManager):
         # Don't allow erasing snapshots if all snapshots are written to the same file
         self.__enable_erase = self.__path_pattern.IsConst()
 
-        # Check for duplicate snapshots before adding them
-        self.__check_duplicates = self._parameters["check_duplicates"].GetBool()
-
         # Set up IO parameters
-        self.__input_parameters = HDF5Snapshot.GetInputType().GetDefaultParameters()
-        self.__output_parameters = HDF5Snapshot.GetOutputType().GetDefaultParameters()
+        self.__input_parameters = self._parameters["io"]["input_parameters"]
+        self.__output_parameters = self._parameters["io"]["output_parameters"]
         for io in (self.__input_parameters, self.__output_parameters):
             io["prefix"].SetString(prefix_pattern_string)
             io["io_settings"]["file_name"].SetString(path_pattern_string)
@@ -71,7 +68,7 @@ class HDF5SnapshotManager(SnapshotManager):
 
 
     def Get(self, id: WRApp.CheckpointID) -> "HDF5Snapshot":
-        return HDF5Snapshot(id, self.__input_parameters, self.__output_parameters)
+        return HDF5Snapshot(id, self._parameters["io"])
 
 
     def Erase(self, id: WRApp.CheckpointID) -> None:
@@ -82,7 +79,7 @@ class HDF5SnapshotManager(SnapshotManager):
             if self._model_part.GetCommunicator().GetDataCommunicator().Rank() == 0:
                 DeleteFileIfExisting(file_path)
         else:
-            KratosMultiphysics.Logger.PrintWarning("Blocked request to delete snapshot at {file_path}")
+            KratosMultiphysics.Logger.PrintWarning(f"Blocked request to delete snapshot at {file_path}")
 
 
     @classmethod
@@ -92,24 +89,48 @@ class HDF5SnapshotManager(SnapshotManager):
 
 
     @classmethod
+    def _GetSnapshotType(cls) -> "typing.Type[HDF5Snapshot]":
+        return HDF5Snapshot
+
+
+    @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         """ @code
              {
-                 "erase_predicate" : {
-                     "type" : "DefaultSnapshotPredicate",
-                     "parameters" : {}
-                 },
-                 "journal_path" : "snapshots.jrn",
-                 "snapshot_path" : "snapshots.h5",
-                 "prefix" : "/snapshot_step_<step>_path_<path_id>",
-                 "check_duplicates" : false
+                 "io" : {
+                    "input_parameters" : {
+                        "nodal_historical_variables" : [],
+                        "nodal_variables" : [],
+                        "nodal_flags" : [],
+                        "element_variables" : [],
+                        "element_flags" : [],
+                        "condition_variables" : [],
+                        "condition_flags" : []
+                    },
+                    "output_parameters" : {
+                        "nodal_historical_variables" : [],
+                        "nodal_variables" : [],
+                        "nodal_flags" : [],
+                        "element_variables" : [],
+                        "element_flags" : [],
+                        "condition_variables" : [],
+                        "condition_flags" : []
+                    }
+                },
+                "erase_predicate" : {
+                    "type" : "WRApplication.SnapshotPredicate.NeverEraseSnapshots",
+                    "parameters" : {}
+                },
+                "journal_path" : "snapshots.jrn",
+                "snapshot_path" : "snapshots.h5",
+                "prefix" : "/snapshot_step_<step>_path_<path_id>",
+                "check_duplicates" : false
              }
             @endcode
         """
         output = super().GetDefaultParameters()
         output.AddString("snapshot_path", "snapshots.h5")
         output.AddString("prefix", "/snapshot_step_<step>_path_<path_id>")
-        output.AddBool("check_duplicates", False)
         return output
 
 
@@ -136,9 +157,8 @@ class HDF5Snapshot(SnapshotFS):
 
     def __init__(self,
                  id: WRApp.CheckpointID,
-                 input_parameters: KratosMultiphysics.Parameters,
-                 output_parameters: KratosMultiphysics.Parameters):
-        super().__init__(id, input_parameters, output_parameters)
+                 parameters):
+        super().__init__(id, parameters)
 
 
     def Erase(self, communicator: KratosMultiphysics.DataCommunicator) -> None:

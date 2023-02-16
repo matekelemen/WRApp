@@ -7,6 +7,7 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # --- WRApplication Imports ---
 import KratosMultiphysics.WRApplication as WRApp
+from KratosMultiphysics.WRApplication.MPIUtils import MPIUtils
 from MDPAGenerator import MDPAGenerator
 
 # --- STD Imports ---
@@ -176,26 +177,30 @@ class TestHDF5Snapshot(WRApp.TestCase):
 
     def RunModel(self, mdpa_stub: str) -> None:
         mdpa_name = f"test_snapshot_{mdpa_stub}"
-
-        input_parameters = WRApp.HDF5Snapshot.GetInputType().GetDefaultParameters()
-        output_parameters = WRApp.HDF5Snapshot.GetOutputType().GetDefaultParameters()
-
-        for parameters in (input_parameters, output_parameters):
-            parameters["io_settings"]["file_name"].SetString(str(self.file_path))
+        generator = MDPAGenerator()
 
         model, source_model_part = MakeModel(mdpa_name = mdpa_name)
         SetModelPartData(source_model_part, step = 2, path = 3, time = 1.5)
+
+        parameters = WRApp.HDF5Snapshot.GetDefaultParameters()
+        for io in (parameters["input_parameters"], parameters["output_parameters"]):
+            io["io_settings"]["file_name"].SetString(str(self.file_path))
+            io["nodal_historical_variables"].SetStringArray([variable.Name() for variable in generator.historical_nodal_variables])
+            io["nodal_variables"].SetStringArray([variable.Name() for variable in generator.nodal_variables])
+            io["nodal_flags"].SetStringArray(MPIUtils.ExtractNodalFlagNames(source_model_part))
+            io["element_variables"].SetStringArray([variable.Name() for variable in generator.element_variables])
+            io["element_flags"].SetStringArray(MPIUtils.ExtractElementFlagNames(source_model_part))
+            io["condition_variables"].SetStringArray([variable.Name() for variable in generator.condition_variables])
+            io["condition_flags"].SetStringArray(MPIUtils.ExtractConditionFlagNames(source_model_part))
 
         # Check initialized source model part ProcessInfo
         self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.STEP], 2)
         self.assertEqual(source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH], 3)
         self.assertEqual(source_model_part.ProcessInfo[KratosMultiphysics.TIME], 1.5)
 
-        snapshot = WRApp.HDF5Snapshot(
-            WRApp.CheckpointID(source_model_part.ProcessInfo[KratosMultiphysics.STEP],
-                               source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH]),
-            input_parameters,
-            output_parameters)
+        snapshot = WRApp.HDF5Snapshot(WRApp.CheckpointID(source_model_part.ProcessInfo[KratosMultiphysics.STEP],
+                                                         source_model_part.ProcessInfo[WRApp.ANALYSIS_PATH]),
+                                      parameters)
         snapshot.Write(source_model_part)
 
         # Check initialized source model part ProcessInfo (unchanged)

@@ -38,7 +38,7 @@ class Snapshot(WRApp.WRAppClass):
                  parameters: KratosMultiphysics.Parameters):
         super().__init__()
         self._parameters = parameters
-        self._parameters.AddMissingParameters(self.GetDefaultParameters())
+        self._parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
         self.__id = id
         self._input = self.GetInputType()(self._parameters["input_parameters"])
         self._output = self.GetOutputType()(self._parameters["output_parameters"])
@@ -65,13 +65,13 @@ class Snapshot(WRApp.WRAppClass):
     @abc.abstractmethod
     def Exists(self) -> bool:
         """@brief Check whether the data related to this @ref Snapshot has already been written."""
-        pass
+        return False
 
 
     @abc.abstractmethod
     def IsValid(self) -> bool:
         """@brief Check whether the stored data matches up the ID of the @ref Snapshot."""
-        pass
+        return False
 
 
     @staticmethod
@@ -80,7 +80,7 @@ class Snapshot(WRApp.WRAppClass):
         """ @brief Get the class responsible for reading snapshot data.
             @note Override this member if you need a custom read logic.
         """
-        pass
+        return SnapshotIO
 
 
     @staticmethod
@@ -89,14 +89,14 @@ class Snapshot(WRApp.WRAppClass):
         """ @brief Get the class responsible for writing snapshot data.
             @note Override this member if you need a custom write logic.
         """
-        pass
+        return SnapshotIO
 
 
     @classmethod
     @abc.abstractmethod
     def GetManagerType(cls) -> typing.Type["SnapshotManager"]:
         """ @brief Return the manager type associated with the specialized @ref Snapshot type."""
-        pass
+        return SnapshotManager
 
 
     @classmethod
@@ -386,7 +386,7 @@ class SnapshotManager(metaclass = abc.ABCMeta):
         # Construct and write the snapshot
         self._GetSnapshotType().FromModelPart(
             model_part,
-            self._parameters
+            self._parameters["io"]
         ).Write(model_part)
 
 
@@ -435,8 +435,39 @@ class SnapshotManager(metaclass = abc.ABCMeta):
 
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        """ @code
+            {
+                "io" : {
+                    "input_parameters" : {
+                        "nodal_historical_variables" : [],
+                        "nodal_variables" : [],
+                        "nodal_flags" : [],
+                        "element_variables" : [],
+                        "element_flags" : [],
+                        "condition_variables" : [],
+                        "condition_flags" : []
+                    },
+                    "output_parameters" : {
+                        "nodal_historical_variables" : [],
+                        "nodal_variables" : [],
+                        "nodal_flags" : [],
+                        "element_variables" : [],
+                        "element_flags" : [],
+                        "condition_variables" : [],
+                        "condition_flags" : []
+                    }
+                },
+                "erase_predicate" : {
+                    "type" : "WRApplication.SnapshotPredicate.NeverEraseSnapshots",
+                    "parameters" : {}
+                },
+                "journal_path" : "snapshots.jrn",
+                "check_duplicates" : false
+            }
+            @endcode
+        """
         parameters = KratosMultiphysics.Parameters(R"""{
-            snapshot_parameters : {},
+            "io" : {},
             "erase_predicate" : {
                 "type" : "WRApplication.SnapshotPredicate.NeverEraseSnapshots",
                 "parameters" : {}
@@ -444,7 +475,7 @@ class SnapshotManager(metaclass = abc.ABCMeta):
             "journal_path" : "snapshots.jrn",
             "check_duplicates" : false
         }""")
-        parameters["snapshot_parameters"] = cls._GetSnapshotType().GetDefaultParameters()
+        parameters["io"] = cls._GetSnapshotType().GetDefaultParameters()
         return parameters
 
 

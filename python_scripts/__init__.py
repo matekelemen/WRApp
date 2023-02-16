@@ -51,6 +51,7 @@ class WRAppClass(__WRAppClass, metaclass = WRAppMeta):
 # --- WRApp Imports ---
 from .checkpoint import *
 from .TestCase import *
+from .MPIUtils import *
 
 
 # Register every python class that inherits from WRAppClass
