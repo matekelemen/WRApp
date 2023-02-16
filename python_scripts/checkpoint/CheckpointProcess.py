@@ -178,6 +178,7 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
         """@brief Write a new snapshot if the write predicate returns true."""
         if self.__write_predicate(self.__model):
             self.__snapshot_manager.Add(self.__model_part)
+        self.__snapshot_manager.EraseObsolete()
 
 
     @classmethod
