@@ -100,18 +100,22 @@ private:
  *
  *  @note placeholders should be separated by literals, otherwise
  *        regex will probably not capture them as you'd expect.
- *        BAD example:
+ *        <b>BAD</b> example:
+ *            @code
  *            pattern:    "<placeholder_1><placeholder_2>"
  *            string:     "abcdefg"
  *            result:
  *                "<placeholder_1>" : "abcdef"
  *                "<placeholder_2>" : "g"
- *        CORRECT example:
+ *            @endcode
+ *        <b>CORRECT</b> example:
+ *            @code
  *            pattern:    "<placeholder_1>d<placeholder_2>"
  *            string:     "abcdefg"
  *            result:
  *                "<placeholder_1>" : "abc"
  *                "<placeholder_2>" : "efg"
+ *            @endcode
  */
 class KRATOS_API(WR_APPLICATION) PlaceholderPattern
 {
@@ -139,7 +143,7 @@ public:
     /** @brief Construct from a placeholder pattern and its associated map.
      *  @param rPattern Pattern string with placeholders.
      *  @param rPlaceholderMap Pairs of placeholders and their corresponding regex strings.
-     *                         Example: {{"<name>", ".+"}, {"<identifier>", "[0-9]+"}}
+     *                         Example: @code {{"<name>", ".+"}, {"<identifier>", "[0-9]+"}} @endcode
      *
      *  @warning The corresponding regexes must be bare, not containing groups (checked)
      *           or position constraints such as line begin or end modifiers (not checked).
@@ -188,7 +192,7 @@ public:
      *  @details Return a copy of the pattern that has its placeholders replaced
      *           with the corresponding values specified in the input map.
      *  @param rPlaceholderValueMap string - string map associating values to placeholders
-     *                              {"palceholder" : "placeholder_value"}
+     *                              @code {"palceholder" : "placeholder_value"} @endcode
      */
     std::string Apply(const PlaceholderMap& rPlaceholderValueMap) const;
 
