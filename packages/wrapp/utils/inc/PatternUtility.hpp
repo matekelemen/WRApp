@@ -112,9 +112,6 @@ private:
  *            result:
  *                "<placeholder_1>" : "abc"
  *                "<placeholder_2>" : "efg"
- *
- *  @note placeholders not present in the pattern are discarded,
- *        and won't be keys in @ref PlaceholderPattern::Match.
  */
 class KRATOS_API(WR_APPLICATION) PlaceholderPattern
 {
