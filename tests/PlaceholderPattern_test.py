@@ -3,7 +3,7 @@
 # --- Core Imports ---
 import KratosMultiphysics
 
-# --- HDF5 Imports ---
+# --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
 
 # --- STD Imports ---
