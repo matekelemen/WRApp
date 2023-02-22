@@ -43,7 +43,7 @@ struct WRAppClassTrampoline : WRApp::WRAppClass
 
 
 /// @brief Collect globbed paths to an array of strings.
-std::vector<std::filesystem::path> Glob (const ModelPartPattern& rInstance) {
+std::vector<std::filesystem::path> Glob (const PlaceholderPattern& rInstance) {
     std::vector<std::filesystem::path> output;
     rInstance.Glob(std::back_inserter(output));
     return output;
@@ -87,6 +87,9 @@ void AddUtilsToPython(pybind11::module& rModule)
         .def("Apply",
              &PlaceholderPattern::Apply,
              "Substitute values from the input map into the stored pattern.")
+        .def("Glob",
+             &Glob,
+             "Collect all file/directory paths that match the pattern.")
         .def("GetRegexString",
              &PlaceholderPattern::GetRegexString,
              "Get the string representation of the regex.")
@@ -97,9 +100,6 @@ void AddUtilsToPython(pybind11::module& rModule)
 
     pybind11::class_<ModelPartPattern, ModelPartPattern::Pointer, PlaceholderPattern>(rModule, "ModelPartPattern")
         .def(pybind11::init<const std::string&>())
-        .def("Glob",
-             &Glob,
-             "Collect all file/directory paths that match the pattern.")
         .def("Apply",
              static_cast<std::string(ModelPartPattern::*)(const ModelPartPattern::PlaceholderMap&)const>(&ModelPartPattern::Apply),
              "Substitute values from the input map into the stored pattern.")

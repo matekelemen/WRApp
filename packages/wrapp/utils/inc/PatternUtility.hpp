@@ -196,6 +196,14 @@ public:
      */
     std::string Apply(const PlaceholderMap& rPlaceholderValueMap) const;
 
+    /** @brief Collect all file/directory paths that match the pattern.
+     *  @tparam TOutputIterator: output iterator with value type constructible from @ref PathType.
+     *  @note the search begins from the filesystem root if the pattern is an absolute path,
+     *        otherwise it begins from @c cwd.
+     */
+    template <class TOutputIterator>
+    void Glob(TOutputIterator it) const;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -292,14 +300,6 @@ public:
      *        - @c boost::format (requires boost)
      */
     std::string Apply(const ModelPart& rModelPart) const;
-
-    /** @brief Collect all file/directory paths that match the pattern.
-     *  @tparam TOutputIterator: output iterator with value type constructible from @ref PathType.
-     *  @note the search begins from the filesystem root if the pattern is an absolute path,
-     *        otherwise it begins from @c cwd.
-     */
-    template <class TOutputIterator>
-    void Glob(TOutputIterator it) const;
 
     ///@}
 
