@@ -26,6 +26,8 @@ struct KRATOS_API(WR_APPLICATION) WRAppClass
 
     WRAppClass(const WRAppClass& rOther) noexcept = default;
 
+    virtual ~WRAppClass() noexcept = default;
+
     WRAppClass& operator=(WRAppClass&& rOther) noexcept = default;
 
     WRAppClass& operator=(const WRAppClass& rOther) noexcept = default;
