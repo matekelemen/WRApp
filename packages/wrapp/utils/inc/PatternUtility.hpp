@@ -313,15 +313,7 @@ protected:
     /// @brief Populate a key-value map of registered placeholders from a @ref ModelPart.
     virtual void PopulatePlaceholderMap(PlaceholderMap& rMap, const ModelPart& rModelPart) const;
 
-    static const PlaceholderMap& GetPlaceholderMap();
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    static PlaceholderMap mModelPartPlaceholderMap;
+    static PlaceholderMap GetPlaceholderMap();
 
     ///@}
 }; // class ModelPartPattern
@@ -370,18 +362,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    static const PlaceholderMap& GetPlaceholderMap();
+    static PlaceholderMap GetPlaceholderMap();
 
     /// @copydoc ModelPartPattern::PopulatePlaceholderMap
     virtual void PopulatePlaceholderMap(PlaceholderMap& rMap, const ModelPart& rModelPart) const override;
-
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-
-    static PlaceholderMap mCheckpointPlaceholderMap;
 
     ///@}
 }; // class CheckpointPattern

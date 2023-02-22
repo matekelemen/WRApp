@@ -253,17 +253,14 @@ const std::string& PlaceholderPattern::GetPatternString() const
 }
 
 
-const ModelPartPattern::PlaceholderMap& ModelPartPattern::GetPlaceholderMap()
+ModelPartPattern::PlaceholderMap ModelPartPattern::GetPlaceholderMap()
 {
-    if (mModelPartPlaceholderMap.empty()) {
-        mModelPartPlaceholderMap = PlaceholderMap {
-            {"<model_part_name>", ".+"},
-            {"<step>", RegexUtility::UnsignedInteger().first},
-            {"<time>", RegexUtility::FloatingPoint().first},
-            {"<rank>", RegexUtility::Integer().first}
-        };
-    }
-    return mModelPartPlaceholderMap;
+    return PlaceholderMap {
+        {"<model_part_name>", ".+"},
+        {"<step>", RegexUtility::UnsignedInteger().first},
+        {"<time>", RegexUtility::FloatingPoint().first},
+        {"<rank>", RegexUtility::Integer().first}
+    };
 }
 
 
@@ -301,9 +298,6 @@ std::string PlaceholderPattern::FormatRegexLiteral(const std::string& rLiteral)
 
     KRATOS_CATCH("");
 }
-
-
-ModelPartPattern::PlaceholderMap ModelPartPattern::mModelPartPlaceholderMap;
 
 
 ModelPartPattern::ModelPartPattern(const std::string& rPattern)
@@ -369,17 +363,12 @@ void CheckpointPattern::PopulatePlaceholderMap(PlaceholderMap& rMap, const Model
 }
 
 
-const CheckpointPattern::PlaceholderMap& CheckpointPattern::GetPlaceholderMap()
+CheckpointPattern::PlaceholderMap CheckpointPattern::GetPlaceholderMap()
 {
-    if (mCheckpointPlaceholderMap.empty()) {
-        mCheckpointPlaceholderMap = ModelPartPattern::GetPlaceholderMap();
-        mCheckpointPlaceholderMap.emplace("<path_id>", RegexUtility::UnsignedInteger().first);
-    }
-    return mCheckpointPlaceholderMap;
+    auto output = ModelPartPattern::GetPlaceholderMap();
+    output.emplace("<path_id>", RegexUtility::UnsignedInteger().first);
+    return output;
 }
-
-
-CheckpointPattern::PlaceholderMap CheckpointPattern::mCheckpointPlaceholderMap;
 
 
 } // namespace Kratos
