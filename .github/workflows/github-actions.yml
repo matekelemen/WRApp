@@ -27,7 +27,7 @@ jobs:
           git branch -D doc &>/dev/null || true
           git checkout -b doc
         env:
-          USER_NAME: matekelemen
+          USER_NAME: github-bot
       - name: Run doxygen
         run: cd docs && doxygen doxyfile && cd ..
       - name: Generate root index.html
@@ -39,4 +39,4 @@ jobs:
           git push -f https://$USER_NAME:$GITHUB_TOKEN@github.com/matekelemen/WRApp.git doc
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          USER_NAME: matekelemen
+          USER_NAME: github-bot
