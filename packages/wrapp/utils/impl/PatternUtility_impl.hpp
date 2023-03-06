@@ -10,7 +10,7 @@ namespace Kratos {
 
 
 template <class TOutputIterator>
-void ModelPartPattern::Glob(TOutputIterator it) const
+void PlaceholderPattern::Glob(TOutputIterator it) const
 {
     KRATOS_TRY
 
