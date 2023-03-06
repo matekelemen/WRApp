@@ -53,8 +53,8 @@ class WRAppClass(__WRAppClass, metaclass = WRAppMeta):
 
 
 # --- WRApp Imports ---
-from .async_analysis import *
 from .checkpoint import *
+from .async_analysis import *
 from .TestCase import *
 from .MPIUtils import *
 
