@@ -10,6 +10,7 @@
 #include "pybind11/pybind11.h"
 #include "wrapp/utils/inc/AddUtilsToPython.hpp"
 #include "wrapp/utils/inc/WRAppClass.hpp"
+#include "wrapp/utils/inc/ModelPredicate.hpp"
 #include "wrapp/utils/inc/PatternUtility.hpp"
 #include "wrapp/utils/inc/TestingUtilities.hpp"
 #include "wrapp/utils/inc/MapKeyRange.hpp"
@@ -42,6 +43,24 @@ struct WRAppClassTrampoline : WRApp::WRAppClass
 }; // struct WRAppClassTrampoline
 
 
+/// @brief Wrapper class for binding a pure virtual class.
+class KRATOS_API(KratosCore) ModelPredicateTrampoline : public WRApp::ModelPredicate
+{
+public:
+    bool operator()(const Model& rModel) const override
+    {
+        using ReturnType = bool;
+        using BaseType = WRApp::ModelPredicate;
+        PYBIND11_OVERRIDE_PURE(
+            ReturnType,
+            BaseType,
+            operator(),
+            rModel
+        );
+    }
+}; // class ModelPredicateTrampoline
+
+
 /// @brief Collect globbed paths to an array of strings.
 std::vector<std::filesystem::path> Glob (const PlaceholderPattern& rInstance) {
     std::vector<std::filesystem::path> output;
@@ -70,6 +89,10 @@ void AddUtilsToPython(pybind11::module& rModule)
     rModule.def("GetGlobalFlagNames",
                 GetComponentNames<Flags>,
                 "Get a list of all registered global flag names.");
+
+    pybind11::class_<WRApp::ModelPredicate, WRApp::ModelPredicate::Pointer, ModelPredicateTrampoline>(rModule, "ModelPredicate")
+        .def("__call__", &WRApp::ModelPredicate::operator())
+        ;
 
     pybind11::class_<WRApp::WRAppClass, WRApp::WRAppClass::Pointer, WRAppClassTrampoline>(rModule, "WRAppClass")
         .def(pybind11::init<>())

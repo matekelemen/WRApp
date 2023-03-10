@@ -13,7 +13,7 @@ void AddPipesToPython(pybind11::module& rModule)
     #define KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(NAME)    \
         pybind11::class_<WRApp::NAME,                       \
                          WRApp::NAME::Pointer,              \
-                         ModelPredicate,                    \
+                         WRApp::ModelPredicate,             \
                          WRApp::WRAppClass>(rModule, #NAME) \
             .def(pybind11::init<>())                        \
             .def(pybind11::init<const Parameters&>())       \

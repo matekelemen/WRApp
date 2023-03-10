@@ -6,10 +6,10 @@
 #include "basic_pipes.hpp"
 #include "wrapp/pipes/inc/basic_pipes.hpp"
 #include "wrapp/utils/inc/WRAppClass.hpp"
+#include "wrapp/utils/inc/ModelPredicate.hpp"
 
 // --- Core Includes ---
 #include "includes/smart_pointers.h"
-#include "utilities/model_predicate.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/interval_utility.h"
@@ -26,7 +26,7 @@ namespace Kratos::WRApp {
 
 template <class TPipe>
 class KRATOS_API(WR_APPLICATION) ModelPredicatePipe
-    : public ModelPredicate,
+    : public WRApp::ModelPredicate,
       public Pipes::Traits<const Model&, bool>,
       public WRAppClass
 {
