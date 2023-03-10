@@ -53,10 +53,10 @@ class WRAppClass(__WRAppClass, metaclass = WRAppMeta):
 
 
 # --- WRApp Imports ---
-from .checkpoint import *
-from .async_analysis import *
 from .TestCase import *
 from .MPIUtils import *
+from .checkpoint import *
+from .async_analysis import *
 
 
 # Register every python class that inherits from WRAppClass
