@@ -135,6 +135,25 @@ struct StepFromProcessInfo : public VariableFromProcessInfo<decltype(STEP)>
 }; // struct TimeFromProcessInfo
 
 
+/// @brief Perform a comparison operation on the input as the left hand side.
+/// @note Constructible from @ref Parameters with an "rhs" entry.
+template <class TValue, class TOperator>
+class Comparison : public Traits<TValue,bool>
+{
+public:
+    Comparison();
+
+    Comparison(const Parameters& rParameters);
+
+    bool operator()(TValue lhs) const noexcept;
+
+    static Parameters GetDefaultParameters();
+
+private:
+    TValue mRHS;
+}; // class Comparison
+
+
 /// @brief Pipe wrapper for @ref Detail::IntervalUtility.
 /// @note Constructible from @ref Parameters (passed on to @ref Detail::IntervalUtility).
 template <class TValue>

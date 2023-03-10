@@ -30,6 +30,34 @@ Parameters VariableFromProcessInfo<TVariable>::GetDefaultParameters()
 }
 
 
+template <class TValue, class TOperator>
+Comparison<TValue,TOperator>::Comparison()
+    : Comparison(Comparison::GetDefaultParameters())
+{
+}
+
+
+template <class TValue, class TOperator>
+Comparison<TValue,TOperator>::Comparison(const Parameters& rParameters)
+    : mRHS(rParameters["rhs"].Get<TValue>())
+{
+}
+
+
+template <class TValue, class TOperator>
+bool Comparison<TValue,TOperator>::operator()(TValue lhs) const noexcept
+{
+    return TOperator()(lhs, mRHS);
+}
+
+
+template <class TValue, class TOperator>
+Parameters Comparison<TValue,TOperator>::GetDefaultParameters()
+{
+    return Parameters(R"({"rhs" : 0})");
+}
+
+
 template <class TValue>
 IntervalPredicate<TValue>::IntervalPredicate(TValue Begin, TValue End)
     : mInterval(Begin, End)

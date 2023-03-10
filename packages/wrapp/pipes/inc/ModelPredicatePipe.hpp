@@ -14,6 +14,9 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/interval_utility.h"
 
+// --- STL Includes ---
+#include <functional> // std::less
+
 
 namespace Kratos::WRApp {
 
@@ -57,7 +60,7 @@ private:
 
 
 /** @brief Always returns the boolean value it was constructed with, regardless of the input @ref Model.
- *  @details Model => true/false
+ *  @details @code Model => true/false @endcode.
  *           Required parameters:
  *           @code
  *           [
@@ -70,14 +73,36 @@ using ConstModelPredicate = ModelPredicatePipe<Pipes::SingleSegmentPipeline<
 >>;
 
 
+/** @brief Check whether @ref TIME is greater than the provided value.
+ *  @details @code Model => ModelPart => ProcessInfo => TIME => std::less @endcode.
+ *           Default parameters:
+ *           @code
+ *           [
+ *              {"model_part_name" : ""},   // <== model part from model
+ *              {},                         // <== process info from model part
+ *              {},                         // <== time from process info
+ *              {"rhs" : 0}                 // <== double comparison
+ *           ]
+ *           @code
+ */
+using TimeGreaterPredicate = ModelPredicatePipe<Pipes::Pipeline<
+    Pipes::ModelPartFromModel,
+    Pipes::ProcessInfoFromModelPart,
+    Pipes::TimeFromProcessInfo,
+    Pipes::Comparison<double,std::greater<double>>
+>>;
+
+
 /**
  *  @brief Check whether @ref TIME in a @ref ModelPart is within an interval.
  *  @details Model => ModelPart => ProcessInfo => TIME => IntervalUtility::IsIninterval.
  *           Required parameters (other settings ignored):
  *           @code
  *           [
- *              {"model_part_name" : ""},
- *              {"interval" : ["Begin", "End"]}
+ *              {"model_part_name" : ""},           // <== model part from model
+ *              {},                                 // <== process info from model part
+ *              {},                                 // <== time from process info
+ *              {"interval" : ["Begin", "End"]}     // <== interval utility
  *           ]
  *           @endcode
  *  @note See @ref IntervalUtility for details.
@@ -93,12 +118,14 @@ using TimeIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
 /**
  *  @brief Check whether @ref STEP in a @ref ModelPart is within an interval.
  *
- *  @details Model => ModelPart => ProcessInfo => STEP => DiscreteIntervalUtility::IsIninterval.
+ *  @details @code Model => ModelPart => ProcessInfo => STEP => DiscreteIntervalUtility::IsIninterval @endcode.
  *           Required parameters (other settings ignored):
  *           @code
  *           [
- *              {"model_part_name" : ""},
- *              {"interval" : ["Begin", "End"]}
+ *              {"model_part_name" : ""},           // <== model part from model
+ *              {},                                 // <== process info from model part
+ *              {},                                 // <== step from process info
+ *              {"interval" : ["Begin", "End"]}     // <== discrete interval utility
  *           ]
  *           @endcode
  *
@@ -115,13 +142,15 @@ using StepIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
 /**
  *  @brief Check whether @ref TIME in a @ref ModelPart is within a cyclic interval.
  *
- *  @details Model => ModelPart => ProcessInfo => TIME => Modulo => IntervalUtility::IsInInterval.
+ *  @details @code Model => ModelPart => ProcessInfo => TIME => Modulo => IntervalUtility::IsInInterval @endcode.
  *           Required parameters (other settings ignored):
  *           @code
  *           [
- *              {"model_part_name" : ""},
- *              {"mod" : 0},
- *              {"interval" : ["Begin", "End"]}
+ *              {"model_part_name" : ""},           // <== model part from model
+ *              {},                                 // <== process info from model part
+ *              {},                                 // <== time from process info
+ *              {"mod" : 0},                        // <== modulo
+ *              {"interval" : ["Begin", "End"]}     // <== interval utility
  *           ]
  *           @endcode
  *
@@ -146,13 +175,15 @@ using StepIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
 /**
  *  @brief Check whether @ref STEP in a @ref ModelPart is within a cyclic interval.
  *
- *  @details Model => ModelPart => ProcessInfo => STEP => Modulo => DiscreteIntervalUtility::IsInInterval.
+ *  @details @code Model => ModelPart => ProcessInfo => STEP => Modulo => DiscreteIntervalUtility::IsInInterval @endcode.
  *           Required parameters (other settings ignored):
  *           @code
  *           [
- *              {"model_part_name" : ""},
- *              {"mod" : 0},
- *              {"interval" : ["Begin", "End"]}
+ *              {"model_part_name" : ""},           // <== model part from model
+ *              {},                                 // <== process info from model part
+ *              {},                                 // <== step from process info
+ *              {"mod" : 0},                        // <== modulo
+ *              {"interval" : ["Begin", "End"]}     // <== interval utility
  *           ]
  *           @endcode
  *

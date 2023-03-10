@@ -21,6 +21,8 @@ void AddPipesToPython(pybind11::module& rModule)
 
     KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(ConstModelPredicate);
 
+    KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(TimeGreaterPredicate);
+
     KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(TimeIntervalPredicate);
 
     KRATOS_DEFINE_PIPED_PREDICATE_BINDINGS(StepIntervalPredicate);
