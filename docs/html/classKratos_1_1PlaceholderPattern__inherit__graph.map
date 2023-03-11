@@ -1,0 +1,5 @@
+<map id="PlaceholderPattern" name="PlaceholderPattern">
+<area shape="rect" id="node1" title="A class for interfacing placeholders and regular expressions." alt="" coords="8,5,207,669"/>
+<area shape="rect" id="node2" href="$classKratos_1_1ModelPartPattern.html" title="A class for working with formatted strings related to ModelParts." alt="" coords="5,717,209,1117"/>
+<area shape="rect" id="node3" href="$classKratos_1_1CheckpointPattern.html" title="A class for working with formatted strings related to Checkpoint." alt="" coords="5,1165,209,1492"/>
+</map>

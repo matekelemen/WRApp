@@ -1,0 +1,5 @@
+<map id="SnapshotFSIO" name="SnapshotFSIO">
+<area shape="rect" id="node1" title="Base class for Snapshot s that store their data on the filesystem." alt="" coords="46,271,157,348"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1checkpoint_1_1SnapshotIO_1_1SnapshotIO.html" title="Interface for performing Snapshot input/output operations." alt="" coords="5,131,197,223"/>
+<area shape="rect" id="node3" title=" " alt="" coords="49,5,153,83"/>
+</map>

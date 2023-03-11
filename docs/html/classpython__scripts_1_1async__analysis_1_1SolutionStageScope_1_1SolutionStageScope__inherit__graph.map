@@ -1,0 +1,14 @@
+<map id="SolutionStageScope" name="SolutionStageScope">
+<area shape="rect" id="node1" title="RAII context manager for tasks during solver execution." alt="" coords="721,131,871,208"/>
+<area shape="rect" id="node3" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1SolverScope.html" title="Embed some part of AsyncSolver in a SolutionStageScope." alt="" coords="490,285,675,363"/>
+<area shape="rect" id="node11" href="$classpython__scripts_1_1async__analysis_1_1CoSimCoupling_1_1CoSimCoupling.html" title="Wrapper for CoSimulationApplication coupling procedures." alt="" coords="700,256,892,392"/>
+<area shape="rect" id="node12" href="$classpython__scripts_1_1async__analysis_1_1SolutionStageScope_1_1AggregateSolutionStageScope.html" title="Enter multiple SolutionStageScope contexts at once." alt="" coords="916,285,1135,363"/>
+<area shape="rect" id="node2" title=" " alt="" coords="771,5,821,83"/>
+<area shape="rect" id="node4" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1AdvanceScope.html" title="Embed AsyncSolver._Advance in a SolutionStageScope." alt="" coords="5,447,205,525"/>
+<area shape="rect" id="node5" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1PostprocessScope.html" title="Embed AsyncSolver._Postprocess in a SolutionStageScope." alt="" coords="229,447,451,525"/>
+<area shape="rect" id="node6" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1PreprocessScope.html" title="Embed AsyncSolver._Preprocess in a SolutionStageScope." alt="" coords="475,447,690,525"/>
+<area shape="rect" id="node7" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1SolutionLoopScope.html" title="Embed AsyncSolver.Run in a SolutionStageScope." alt="" coords="715,440,904,532"/>
+<area shape="rect" id="node8" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1SynchronizeScope.html" title="Embed AsyncSolver._Synchronize in a SolutionStageScope." alt="" coords="929,447,1151,525"/>
+<area shape="rect" id="node9" href="$classpython__scripts_1_1async__analysis_1_1CoupledAsyncSolver_1_1CoupledAsyncSolver_1_1SynchronizeScope.html" title=" " alt="" coords="796,580,1033,672"/>
+<area shape="rect" id="node10" href="$classpython__scripts_1_1async__analysis_1_1WrappedAnalysis_1_1WrappedAnalysis_1_1SynchronizeScope.html" title="Sandwich AnalysisStage.SolveSolutionStage between &quot;initialization&quot; and &quot;finalization&quot;." alt="" coords="1057,580,1276,672"/>
+</map>

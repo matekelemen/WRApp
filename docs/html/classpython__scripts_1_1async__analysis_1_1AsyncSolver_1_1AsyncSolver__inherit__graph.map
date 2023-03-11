@@ -1,0 +1,7 @@
+<map id="AsyncSolver" name="AsyncSolver">
+<area shape="rect" id="node1" title="Base class for composable solvers that handle their domains asynchronously." alt="" coords="208,131,427,751"/>
+<area shape="rect" id="node3" href="$classpython__scripts_1_1async__analysis_1_1CoupledAsyncSolver_1_1CoupledAsyncSolver.html" title="AsyncSolver with coupling directives from CoSimulationApplication." alt="" coords="5,813,197,964"/>
+<area shape="rect" id="node4" href="$classpython__scripts_1_1async__analysis_1_1WrappedAnalysis_1_1WrappedAnalysis.html" title="Integrate a KratosMultiphysics.AnalysisStage into AsyncSolver._Synchronize." alt="" coords="221,806,413,971"/>
+<area shape="rect" id="node5" href="$classpython__scripts_1_1async__analysis_1_1WrappedSolver_1_1WrappedSolver.html" title="Specialization of AsyncSolver for wrapping a PythonSolver." alt="" coords="437,799,629,979"/>
+<area shape="rect" id="node2" title=" " alt="" coords="265,5,369,83"/>
+</map>

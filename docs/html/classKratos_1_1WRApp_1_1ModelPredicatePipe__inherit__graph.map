@@ -1,0 +1,6 @@
+<map id="ModelPredicatePipe&lt; TPipe &gt;" name="ModelPredicatePipe&lt; TPipe &gt;">
+<area shape="rect" id="node1" title=" " alt="" coords="207,248,409,443"/>
+<area shape="rect" id="node2" href="$structKratos_1_1WRApp_1_1ModelPredicate.html" title="Base class for functors that take a Model and return a bool." alt="" coords="5,42,208,163"/>
+<area shape="rect" id="node3" href="$structKratos_1_1Pipes_1_1Traits.html" title=" " alt="" coords="233,57,383,149"/>
+<area shape="rect" id="node4" href="$structKratos_1_1WRApp_1_1WRAppClass.html" title="Dummy base class for registering and exporting exposed classes in WRApplication." alt="" coords="408,5,611,200"/>
+</map>

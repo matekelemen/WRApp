@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classKratos_1_1PlaceholderPattern.html" title="A class for interfacing placeholders and regular expressions." alt="" coords="5,5,149,32"/>
+<area shape="rect" id="node2" href="$classKratos_1_1ModelPartPattern.html" title="A class for working with formatted strings related to ModelParts." alt="" coords="197,5,331,32"/>
+<area shape="rect" id="node3" href="$classKratos_1_1CheckpointPattern.html" title="A class for working with formatted strings related to Checkpoint." alt="" coords="379,5,520,32"/>
+</map>

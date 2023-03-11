@@ -1,0 +1,5 @@
+<map id="NeverEraseSnapshots" name="NeverEraseSnapshots">
+<area shape="rect" id="node1" title="Always returns false." alt="" coords="5,256,169,333"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1checkpoint_1_1Snapshot_1_1SnapshotPredicate.html" title="Base class for a predicate that takes a CheckpointID." alt="" coords="16,131,159,208"/>
+<area shape="rect" id="node3" title=" " alt="" coords="35,5,139,83"/>
+</map>

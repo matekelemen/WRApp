@@ -1,0 +1,5 @@
+<map id="DefaultCheckpointSelector" name="DefaultCheckpointSelector">
+<area shape="rect" id="node1" title="Always returns None, i.e." alt="" coords="5,256,201,333"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1checkpoint_1_1CheckpointProcess_1_1CheckpointSelector.html" title="A functor taking a Model and returning a CheckpointID to load or None." alt="" coords="29,131,177,208"/>
+<area shape="rect" id="node3" title=" " alt="" coords="51,5,155,83"/>
+</map>

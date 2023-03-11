@@ -1,0 +1,7 @@
+<map id="HDF5SnapshotOutput" name="HDF5SnapshotOutput">
+<area shape="rect" id="node1" title="Output class for writing most data in the model part to an HDF5 snapshot." alt="" coords="5,580,212,657"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1checkpoint_1_1HDF5SnapshotIO_1_1HDF5SnapshotIO.html" title="Base class with common functionality to writing/loading snapshots to/from disk." alt="" coords="5,396,212,532"/>
+<area shape="rect" id="node3" href="$classpython__scripts_1_1checkpoint_1_1SnapshotIO_1_1SnapshotFSIO.html" title="Base class for Snapshot s that store their data on the filesystem." alt="" coords="53,271,164,348"/>
+<area shape="rect" id="node4" href="$classpython__scripts_1_1checkpoint_1_1SnapshotIO_1_1SnapshotIO.html" title="Interface for performing Snapshot input/output operations." alt="" coords="13,131,205,223"/>
+<area shape="rect" id="node5" title=" " alt="" coords="57,5,161,83"/>
+</map>
