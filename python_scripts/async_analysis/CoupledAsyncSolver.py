@@ -8,8 +8,13 @@ __all__ = [
 import KratosMultiphysics
 
 # --- WRApp Imports ---
+from .SolutionStageScope import AggregateSolutionStageScope
 from .AsyncSolver import AsyncSolver
 from .CoSimCoupling import CoSimCoupling
+
+# --- STD Imports ---
+import io
+import typing
 
 
 ## @addtogroup WRApplication
@@ -44,8 +49,41 @@ class CoupledAsyncSolver(AsyncSolver):
                                                   self.parameters["coupling"])
 
 
+    ## @name Solution Flow
+    ## @{
+
+
     def _Synchronize(self) -> None:
-        self.__coupling_operation.Execute()
+        with AggregateSolutionStageScope([
+            self.GetSolver(partition_name).Synchronize() for partition_name in self.partitions
+        ]) as subsync:
+            self.__coupling_operation.Execute()
+            subsync()
+
+
+    ## @}
+    ## @name Solution Scope Types
+    ## @{
+
+
+    @property
+    def _synchronize_scope_type(self) -> "typing.Type[AsyncSolver.SynchronizeScope]":
+        return CoupledAsyncSolver.SynchronizeScope
+
+
+    ## @}
+    ## @name Properties
+    ## @{
+
+
+    @property
+    def _coupling_operation(self) -> CoSimCoupling:
+        return self.__coupling_operation
+
+
+    ## @}
+    ## @name Static Members
+    ## @{
 
 
     @classmethod
@@ -76,6 +114,33 @@ class CoupledAsyncSolver(AsyncSolver):
         output.AddString("model_part_name", "")
         output.AddValue("coupling", CoSimCoupling.GetDefaultParameters())
         return output
+
+
+    ## @}
+    ## @name Solution Scope Types
+    ## @{
+
+    ## @}
+    ## @name Member Classes
+    ## @{
+
+
+    class SynchronizeScope(AsyncSolver.SynchronizeScope):
+
+        def __init__(self, solver: "CoupledAsyncSolver"):
+            super().__init__(solver)
+
+
+        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
+            #super().WriteInfo(stream, prefix)
+            subprefix = prefix + "|  "
+            AggregateSolutionStageScope([
+                self._solver.GetSolver(partition_name).Synchronize() for partition_name in self._solver.partitions
+            ]).WriteInfo(stream, subprefix)
+            self._solver._coupling_operation.WriteInfo(stream, subprefix)
+
+
+    ## @}
 
 
 ## @}

@@ -5,8 +5,7 @@ import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
 
 # --- WRApp Imports ---
-from .AsyncSolver import AsyncSolver, SolutionStage
-from .hookers import MakeHook
+from .AsyncSolver import AsyncSolver
 
 # --- STD Imports ---
 import typing
@@ -41,8 +40,8 @@ class WrappedSolver(AsyncSolver):
         # This part of the initialization needs to happen before any calls
         # to Process::ExecuteInitialize, so it's added as an initial hook
         # before _Preprocess.
-        self.AddHook(MakeHook(self.__Initialize),
-                     SolutionStage.PRE_PREPROCESS)
+        #self.AddHook(MakeHook(self.__Initialize),
+        #             SolutionStage.PRE_PREPROCESS)
 
 
     ## @name Properties

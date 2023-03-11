@@ -77,10 +77,10 @@ class DatasetTransfer(KratosMultiphysics.Operation):
                                            self.__transformation_parameters)
 
 
-    def GetInfo(self, stream: io.StringIO, prefix: str = "") -> None:
+    def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
         stream.write(f"{prefix}fetch dataset '{self.__source_dataset_name}' from partition '{self.__source_partition_name}'\n")
         stream.write(f"{prefix}apply transformation '{self.__transformation_name}'\n")
-        stream.write(f"{prefix}write transformed data to dataset '{self.__target_dataset_name}' in partition '{self.__target_partition_name}'")
+        stream.write(f"{prefix}write transformed data to dataset '{self.__target_dataset_name}' in partition '{self.__target_partition_name}'\n")
 
 
     @classmethod
@@ -144,8 +144,8 @@ class SubSynchronization(KratosMultiphysics.Operation):
         self.__solver._Synchronize()
 
 
-    def GetInfo(self, stream: io.StringIO, prefix: str = "") -> None:
-        stream.write(f"{prefix}synchronize partition '{self.__partition_name}'")
+    def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
+        stream.write(f"{prefix}synchronize partition '{self.__partition_name}'\n")
 
 
     @classmethod
@@ -273,15 +273,15 @@ class CoSimCoupling(KratosMultiphysics.Operation, WRApp.WRAppClass):
                     accelerator.ComputeAndApplyUpdate()
 
         # If the flow reached this point, the coupling failed
-        raise RuntimeError(f"Coupling failed to converge in {self.__max_iterations + 1} iterations")
+        raise RuntimeError(f"Coupling failed to converge in {self.__max_iterations} iterations")
 
 
-    def GetInfo(self, stream: io.StringIO, prefix: str = "") -> None:
+    def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
         if self.__max_iterations:
             stream.write(f"{prefix}for max {self.__max_iterations} time{'s' if 1 < self.__max_iterations else ''}:\n")
             subprefix = prefix + "|  "
             for item in self.__coupling_sequence:
-                item.GetInfo(stream, subprefix)
+                item.WriteInfo(stream, subprefix)
 
 
     ## @name Properties

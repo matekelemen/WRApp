@@ -1,42 +1,26 @@
 """ @author Máté Kelemen"""
 
 __all__ = [
-    "AsyncSolver",
-    "SolutionStage"
+    "AsyncSolver"
 ]
 
 # --- Core Imports ---
 import KratosMultiphysics
 
 # --- WRApp Imports ---
+from .SolutionStageScope import SolutionStageScope, AggregateSolutionStageScope
 import KratosMultiphysics.WRApplication as WRApp
 
 # --- STD Imports ---
-import abc
 import typing
-import enum
 import collections.abc
-#import io
+import io
 
 
 ## @addtogroup WRApplication
 ## @{
 ## @addtogroup AsyncAnalysis
 ## @{
-
-
-class SolutionStage(enum.Enum):
-    """ @brief Enum for identifying solver stages to hook to.
-        @classname SolutionStage
-    """
-    PRE_PREPROCESS   = 0
-    POST_PREPROCESS  = 1
-    PRE_ADVANCE      = 2
-    PRE_SYNCHRONIZE  = 3
-    POST_SYNCHRONIZE = 4
-    POST_ADVANCE     = 5
-    PRE_POSTPROCESS  = 6
-    POST_POSTPROCESS = 7
 
 
 class AsyncSolver(WRApp.WRAppClass):
@@ -81,24 +65,29 @@ class AsyncSolver(WRApp.WRAppClass):
         predicate_type: typing.Type[WRApp.ModelPredicate] = KratosMultiphysics.Registry[self.__parameters["synchronization_predicate"]["type"].GetString()]["type"]
         self.__synchronization_predicate = predicate_type(self.__parameters["synchronization_predicate"]["parameters"])
 
-        # Initialize empty hooks
-        self.__hooks: "dict[SolutionStage,list[typing.Callable[[AsyncSolver],None]]]" = dict((stage, []) for stage in SolutionStage)
-
 
     ## @name Public Members
     ## @{
 
 
-    def RunSolutionLoop(self) -> None:
-        while not self._TerminationPredicate():
-            self.__Advance()
-            self.__Synchronize()
+    def Preprocess(self) -> "AsyncSolver.PreprocessScope":
+        return self._preprocess_scope_type(self)
 
 
-    def Run(self) -> None:
-        self.__Preprocess()
-        self.RunSolutionLoop()
-        self.__Postprocess()
+    def Advance(self) -> "AsyncSolver.AdvanceScope":
+        return self._advance_scope_type(self)
+
+
+    def Synchronize(self) -> "AsyncSolver.SynchronizeScope":
+        return self._synchronize_scope_type(self)
+
+
+    def Postprocess(self) -> "AsyncSolver.PostprocessScope":
+        return self._postprocess_scope_type(self)
+
+
+    def RunSolutionLoop(self) -> "AsyncSolver.SolutionLoopScope":
+        return self._solution_loop_scope_type(self)
 
 
     def GetSolver(self, partition_name: str) -> "AsyncSolver":
@@ -106,18 +95,8 @@ class AsyncSolver(WRApp.WRAppClass):
         return self.__solvers[partition_name]
 
 
-    def AddHook(self,
-                hook: typing.Callable[["AsyncSolver"],None],
-                stage: SolutionStage) -> None:
-        """ @brief Append the list of hooks for the specified stage."""
-        self.__hooks[stage].append(hook)
-
-
-    #def GetInfo(self, stream: io.StringIO, prefix: str = "") -> None:
-    #    for hook in self.__hooks[SolutionStage.PRE_PREPROCESS]:
-    #        stream.write(f"{prefix}Run {hook}\n")
-    #    for partition_name, solver in self.__solvers.items():
-    #        stream.write(f"{prefix}Preprocess on partition '{}'")
+    def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
+        self.RunSolutionLoop().WriteInfo(stream, prefix)
 
 
     ## @}
@@ -178,24 +157,25 @@ class AsyncSolver(WRApp.WRAppClass):
 
     def _Preprocess(self) -> None:
         """ @brief Tasks to run before any calls to @ref AsyncSolver._Advance."""
-        for solver in self.__solvers.values():
-            solver._Preprocess()
+        with AggregateSolutionStageScope([solver.Preprocess() for solver in self.__solvers.values()]) as preprocess:
+            preprocess()
 
 
     def _Advance(self) -> None:
         """ @brief Keep solving steps until synchronization becomes necessary."""
         while True:
-            for solver in self.__solvers.values():
-                solver._Advance()
-            for solver in self.__solvers.values():
-                solver._Synchronize()
-            if self.synchronization_predicate:
+            with AggregateSolutionStageScope([solver.Advance() for solver in self.__solvers.values()]) as advance:
+                advance()
+            with AggregateSolutionStageScope([solver.Synchronize() for solver in self.__solvers.values()]) as synchronize:
+                synchronize()
+            if self.synchronization_predicate(self.model):
                 break
 
 
     def _Synchronize(self) -> None:
         """ @brief Perform data synchronization and coupling tasks between partitions."""
-        pass
+        with AggregateSolutionStageScope([solver.Synchronize() for solver in self.__solvers.values()]) as synchronize:
+            synchronize()
 
 
     def _TerminationPredicate(self) -> bool:
@@ -205,8 +185,45 @@ class AsyncSolver(WRApp.WRAppClass):
 
     def _Postprocess(self) -> None:
         """ @brief Tasks to run if no more @ref AsyncSolver._Advance calls are made."""
-        for solver in self.__solvers.values():
-            solver._Postprocess()
+        with AggregateSolutionStageScope([solver.Postprocess() for solver in self.__solvers.values()]) as postprocess:
+            postprocess()
+
+
+    def _RunSolutionLoop(self) -> None:
+        while not self._TerminationPredicate():
+            with self.Advance() as advance:
+                advance()
+            with self.Synchronize() as synchronize:
+                synchronize()
+
+
+    ## @}
+    ## @name Solution Scope Types
+
+
+    @property
+    def _preprocess_scope_type(self) -> "typing.Type[AsyncSolver.PreprocessScope]":
+        return AsyncSolver.PreprocessScope
+
+
+    @property
+    def _advance_scope_type(self) -> "typing.Type[AsyncSolver.AdvanceScope]":
+        return AsyncSolver.AdvanceScope
+
+
+    @property
+    def _synchronize_scope_type(self) -> "typing.Type[AsyncSolver.SynchronizeScope]":
+        return AsyncSolver.SynchronizeScope
+
+
+    @property
+    def _postprocess_scope_type(self) -> "typing.Type[AsyncSolver.PostprocessScope]":
+        return AsyncSolver.PostprocessScope
+
+
+    @property
+    def _solution_loop_scope_type(self) -> "typing.Type[AsyncSolver.SolutionLoopScope]":
+        return AsyncSolver.SolutionLoopScope
 
 
     ## @}
@@ -245,37 +262,151 @@ class AsyncSolver(WRApp.WRAppClass):
         return output
 
 
-    def __InvokeHooks(self, stage: SolutionStage) -> None:
-        for hook in self.__hooks[stage]:
-            hook(self)
+    ## @}
+    ## @name Member Classes
+    ## @{
 
 
-    def __Preprocess(self) -> None:
-        """ @brief Sandwich @ref AsyncSolver._Preprocess between hook calls."""
-        self.__InvokeHooks(SolutionStage.PRE_PREPROCESS)
-        self._Preprocess()
-        self.__InvokeHooks(SolutionStage.POST_PREPROCESS)
+    class SolverScope(SolutionStageScope):
+        """ @brief Embed some part of @ref AsyncSolver in a @ref SolutionStageScope.
+            @classname SolverScope
+        """
+
+        def __init__(self, solver: "AsyncSolver"):
+            self.__solver = solver
 
 
-    def __Advance(self) -> None:
-        """ @brief Sandwich @ref AsyncSolver._Advance between hook calls."""
-        self.__InvokeHooks(SolutionStage.PRE_ADVANCE)
-        self._Advance()
-        self.__InvokeHooks(SolutionStage.POST_ADVANCE)
+        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
+            stream.write(f"{prefix}Unknown scoped operation of solver '{type(self._solver).__name__}'\n")
 
 
-    def __Synchronize(self) -> None:
-        """ @brief Sandwich @ref AsyncSolver._Synchronize between hook calls."""
-        self.__InvokeHooks(SolutionStage.PRE_SYNCHRONIZE)
-        self._Synchronize()
-        self.__InvokeHooks(SolutionStage.POST_SYNCHRONIZE)
+        @property
+        def _solver(self) -> "AsyncSolver":
+            return self.__solver
 
 
-    def __Postprocess(self) -> None:
-        """ @brief Sandwich @ref AsyncSolver._Postprocess between hook calls."""
-        self.__InvokeHooks(SolutionStage.PRE_POSTPROCESS)
-        self._Postprocess()
-        self.__InvokeHooks(SolutionStage.POST_POSTPROCESS)
+        def _Preprocess(self) -> None:
+            pass
+
+
+        def _Postprocess(self) -> None:
+            pass
+
+
+
+    class PreprocessScope(SolverScope):
+        """ @brief Embed @ref AsyncSolver._Preprocess in a @ref SolutionStageScope.
+            @classname PreprocessScope
+        """
+
+        def __init__(self, solver: "AsyncSolver"):
+            super().__init__(solver)
+
+
+        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
+            stream.write(f"{prefix}Preprocess solver '{type(self._solver).__name__}'\n")
+            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Preprocess() for partition_name in self._solver.partitions]).WriteInfo(stream, prefix + "|  ")
+
+
+        def __call__(self) -> None:
+            self._solver._Preprocess()
+
+
+
+    class AdvanceScope(SolverScope):
+        """ @brief Embed @ref AsyncSolver._Advance in a @ref SolutionStageScope.
+            @classname AdvanceScope
+        """
+
+        def __init__(self, solver: "AsyncSolver"):
+            super().__init__(solver)
+
+
+        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
+            stream.write(f"{prefix}Advance solver '{type(self._solver).__name__}'\n")
+            subprefix = prefix + "|  "
+            stream.write(f"{subprefix}While not {type(self._solver).__name__}.synchronization_predicate:\n")
+            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Advance() for partition_name in self._solver.partitions]).WriteInfo(stream, subprefix + "|  ")
+            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Synchronize() for partition_name in self._solver.partitions]).WriteInfo(stream, subprefix + "|  ")
+
+
+        def __call__(self) -> None:
+            self._solver._Advance()
+
+
+
+    class SynchronizeScope(SolverScope):
+        """ @brief Embed @ref AsyncSolver._Synchronize in a @ref SolutionStageScope.
+            @classname SynchronizeScope
+        """
+
+        def __init__(self, solver: "AsyncSolver"):
+            super().__init__(solver)
+
+
+        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
+            stream.write(f"{prefix}Synchronize solver '{type(self._solver).__name__}'\n")
+            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Synchronize() for partition_name in self._solver.partitions]).WriteInfo(stream, prefix + "|  ")
+
+
+        def __call__(self) -> None:
+            self._solver._Synchronize()
+
+
+
+    class PostprocessScope(SolverScope):
+        """ @brief Embed @ref AsyncSolver._Postprocess in a @ref SolutionStageScope.
+            @classname PostprocessScope
+        """
+
+        def __init__(self, solver: "AsyncSolver"):
+            super().__init__(solver)
+
+
+        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
+            stream.write(f"{prefix}Postprocess solver '{type(self._solver).__name__}'\n")
+            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Postprocess() for partition_name in self._solver.partitions]).WriteInfo(stream, prefix + "|  ")
+
+
+        def __call__(self) -> None:
+            self._solver._Postprocess()
+
+
+    class SolutionLoopScope(SolverScope):
+        """ @brief Embed @ref AsyncSolver.Run in a @ref SolutionStageScope.
+            @classname SolutionLoopScope
+        """
+
+        def __init__(self, solver: "AsyncSolver"):
+            super().__init__(solver)
+
+
+        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
+            stream.write(f"{prefix}Run solution loop of solver '{type(self._solver).__name__}'\n")
+
+            sub_prefix = prefix + "|  "
+            self._solver.Preprocess().WriteInfo(stream, sub_prefix)
+            stream.write(f"{sub_prefix}While not {type(self._solver).__name__}.termination_predicate\n")
+
+            solution_loop_prefix = sub_prefix + "|  "
+            self._solver.Advance().WriteInfo(stream, solution_loop_prefix)
+            self._solver.Synchronize().WriteInfo(stream, solution_loop_prefix)
+
+            self._solver.Postprocess().WriteInfo(stream, sub_prefix)
+
+
+        def _Preprocess(self) -> None:
+            with self._solver.Preprocess() as preprocess:
+                preprocess()
+
+
+        def __call__(self) -> None:
+            self._solver._RunSolutionLoop()
+
+
+        def _Postprocess(self) -> None:
+            with self._solver.Postprocess() as postprocess:
+                postprocess()
 
 
     ## @}
