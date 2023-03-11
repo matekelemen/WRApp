@@ -54,11 +54,12 @@ class CoupledAsyncSolver(AsyncSolver):
 
 
     def _Synchronize(self) -> None:
-        with AggregateSolutionStageScope([
-            self.GetSolver(partition_name).Synchronize() for partition_name in self.partitions
-        ]) as subsync:
-            self.__coupling_operation.Execute()
-            subsync()
+        with self.__coupling_operation as couple:
+            with AggregateSolutionStageScope([
+                self.GetSolver(partition_name).Synchronize() for partition_name in self.partitions
+            ]) as subsync:
+                subsync()
+                couple()
 
 
     ## @}

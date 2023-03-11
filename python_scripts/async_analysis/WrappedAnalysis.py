@@ -48,6 +48,7 @@ class WrappedAnalysis(AsyncSolver):
         base_parameters = KratosMultiphysics.Parameters()
         base_parameters.AddValue("synchronization_predicate", parameters["synchronization_predicate"])
         super().__init__(model, base_parameters)
+        self._is_open = False
 
 
     @classmethod
@@ -74,12 +75,21 @@ class WrappedAnalysis(AsyncSolver):
 
     def _Advance(self) -> None:
         while True:
+            if self._is_open:
+                self.__wrapped.FinalizeSolutionStep()
+                self.__wrapped.OutputSolutionStep()
             self.__wrapped.time = self.__wrapped._AdvanceTime()
-            with self.Synchronize() as synchronize:
-                synchronize()
-            self.__wrapped.OutputSolutionStep()
+            #with self.Synchronize() as synchronize:
+            #    synchronize()
+            self.__wrapped.InitializeSolutionStep()
+            self.__wrapped._GetSolver().Predict()
+            self._is_open = True
             if self.synchronization_predicate(self.model):
                 break
+            if self._is_open:
+                self.__wrapped.FinalizeSolutionStep()
+                self.__wrapped.OutputSolutionStep()
+                self._is_open = False
 
 
     def _Synchronize(self) -> None:
@@ -128,13 +138,19 @@ class WrappedAnalysis(AsyncSolver):
 
 
         def _Preprocess(self) -> None:
-            self._solver._GetWrapped().InitializeSolutionStep()
-            self._solver._GetWrapped()._GetSolver().Predict()
+            #if not self._solver._is_open:
+            #    self._solver._is_open = True
+            #    self._solver._GetWrapped().InitializeSolutionStep()
+            #    self._solver._GetWrapped()._GetSolver().Predict()
+            pass
 
 
         def _Postprocess(self) -> None:
-            #if not self._solver.synchronization_predicate(self._solver.model):
-                self._solver._GetWrapped().FinalizeSolutionStep()
+            #if self._solver._is_open:
+            #    self._solver._GetWrapped().FinalizeSolutionStep()
+            #    self._solver._GetWrapped().OutputSolutionStep()
+            #    self._solver._is_open = False
+            pass
 
 
     ## @}

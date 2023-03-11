@@ -15,6 +15,7 @@ from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence
 from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
 
 # --- WRApp Imports ---
+from .SolutionStageScope import SolutionStageScope
 from .AsyncSolver import AsyncSolver
 from ..ToDoException import ToDoException
 import KratosMultiphysics.WRApplication as WRApp
@@ -156,7 +157,7 @@ class SubSynchronization(KratosMultiphysics.Operation):
 
 
 
-class CoSimCoupling(KratosMultiphysics.Operation, WRApp.WRAppClass):
+class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
     """ @brief Wrapper for CoSimulationApplication coupling procedures.
         @classname CoSimCoupling
         @details Default parameters:
@@ -203,7 +204,6 @@ class CoSimCoupling(KratosMultiphysics.Operation, WRApp.WRAppClass):
                  model: KratosMultiphysics.Model,
                  data_communicator: KratosMultiphysics.DataCommunicator,
                  parameters: KratosMultiphysics.Parameters):
-        KratosMultiphysics.Operation.__init__(self)
         WRApp.WRAppClass.__init__(self)
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.__solver_root = solver
@@ -241,7 +241,14 @@ class CoSimCoupling(KratosMultiphysics.Operation, WRApp.WRAppClass):
         self.__coupling_sequence = self.__MakeCouplingSequence(self.parameters["coupling_sequence"])
 
 
-    def Execute(self) -> None:
+    def _Preprocess(self) -> None:
+        for criterion in self.__convergence_criteria:
+            criterion.InitializeSolutionStep()
+        for accelerator in self.__convergence_accelerators:
+            accelerator.InitializeSolutionStep()
+
+
+    def __call__(self) -> None:
         """ @brief Execute all items in the coupling sequence in the order they were defined."""
         for i_couple in range(self.__max_iterations):
             # Coupling subiter utils preproc
@@ -274,6 +281,13 @@ class CoSimCoupling(KratosMultiphysics.Operation, WRApp.WRAppClass):
 
         # If the flow reached this point, the coupling failed
         raise RuntimeError(f"Coupling failed to converge in {self.__max_iterations} iterations")
+
+
+    def _Postprocess(self) -> None:
+        for criterion in self.__convergence_criteria:
+            criterion.FinalizeSolutionStep()
+        for accelerator in self.__convergence_accelerators:
+            accelerator.FinalizeSolutionStep()
 
 
     def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
