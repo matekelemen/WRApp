@@ -142,7 +142,8 @@ class SubSynchronization(KratosMultiphysics.Operation):
 
 
     def Execute(self) -> None:
-        self.__solver._Synchronize()
+        with self.__solver.Synchronize() as synchronize:
+            synchronize()
 
 
     def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
