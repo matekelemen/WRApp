@@ -21,6 +21,7 @@ class TestModelPredicatePipes(WRApp.TestCase):
             {"model_part_name" : "test"}, // <== model part from model
             {},                           // <== process info from model part
             {},                           // <== TIME from process info
+            {"value" : 0},                // <== apply an offset
             {"interval" : [1.0, 2.0]}     // <== IntervalPredicate == IntervalUtility
         ]""")
         predicate = WRApp.TimeIntervalPredicate(parameters)

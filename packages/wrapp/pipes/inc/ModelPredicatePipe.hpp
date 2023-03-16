@@ -142,13 +142,14 @@ using StepIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
 /**
  *  @brief Check whether @ref TIME in a @ref ModelPart is within a cyclic interval.
  *
- *  @details @code Model => ModelPart => ProcessInfo => TIME => Modulo => IntervalUtility::IsInInterval @endcode.
+ *  @details @code Model => ModelPart => ProcessInfo => TIME => Add => Modulo => IntervalUtility::IsInInterval @endcode.
  *           Required parameters (other settings ignored):
  *           @code
  *           [
  *              {"model_part_name" : ""},           // <== model part from model
  *              {},                                 // <== process info from model part
  *              {},                                 // <== time from process info
+ *              {"value" : 0},                      // <== apply an offset
  *              {"mod" : 0},                        // <== modulo
  *              {"interval" : ["Begin", "End"]}     // <== interval utility
  *           ]
@@ -162,11 +163,13 @@ using StepIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
  *           @endcode
  *
  *  @note See @ref IntervalUtility for details.
+ *  @note The offset can be used to handle tricky cases with module and floating point representations.
  */
  using PeriodicTimeIntervalPredicate = ModelPredicatePipe<Pipes::Pipeline<
     Pipes::ModelPartFromModel,
     Pipes::ProcessInfoFromModelPart,
     Pipes::TimeFromProcessInfo,
+    Pipes::Add<double>,
     Pipes::Modulo<double>,
     Pipes::IntervalPredicate<double>
 >>;
