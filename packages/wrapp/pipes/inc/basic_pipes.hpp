@@ -212,6 +212,30 @@ private:
 }; // class Modulo
 
 
+/// @brief Add a constant value to the input.
+/// @note Constructible from @ref Parameters with a "value" entry.
+template <class TValue>
+class Add : public Traits<TValue,TValue>
+{
+public:
+    Add() noexcept;
+
+    Add(TValue rhs) noexcept;
+
+    Add(const Parameters& rParameters);
+
+    TValue operator()(TValue input) const noexcept
+    {
+        return input + mValue;
+    }
+
+    static Parameters GetDefaultParameters();
+
+private:
+    TValue mValue;
+}; // class Add
+
+
 /// @brief Return a bool regardless of the input.
 /// @details Constructible from @ref Parameters with a "value" entry (@a bool).
 ///          Defaults to @a false.

@@ -70,6 +70,35 @@ StepFromProcessInfo::StepFromProcessInfo(const Parameters& rParameters)
 }
 
 
+
+template <class TValue>
+Add<TValue>::Add() noexcept
+    : Add(0)
+{
+}
+
+
+template <class TValue>
+Add<TValue>::Add(TValue rhs) noexcept
+    : mValue(rhs)
+{
+}
+
+
+template <class TValue>
+Add<TValue>::Add(const Parameters& rParameters)
+    : Add(rParameters["value"].Get<TValue>())
+{
+}
+
+
+template <class TValue>
+Parameters Add<TValue>::GetDefaultParameters()
+{
+    return Parameters(R"({"value" : 0})");
+}
+
+
 template <class TInput>
 ConstPredicate<TInput>::ConstPredicate() noexcept
     : ConstPredicate(false)
@@ -104,6 +133,10 @@ Parameters ConstPredicate<TInput>::GetDefaultParameters()
 
 
 template class ConstPredicate<const Model&>;
+
+template class Add<int>;
+
+template class Add<double>;
 
 
 } // namespace Kratos::Pipes
