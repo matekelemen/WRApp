@@ -75,21 +75,12 @@ class WrappedAnalysis(AsyncSolver):
 
     def _Advance(self) -> None:
         while True:
-            if self._is_open:
-                self.__wrapped.FinalizeSolutionStep()
-                self.__wrapped.OutputSolutionStep()
             self.__wrapped.time = self.__wrapped._AdvanceTime()
-            #with self.Synchronize() as synchronize:
-            #    synchronize()
-            self.__wrapped.InitializeSolutionStep()
-            self.__wrapped._GetSolver().Predict()
-            self._is_open = True
+            self._Open()
+            self.__wrapped._GetSolver().SolveSolutionStep()
             if self.synchronization_predicate(self.model):
                 break
-            if self._is_open:
-                self.__wrapped.FinalizeSolutionStep()
-                self.__wrapped.OutputSolutionStep()
-                self._is_open = False
+            self._Close(output = True)
 
 
     def _Synchronize(self) -> None:
@@ -138,22 +129,31 @@ class WrappedAnalysis(AsyncSolver):
 
 
         def _Preprocess(self) -> None:
-            #if not self._solver._is_open:
-            #    self._solver._is_open = True
-            #    self._solver._GetWrapped().InitializeSolutionStep()
-            #    self._solver._GetWrapped()._GetSolver().Predict()
+            self._solver._Open()
             pass
 
 
         def _Postprocess(self) -> None:
-            #if self._solver._is_open:
-            #    self._solver._GetWrapped().FinalizeSolutionStep()
-            #    self._solver._GetWrapped().OutputSolutionStep()
-            #    self._solver._is_open = False
+            self._solver._Close(output = True)
             pass
 
 
     ## @}
+
+
+    def _Open(self) -> None:
+        if not self._is_open:
+            self.__wrapped.InitializeSolutionStep()
+            self.__wrapped._GetSolver().Predict()
+            self._is_open = True
+
+
+    def _Close(self, output = False) -> None:
+        if self._is_open:
+            self.__wrapped.FinalizeSolutionStep()
+            if output:
+                self.__wrapped.OutputSolutionStep()
+            self._is_open = False
 
 
     #def __FindRootModelPartName(self, parameters: KratosMultiphysics.Parameters) -> typing.Optional[str]:
