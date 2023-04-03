@@ -5,6 +5,7 @@ import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # --- WRApp Imports ---
+import KratosMultiphysics.WRApplication as WRApp
 from .AsyncSolver import AsyncSolver
 
 # --- STD Imports ---
@@ -40,8 +41,9 @@ class WrappedAnalysis(AsyncSolver):
         # First, construct the analysis to load required data
         # and create the model tree.
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
-        analysis_type: typing.Type[AnalysisStage] = KratosMultiphysics.Registry[parameters["type"].GetString()]["type"]
-        self.__wrapped = analysis_type(model, parameters["parameters"])
+        self.__wrapped: AnalysisStage = WRApp.RegisteredClassFactory(parameters["type"].GetString(),
+                                                                     model,
+                                                                     parameters["parameters"])
         self.__wrapped.Initialize()
 
         # Define the required parameters for the base class' constructor
@@ -75,6 +77,7 @@ class WrappedAnalysis(AsyncSolver):
 
     def _Advance(self) -> None:
         while True:
+            self._Close()
             self.__wrapped.time = self.__wrapped._AdvanceTime()
             self._Open()
             self.__wrapped._GetSolver().SolveSolutionStep()
@@ -129,12 +132,12 @@ class WrappedAnalysis(AsyncSolver):
 
 
         def _Preprocess(self) -> None:
-            self._solver._Open()
+            #self._solver._Open()
             pass
 
 
         def _Postprocess(self) -> None:
-            self._solver._Close(output = True)
+            #self._solver._Close(output = True)
             pass
 
 
@@ -154,31 +157,6 @@ class WrappedAnalysis(AsyncSolver):
             if output:
                 self.__wrapped.OutputSolutionStep()
             self._is_open = False
-
-
-    #def __FindRootModelPartName(self, parameters: KratosMultiphysics.Parameters) -> typing.Optional[str]:
-    #    """ @brief Scan the input parameters for the analysis' root model part.
-    #        @details Search for "model_part_name" in the following paths in order:
-    #                 - root of the input parameters
-    #                 - "solver_settings"
-    #                 - "solver_settings" / "*solver_settings*"
-    #    """
-    #    output: typing.Optional[str] = None
-    #    if parameters.Has("model_part_name"):
-    #        output = parameters["model_part_name"].GetString() # <== fast-track this name
-    #    elif parameters.Has("solver_settings"):
-    #        subparameters = parameters["solver_settings"]
-    #        if subparameters.Has("model_part_name"):
-    #            return subparameters["model_part_name"].GetString() # <== fast-track this name
-    #        else:
-    #            for key, value in subparameters.items(): # <== multiple definitions forbidden from here on
-    #                if "solver_settings" in key:
-    #                    if value.Has("model_part_name"):
-    #                        if output is None:
-    #                            output = value["model_part_name"].GetString()
-    #                        elif output != value["model_part_name"].GetString():
-    #                            raise RuntimeError(f"Failed to find unique root model part name in {parameters}")
-    #    return output
 
 
 ## @}
