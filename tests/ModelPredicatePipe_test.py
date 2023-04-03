@@ -21,14 +21,13 @@ class TestModelPredicatePipes(WRApp.TestCase):
             {"model_part_name" : "test"}, // <== model part from model
             {},                           // <== process info from model part
             {},                           // <== TIME from process info
-            {"value" : 0},                // <== apply an offset
             {"interval" : [1.0, 2.0]}     // <== IntervalPredicate == IntervalUtility
         ]""")
         predicate = WRApp.TimeIntervalPredicate(parameters)
 
         for time in (-1.5, 0.0, 0.5, 1.2, 1.8, 2.5, 3.0):
             model_part.ProcessInfo[KratosMultiphysics.TIME] = time
-            self.assertEqual(predicate(model), 1.0 <= time and time <= 2.0)
+            self.assertEqual(predicate(model), 1.0 <= time and time <= 2.0, msg = f"time: {time}")
 
 
     def test_StepIntervalPredicate(self) -> None:
@@ -52,6 +51,7 @@ class TestModelPredicatePipes(WRApp.TestCase):
             {"model_part_name" : "test"}, // <== model part from model
             {},                           // <== process info from model part
             {},                           // <== TIME from process info
+            {"value" : 0},                // <== apply an offset
             {"mod" : 3.0},                // <== modulo
             {"interval" : [1.0, 2.0]}     // <== IntervalPredicate == IntervalUtility
         ]""")
