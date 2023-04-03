@@ -4,28 +4,31 @@
 import KratosMultiphysics
 from KratosWRApplication import *
 
+# --- WRApp Imports ---
+from .registry_utils import RegisterClass,              \
+                            RecursivelyRegisterClass,   \
+                            GetRegistryEntry,           \
+                            GetRegisteredClass,         \
+                            RegisteredClassFactory,     \
+                            IsRegisteredPath,           \
+                            ImportAndRegister
+
 # --- STD Imports ---
 import abc
 
-# Rename WRAppClass because it'll have to be replaced
+
+# Rename WRAppClass because it'll have to be replaced,
+# since abc.ABC and classes wrapped by pybind aren't
+# compatible.
 __WRAppClass = globals()["WRAppClass"]
 del globals()["WRAppClass"]
 
 application = KratosWRApplication()
 application_name = "WRApplication"
 
-def __RegisterClassRecursive(cls: type, parent_path: str):
-    """@brief Recursively add all exposed classes to the Registry.
-       @details Exposed classes are the ones directly or indirectly
-                deriving from WRAppClass."""
-    KratosMultiphysics.Registry.AddItem(f"{parent_path}.{cls.__name__}", {"type" : cls})
-    new_parent_path = ("." if parent_path else "").join((parent_path, cls.__name__))
-    for subclass in cls.__subclasses__():
-        __RegisterClassRecursive(subclass, new_parent_path)
-
 # Register every C++ class that inherits from WRAppClass
 for subclass in __WRAppClass.__subclasses__():
-    __RegisterClassRecursive(subclass, application_name)
+    RecursivelyRegisterClass(subclass, application_name)
 
 # Invoke the core import mechanism
 KratosMultiphysics._ImportApplication(application, application_name)
@@ -57,8 +60,10 @@ from .TestCase import *
 from .MPIUtils import *
 from .checkpoint import *
 from .async_analysis import *
+from .Launcher import *
+from .cli import *
 
 
 # Register every python class that inherits from WRAppClass
 for subclass in WRAppClass.__subclasses__():
-    __RegisterClassRecursive(subclass, application_name)
+    RecursivelyRegisterClass(subclass, application_name)
