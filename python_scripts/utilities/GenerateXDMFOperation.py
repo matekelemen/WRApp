@@ -12,11 +12,10 @@ import h5py
 import KratosMultiphysics
 
 # --- HDF5 Imports ---
-import KratosMultiphysics.HDF5Application as HDF5
+import KratosMultiphysics.HDF5Application
 from KratosMultiphysics.HDF5Application.xdmf_utils import RenumberConnectivitiesForXdmf,    \
                                                           CreateXdmfSpatialGrid,            \
                                                           XdmfResults,                      \
-                                                          TryOpenH5File,                    \
                                                           TemporalGrid,                     \
                                                           UniformGrid,                      \
                                                           SpatialGrid,                      \

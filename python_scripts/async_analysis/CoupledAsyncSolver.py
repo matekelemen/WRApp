@@ -118,10 +118,6 @@ class CoupledAsyncSolver(AsyncSolver):
 
 
     ## @}
-    ## @name Solution Scope Types
-    ## @{
-
-    ## @}
     ## @name Member Classes
     ## @{
 
