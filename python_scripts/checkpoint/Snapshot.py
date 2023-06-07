@@ -324,28 +324,6 @@ class SnapshotFS(Snapshot):
 
 
 
-class SnapshotPredicate(WRApp.WRAppClass):
-    """ @brief Base class for a predicate that takes a @ref CheckpointID.
-        @classname SnapshotPredicate
-    """
-
-    @abc.abstractmethod
-    def __call__(self, id: WRApp.CheckpointID) -> bool:
-        """ @brief Evaluate the predicate."""
-        pass
-
-
-
-class NeverEraseSnapshots(SnapshotPredicate):
-    """ @brief Always returns false.
-        @classname NeverEraseSnapshots
-    """
-
-    def __call__(self, id: WRApp.CheckpointID) -> bool:
-        return False
-
-
-
 class SnapshotManager(metaclass = abc.ABCMeta):
     """ @brief Interface for @ref Snapshot lifetime management.
         @classname SnapshotManager
@@ -354,8 +332,8 @@ class SnapshotManager(metaclass = abc.ABCMeta):
                  based on the return value of a predicate (@ref CheckpointID -> @a bool)."""
 
     def __init__(self,
-                    model_part: KratosMultiphysics.ModelPart,
-                    parameters: KratosMultiphysics.Parameters):
+                 model_part: KratosMultiphysics.ModelPart,
+                 parameters: KratosMultiphysics.Parameters):
         parameters.AddMissingParameters(self.GetDefaultParameters())
         self._parameters = parameters
 
@@ -363,10 +341,12 @@ class SnapshotManager(metaclass = abc.ABCMeta):
         self._journal = WRApp.Journal(pathlib.Path(parameters["journal_path"].GetString()))
         self.__check_duplicates = self._parameters["check_duplicates"].GetBool()
 
-        # Instantiate the predicate (from registered class or instance)
-        registered_item = KratosMultiphysics.Registry[parameters["erase_predicate"]["type"].GetString()]
-        registered_class = registered_item if inspect.isclass(registered_item) else type(registered_item)
-        self._predicate = registered_class(parameters["erase_predicate"]["parameters"])
+        # Instantiate the predicate
+        print(parameters)
+        self._predicate: WRApp.ModelPredicate = WRApp.RegisteredClassFactory(
+            parameters["erase_predicate"]["type"].GetString(),
+            parameters["erase_predicate"]["parameters"]
+        )
 
 
     def Add(self, model_part: KratosMultiphysics.ModelPart) -> None:
@@ -458,8 +438,8 @@ class SnapshotManager(metaclass = abc.ABCMeta):
                     }
                 },
                 "erase_predicate" : {
-                    "type" : "WRApplication.SnapshotPredicate.NeverEraseSnapshots",
-                    "parameters" : {}
+                    "type" : "WRApplication.ConstModelPredicate",
+                    "parameters" : [{"value" : false}]
                 },
                 "journal_path" : "snapshots.jrn",
                 "check_duplicates" : false
@@ -469,8 +449,8 @@ class SnapshotManager(metaclass = abc.ABCMeta):
         parameters = KratosMultiphysics.Parameters(R"""{
             "io" : {},
             "erase_predicate" : {
-                "type" : "WRApplication.SnapshotPredicate.NeverEraseSnapshots",
-                "parameters" : {}
+                "type" : "WRApplication.ConstModelPredicate",
+                "parameters" : [{"value" : false}]
             },
             "journal_path" : "snapshots.jrn",
             "check_duplicates" : false

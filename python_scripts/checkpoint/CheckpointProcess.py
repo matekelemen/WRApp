@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
-from .Snapshot import Snapshot
+from .Snapshot import Snapshot, SnapshotManager
 from .Checkpoint import Checkpoint
 
 # --- STD Imports ---
@@ -54,16 +54,16 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
         @details @ref CheckpointProcess optionally executes load operations in @ref ExecuteInitializeSolutionStep and
                   write operations in @ref ExecuteFinalizeSolutionStep. The process itself implements minimal logic and
                   defers the execution of tasks to the following components:
-                  - <em>IO Format</em> : The checkpointing format can be configured via the "snapshot_type" subparameter
+                  - <em>IO Format</em> : The checkpointing format can be configured via the @a "snapshot_type" subparameter
                                          in the input parameters, which must refer to a valid implementation of @ref Snapshot
-                                         that is accessible from the @ref Registry. Check out @ref HDF5Snapshot for a reference
-                                         implementation. The checkpoint system can be configured by specifying the "snapshot_parameters"
+                                         that is accessible from the @ref RuntimeRegistry. Check out @ref HDF5Snapshot for a reference
+                                         implementation. The checkpoint system can be configured by specifying the @a "snapshot_parameters"
                                          subparameter in the input parameters, that gets forwarded to the selected snapshot's
-                                         @ref Snapshot.Manager. The default settings configure HDF5 input/output that covers all
+                                         @ref SnapshotManager. The default settings configure HDF5 input/output that covers all
                                          nodal, element, and condition variables and flags, as well as the entire @ref ProcessInfo.
                   - <em>Output control</em>: a @ref ModelPredicate that decides whether a snapshot should be written
-                                             based on the current state of the input model. The predicate type must be
-                                             accessible from the @ref Registry, and can be configured via the
+                                             based on the current state of the input @ref Model. The predicate type must be
+                                             accessible from the @ref RuntimeRegistry, and can be configured via the
                                              <em>"write_predicate"</em> subparameter in the input parameters.
                                              @code
                                              "write_predicate" : {
@@ -75,8 +75,8 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
                   - <em>Input control</em>: a callable with the following signature:
                                             @code std::optional<WRApp::CheckpointID> (const Model&) @endcode
                                             that decides whether a checkpoint should be loaded, and if yes, which
-                                            one; based on the current state of the provided model.
-                                            The callable type must be accessible through the @ref Registry, and
+                                            one; based on the current state of the provided @ref Model.
+                                            The callable type must be accessible through the @ref RuntimeRegistry, and
                                             can be configured via the <em>"checkpoint_selector"</em> subparameter
                                             in the input parameters.
                                             @code
@@ -122,6 +122,16 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
             parameters.ValidateAndAssignDefaults(default_parameters) # <== throws an exception with a more informative message
         self.__model = model
         self.__model_part = self.__model.GetModelPart(parameters["model_part_name"].GetString())
+        self.__parameters = parameters
+
+        # Declarations to be defined in Initialize
+        self.__snapshot_manager: SnapshotManager = None
+        self.__write_predicate: WRApp.ModelPredicate = None
+        self.__checkpoint_selector: CheckpointSelector = None
+
+
+    def Initialize(self) -> None:
+        default_parameters = self.GetDefaultParameters()
 
         # Construct default parameters, collecting all variables
         # and flags from the specified model part
@@ -143,21 +153,23 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
             io_parameters["condition_variables"].SetStringArray(condition_variables)
             io_parameters["condition_flags"].SetStringArray(condition_flags)
 
-        parameters.ValidateAndAssignDefaults(default_parameters)
+        self.__parameters.RecursivelyAddMissingParameters(default_parameters)
 
         # Snapshot setup
-        snapshot_type: typing.Type[Snapshot] = KratosMultiphysics.Registry[parameters["snapshot_type"].GetString()]["type"]
+        snapshot_type: typing.Type[Snapshot] = WRApp.GetRegisteredClass(self.__parameters["snapshot_type"].GetString())
         manager_type = snapshot_type.GetManagerType()
-        self.__snapshot_manager = manager_type(self.__model_part, parameters["snapshot_parameters"])
+        self.__snapshot_manager = manager_type(self.__model_part, self.__parameters["snapshot_parameters"])
 
-        # Construct logic functors
-        predicate_type = KratosMultiphysics.Registry[parameters["write_predicate"]["type"].GetString()]["type"]
-        self.__write_predicate: typing.Callable[[KratosMultiphysics.Model],bool] = predicate_type(
-            parameters["write_predicate"]["parameters"])
+        # Construct flow logic functors
+        self.__write_predicate = WRApp.RegisteredClassFactory(
+            self.__parameters["write_predicate"]["type"].GetString(),
+            self.__parameters["write_predicate"]["parameters"]
+        )
 
-        selector_type = KratosMultiphysics.Registry[parameters["checkpoint_selector"]["type"].GetString()]["type"]
-        self.__checkpoint_selector: CheckpointSelector = selector_type(
-            parameters["checkpoint_selector"]["parameters"])
+        self.__checkpoint_selector = WRApp.RegisteredClassFactory(
+            self.__parameters["checkpoint_selector"]["type"].GetString(),
+            self.__parameters["checkpoint_selector"]["parameters"]
+        )
 
 
     def ExecuteInitializeSolutionStep(self) -> None:
@@ -198,12 +210,10 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
                 "parameters" : []
             }
         }""")
-
         # Populate nested defaults
-        snapshot_type: typing.Type[Snapshot] = KratosMultiphysics.Registry[output["snapshot_type"].GetString()]["type"]
+        snapshot_type: typing.Type[Snapshot] = WRApp.GetRegisteredClass(output["snapshot_type"].GetString())
         manager_type = snapshot_type.GetManagerType()
         output["snapshot_parameters"] = manager_type.GetDefaultParameters()
-
         return output
 
 

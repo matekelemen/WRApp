@@ -38,12 +38,12 @@ class AsyncSolver(WRApp.WRAppClass):
                  @endcode
                  Each partition has a solver (@ref AsyncSolver) and a predicate for determining
                  when the partition requires synchronization (@ref ModelPredicate ),
-                 both of which must be present in the @ref Registry.
+                 both of which must be present in the @ref RuntimeRegistry.
                  Partition configuration is expected in the following format:
                  @code
                  {
                     "name" : "",        // <== partition name
-                    "type" : "",        // <== solver path in registry
+                    "type" : "",        // <== solver path in RuntimeRegistry
                     "parameters" : {}   // <== subparameters passed on to the solver's constructor
                  }
                  @endcode
@@ -68,9 +68,11 @@ class AsyncSolver(WRApp.WRAppClass):
         # A dict mapping partition names to solvers
         self.__solvers: "dict[str,AsyncSolver]" = self.__MakePartitions(model, self.parameters["partitions"])
 
-        # A dict mapping partition names to synchronization predicates
-        predicate_type: typing.Type[WRApp.ModelPredicate] = KratosMultiphysics.Registry[self.__parameters["synchronization_predicate"]["type"].GetString()]["type"]
-        self.__synchronization_predicate = predicate_type(self.__parameters["synchronization_predicate"]["parameters"])
+        # Construct the solver's synchronization predicate
+        self.__synchronization_predicate: WRApp.ModelPredicate = WRApp.RegisteredClassFactory(
+            self.__parameters["synchronization_predicate"]["type"].GetString(),
+            self.__parameters["synchronization_predicate"]["parameters"]
+        )
 
 
     ## @name Public Members
@@ -259,15 +261,16 @@ class AsyncSolver(WRApp.WRAppClass):
         for solver_parameters in parameters.values():
             solver_parameters.ValidateAndAssignDefaults(default_solver_parameters)
             partition_name = solver_parameters["name"].GetString()
-            solver_type: typing.Type[AsyncSolver] = KratosMultiphysics.Registry[solver_parameters["type"].GetString()]["type"]
-
-            # The specified solver type must be derived from AsyncSolver
-            if not issubclass(solver_type, AsyncSolver):
-                raise TypeError(f"Expecting an AsyncSolver, but got {solver_type} in {solver_parameters}")
 
             # No duplicate partition names allowed
             if partition_name in output:
                 raise NameError(f"Duplicate partition name '{partition_name}' in {solver_parameters}")
+
+            solver_type: typing.Type[AsyncSolver] = WRApp.GetRegisteredClass(solver_parameters["type"].GetString())
+
+            # The specified solver type must be derived from AsyncSolver
+            if not issubclass(solver_type, AsyncSolver):
+                raise TypeError(f"Expecting an AsyncSolver, but got {solver_type} in {solver_parameters}")
 
             output[partition_name] = solver_type(model, solver_parameters["parameters"])
         return output

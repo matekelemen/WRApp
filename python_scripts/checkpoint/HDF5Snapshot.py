@@ -118,8 +118,8 @@ class HDF5SnapshotManager(SnapshotManager):
                     }
                 },
                 "erase_predicate" : {
-                    "type" : "WRApplication.SnapshotPredicate.NeverEraseSnapshots",
-                    "parameters" : {}
+                    "type" : "WRApplication.ConstModelPredicate",
+                    "parameters" : [{"value" : false}]
                 },
                 "journal_path" : "snapshots.jrn",
                 "snapshot_path" : "snapshots.h5",

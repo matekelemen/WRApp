@@ -23,6 +23,7 @@ def _Run(test_case: WRApp.TestCase,
                 mdpa_name = f"test_snapshot_{mdpa_stub}"
                 model, model_part = MakeModel(mdpa_name = mdpa_name)
                 process = WRApp.CheckpointProcess(model, process_parameters)
+                process.Initialize()
 
                 process.ExecuteInitialize()
                 for step in range(1, 50):
@@ -108,9 +109,9 @@ class TestCheckpointProcess(WRApp.TestCase):
                 checkpoint_id = WRApp.CheckpointID(step, analysis_path)
                 return WRApp.CheckpointID(5, max(0, analysis_path - 1)) if checkpoint_id == WRApp.CheckpointID(15, analysis_path) else None
 
-        selector_registry_path = "WRApplication.CheckpointSelector.TestCheckpointSelector"
-        if not KratosMultiphysics.Registry.HasItem(selector_registry_path):
-            KratosMultiphysics.Registry.AddItem(selector_registry_path, {"type" : TestCheckpointSelector})
+        selector_registry_path = "WRApplication.CheckpointSelector"
+        if not WRApp.IsRegisteredPath(selector_registry_path):
+            WRApp.RegisterClass(TestCheckpointSelector, selector_registry_path)
 
         # Set the newly registered checkpoint selector
         parameters["checkpoint_selector"]["type"].SetString(selector_registry_path)
