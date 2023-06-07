@@ -56,6 +56,7 @@ class WRAppClass(__WRAppClass, metaclass = WRAppMeta):
 
 
 # --- WRApp Imports ---
+from .utilities import *
 from .TestCase import *
 from .MPIUtils import *
 from .checkpoint import *

@@ -12,82 +12,81 @@ import KratosMultiphysics.WRApplication as WRApp
 
 # --- STD Imports ---
 import argparse
-import pathlib
-import os
 
 
 class Launcher(WRApp.WRAppClass):
+    """ @brief Set up, execute, and tear down an analysis based on an input JSON file."""
 
     def __init__(self, arguments: argparse.Namespace):
         super().__init__()
 
-        self.__working_directory: pathlib.Path = arguments.working_directory
-        current_directory = os.getcwd()
-        try:
-            os.chdir(str(self.__working_directory))
+        self.__model = KratosMultiphysics.Model()
 
-            # Parse input JSON
-            self.__parameters: KratosMultiphysics.Parameters
-            if arguments.input_path.exists():
-                if arguments.input_path.is_file():
-                    with open(arguments.input_path, "r") as file:
-                        self.__parameters = KratosMultiphysics.Parameters(file.read())
-                else:
-                    raise FileExistsError(f"Expecting a JSON file, but found a directory: {arguments.input_path}")
+        # Parse input JSON
+        self.__parameters: KratosMultiphysics.Parameters
+        if arguments.input_path.exists():
+            if arguments.input_path.is_file():
+                with open(arguments.input_path, "r") as file:
+                    self.__parameters = KratosMultiphysics.Parameters(file.read())
             else:
-                raise FileNotFoundError(f"Input JSON not found: {arguments.input_path}")
+                raise FileExistsError(f"Expecting a JSON file, but found a directory: {arguments.input_path}")
+        else:
+            raise FileNotFoundError(f"Input JSON not found: {arguments.input_path}")
 
-            # Validate required parts of the input parameters
-            self.__parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        # Validate required parts of the input parameters
+        self.__parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-            # Import required applications and add classes to the registry
-            # Items are expected under the 'registry_extensions' key in the following format:
-            # {
-            #   "source" : "", // <== full module path to the class to import
-            #   "destination"  // <== path in RuntimeRegistry to register the imported class
-            # }
-            if self.__parameters.Has("registry_extensions"):
-                for item in self.__parameters["registry_extensions"].values():
-                    WRApp.ImportAndRegister(item["source"].GetString(),
-                                            item["destination"].GetString())
 
-        finally:
-            os.chdir(current_directory)
+    def Preprocess(self) -> None:
+        """ @brief Instantiate and execute all processes/operations defined in "preprocessors" of the input parameters."""
+        for operation_parameters in self.__parameters["preprocessors"].values():
+            WRApp.RegisteredClassFactory(
+                operation_parameters["type"].GetString(),
+                self.__model,
+                operation_parameters["parameters"]
+            ).Execute()
 
 
     def Launch(self) -> None:
-        current_directory = os.getcwd()
-        try:
-            os.chdir(str(self.__working_directory))
-            model = KratosMultiphysics.Model()
-            solver: WRApp.AsyncSolver = WRApp.RegisteredClassFactory(
-                self.__parameters["solver"]["type"].GetString(),
-                model,
-                self.__parameters["solver"]["parameters"]
-            )
-            with solver.RunSolutionLoop() as solution_loop:
-                solution_loop()
+        self.Preprocess()
+        solver: WRApp.AsyncSolver = WRApp.RegisteredClassFactory(
+            self.__parameters["solver"]["type"].GetString(),
+            self.__model,
+            self.__parameters["solver"]["parameters"]
+        )
+        with solver.RunSolutionLoop() as solution_loop:
+            solution_loop()
+        self.Postprocess()
 
-        finally:
-            os.chdir(current_directory)
+
+    def Postprocess(self) -> None:
+        """ @brief Instantiate and execute all processes/operations defined in "postprocessors" of the input parameters."""
+        for operation_parameters in self.__parameters["postprocessors"].values():
+            WRApp.RegisteredClassFactory(
+                operation_parameters["type"].GetString(),
+                self.__model,
+                operation_parameters["parameters"]
+            ).Execute()
 
 
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         """ @details @code
             {
-                "registry_extensions" : [],
+                "preprocessors" : [],
                 "solver" : {
                     "type" : "",
                     "parameters" : {}
-                }
+                },
+                "postprocessors" : []
             }
             @endcode
         """
         return KratosMultiphysics.Parameters(R"""{
-            "registry_extensions" : [],
+            "preprocessors" : [],
             "solver" : {
                 "type" : "",
                 "parameters" : {}
-            }
+            },
+            "postprocessors" : []
         }""")
