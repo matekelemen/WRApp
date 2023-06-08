@@ -270,7 +270,7 @@ std::string PlaceholderPattern::FormatRegexLiteral(const std::string& rLiteral)
 
     auto output = rLiteral;
 
-    for (char char_to_escape : R"(!$()*+-?[\]^)") {
+    for (char char_to_escape : R"(!$()*+?[\]^)") {
         std::size_t position = 0;
 
         std::string escaped;
