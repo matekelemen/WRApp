@@ -273,7 +273,7 @@ class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
             # Exit early if all convergence criteria are satisfied
             if all(criterion.IsConverged() for criterion in self.__convergence_criteria):
                 if self.__verbosity:
-                    print(f"Coupling converged after {i_couple + 1} iteration{'s' if i_couple else ''}")
+                    print(f"Coupling converged after {i_couple + 1} iteration{'s' if 1 < i_couple else ''}")
                 return
 
             if i_couple + 1 < self.__max_iterations:
@@ -281,7 +281,7 @@ class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
                     accelerator.ComputeAndApplyUpdate()
 
         # If the flow reached this point, the coupling failed
-        raise RuntimeError(f"Coupling failed to converge in {self.__max_iterations} iterations")
+        raise RuntimeError(f"Coupling failed to converge in {self.__max_iterations} iteration{'s' if 1 < self.__max_iterations else ' '}")
 
 
     def _Postprocess(self) -> None:
