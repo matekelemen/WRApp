@@ -34,20 +34,15 @@ class SnapshotIO(WRApp.WRAppClass):
                  @endcode
     """
 
-    def __init__(self, parameters: KratosMultiphysics.Parameters):
+    def __init__(self,
+                 parameters: KratosMultiphysics.Parameters):
         super().__init__()
         self._parameters = parameters
-        self._parameters.AddMissingParameters(self.GetDefaultParameters())
+        self._parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
 
     def __call__(self, model_part: KratosMultiphysics.ModelPart) -> None:
         self._GetOperation(model_part).Execute()
-
-
-    @abc.abstractmethod
-    def GetID(self) -> WRApp.CheckpointID:
-        """ @brief Read data from a file that identifies a @ref Snapshot."""
-        return WRApp.CheckpointID()
 
 
     @classmethod
@@ -77,6 +72,12 @@ class SnapshotFSIO(SnapshotIO):
 
     def __init__(self, parameters: KratosMultiphysics.Parameters):
         super().__init__(parameters)
+
+
+    @abc.abstractmethod
+    def GetID(self) -> WRApp.CheckpointID:
+        """ @brief Read data from a file that identifies a @ref Snapshot."""
+        return WRApp.CheckpointID()
 
 
     @abc.abstractmethod
