@@ -49,7 +49,7 @@ class MPIUtils:
     @staticmethod
     def ExtractNodalFlagNames(model_part: KratosMultiphysics.ModelPart) -> "list[str]":
         """ @brief Get the names of all currently defined global @ref Flags."""
-        return WRApp.GetGlobalFlagNames()
+        return WRApp.Utils.GetGlobalFlagNames()
 
 
     @staticmethod
@@ -65,7 +65,7 @@ class MPIUtils:
 
     @staticmethod
     def ExtractElementFlagNames(model_part: KratosMultiphysics.ModelPart) -> "list[str]":
-        return WRApp.GetGlobalFlagNames()
+        return WRApp.Utils.GetGlobalFlagNames()
 
 
     @staticmethod
@@ -78,7 +78,7 @@ class MPIUtils:
 
     @staticmethod
     def ExtractConditionFlagNames(model_part: KratosMultiphysics.ModelPart) -> "list[str]":
-        return WRApp.GetGlobalFlagNames()
+        return WRApp.Utils.GetGlobalFlagNames()
 
 
 ## @}
