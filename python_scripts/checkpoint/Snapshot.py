@@ -1,5 +1,11 @@
 """@author Máté Kelemen"""
 
+__all__ = [
+    "Snapshot",
+    "SnapshotFS",
+    "SnapshotManager"
+]
+
 # --- Core Imports ---
 import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
@@ -13,7 +19,6 @@ from .SnapshotIO import SnapshotIO
 import abc
 import typing
 import pathlib
-import inspect
 
 
 ## @addtogroup WRApplication
@@ -44,16 +49,25 @@ class Snapshot(WRApp.WRAppClass):
         self._output = self.GetOutputType()(self._parameters["output_parameters"])
 
 
-    @abc.abstractmethod
     def Load(self, model_part: KratosMultiphysics.ModelPart) -> None:
         """@brief Load data from this snapshot to the specified model part."""
-        pass
+        # Data in the ProcessInfo needs to be set before reading,
+        # otherwise the IO class might look for the data in the
+        # wrong place.
+        model_part.ProcessInfo[KratosMultiphysics.STEP] = self.id.GetStep()
+        model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = self.id.GetAnalysisPath()
+        self._input(model_part)
+
+        # Check whether the correct snapshot was loaded
+        new_id = WRApp.CheckpointID(model_part.ProcessInfo[KratosMultiphysics.STEP], model_part.ProcessInfo[WRApp.ANALYSIS_PATH])
+        if new_id != self.id:
+            raise RuntimeError(f"Snapshot attempted to load {self.id} but read {new_id} instead")
 
 
-    @abc.abstractmethod
+
     def Write(self, model_part: KratosMultiphysics.ModelPart) -> None:
         """@brief Write data from the current state of the specified model part to the snapshot."""
-        pass
+        self._output(model_part)
 
 
     @abc.abstractmethod
@@ -70,7 +84,7 @@ class Snapshot(WRApp.WRAppClass):
 
     @abc.abstractmethod
     def IsValid(self) -> bool:
-        """@brief Check whether the stored data matches up the ID of the @ref Snapshot."""
+        """@brief Check whether the stored data matches the ID of the @ref Snapshot."""
         return False
 
 
@@ -103,8 +117,8 @@ class Snapshot(WRApp.WRAppClass):
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         """ @code
             {
-                "input_parameters" : "default parameters for the input type",
-                "output_parameters" : "default parameters for the output type"
+                "input_parameters" : {}     // <== default parameters for the input type,
+                "output_parameters" : {}    // <== default parameters for the output type
             }
             @endcode
         """
@@ -192,15 +206,6 @@ class Snapshot(WRApp.WRAppClass):
 
 
 
-class SnapshotInMemory(Snapshot):
-    """ @brief Class representing a snapshot of a @ref ModelPart state in memory (stores a deep copy of the model part).
-        @classname SnapshotInMemory
-        @todo Implement in-memory snapshots if necessary (@matekelemen).
-    """
-    pass
-
-
-
 class SnapshotFS(Snapshot):
     """ @brief Class representing a snapshot of a @ref ModelPart state and its associated output file on the filesystem.
         @classname SnapshotFS
@@ -211,24 +216,6 @@ class SnapshotFS(Snapshot):
                  parameters: KratosMultiphysics.Parameters):
         """ @copydoc Snapshot.__init__"""
         super().__init__(id, parameters)
-
-
-    def Write(self, model_part: KratosMultiphysics.ModelPart) -> None:
-        self._output(model_part)
-
-
-    def Load(self, model_part: KratosMultiphysics.ModelPart) -> None:
-        # Data in the ProcessInfo needs to be set before reading,
-        # otherwise the IO class might look for the data in the
-        # wrong place.
-        model_part.ProcessInfo[KratosMultiphysics.STEP] = self.id.GetStep()
-        model_part.ProcessInfo[WRApp.ANALYSIS_PATH] = self.id.GetAnalysisPath()
-        self._input(model_part)
-
-        # Check whether the correct snapshot was loaded
-        new_id = WRApp.CheckpointID(model_part.ProcessInfo[KratosMultiphysics.STEP], model_part.ProcessInfo[WRApp.ANALYSIS_PATH])
-        if new_id != self.id:
-            raise RuntimeError(f"Snapshot attempted to load {self.id} but read {new_id} instead")
 
 
     def Erase(self, communicator: KratosMultiphysics.DataCommunicator) -> None:
@@ -342,7 +329,6 @@ class SnapshotManager(metaclass = abc.ABCMeta):
         self.__check_duplicates = self._parameters["check_duplicates"].GetBool()
 
         # Instantiate the predicate
-        print(parameters)
         self._predicate: WRApp.ModelPredicate = WRApp.RegisteredClassFactory(
             parameters["erase_predicate"]["type"].GetString(),
             parameters["erase_predicate"]["parameters"]
