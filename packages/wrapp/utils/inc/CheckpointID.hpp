@@ -2,6 +2,9 @@
 
 #pragma once
 
+// --- Core Includes ---
+#include "includes/key_hash.h"
+
 // --- STL Includes ---
 #include <ostream>
 
@@ -61,5 +64,18 @@ private:
 
 
 } // namespace Kratos::WRApp
+
+namespace std {
+template <>
+struct hash<Kratos::WRApp::CheckpointID>
+{
+    std::size_t operator()(Kratos::WRApp::CheckpointID id)
+    {
+        auto output = hash<int>()(id.GetStep());
+        Kratos::HashCombine(output, id.GetAnalysisPath());
+        return output;
+    }
+}; // struct hash
+} // namespace std
 
 #include "wrapp/utils/impl/CheckpointID_impl.hpp"
