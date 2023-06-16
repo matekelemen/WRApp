@@ -13,6 +13,8 @@ import itertools
 
 class TestModelPartPattern(WRApp.TestCase):
 
+    suite_flags = WRApp.SuiteFlags.SMALL | WRApp.SuiteFlags.NO_MPI
+
     def setUp(self) -> None:
         """ @brief Create the following directory structure relative to the working directory:
             @code
@@ -248,6 +250,8 @@ class TestModelPartPattern(WRApp.TestCase):
 
 
 class TestCheckpointPattern(WRApp.TestCase):
+
+    suite_flags = WRApp.SuiteFlags.SMALL | WRApp.SuiteFlags.NO_MPI
 
     def setUp(self) -> None:
         KratosMultiphysics.kratos_utilities.DeleteDirectoryIfExisting(str(self.test_files_directory))
