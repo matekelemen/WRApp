@@ -324,8 +324,9 @@ class SnapshotManager(metaclass = abc.ABCMeta):
         parameters.AddMissingParameters(self.GetDefaultParameters())
         self._parameters = parameters
 
+        journal_path = WRApp.ModelPartPattern(parameters["journal_path"].GetString()).Apply(model_part)
         self._model_part = model_part
-        self._journal = WRApp.Journal(pathlib.Path(parameters["journal_path"].GetString()))
+        self._journal = WRApp.Journal(pathlib.Path(journal_path))
         self.__check_duplicates = self._parameters["check_duplicates"].GetBool()
 
         # Instantiate the predicate
@@ -427,7 +428,7 @@ class SnapshotManager(metaclass = abc.ABCMeta):
                     "type" : "WRApplication.ConstModelPredicate",
                     "parameters" : [{"value" : false}]
                 },
-                "journal_path" : "snapshots.jrn",
+                "journal_path" : "snapshots_rank_<rank>.jrn",
                 "check_duplicates" : false
             }
             @endcode
@@ -438,7 +439,7 @@ class SnapshotManager(metaclass = abc.ABCMeta):
                 "type" : "WRApplication.ConstModelPredicate",
                 "parameters" : [{"value" : false}]
             },
-            "journal_path" : "snapshots.jrn",
+            "journal_path" : "snapshots_rank_<rank>.jrn",
             "check_duplicates" : false
         }""")
         parameters["io"] = cls._GetSnapshotType().GetDefaultParameters()
