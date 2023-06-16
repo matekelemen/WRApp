@@ -60,6 +60,7 @@ from .utilities import *
 from .TestCase import *
 from .MPIUtils import *
 from .checkpoint import *
+from .coupling import *
 from .async_analysis import *
 from .Launcher import *
 from .cli import *
