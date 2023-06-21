@@ -91,7 +91,7 @@ class SnapshotInMemoryIO(SnapshotIO):
 
         _expression_map = {
             KratosMultiphysics.Expression.ContainerType.NodalHistorical : KratosMultiphysics.Expression.NodalExpression,
-            KratosMultiphysics.Expression.ContainerType.NodalNonHistorical : KratosMultiphysics.Expression.NodalNonHistoricalExpression,
+            KratosMultiphysics.Expression.ContainerType.NodalNonHistorical : KratosMultiphysics.Expression.NodalExpression,
             KratosMultiphysics.Expression.ContainerType.ElementNonHistorical : KratosMultiphysics.Expression.ElementExpression,
             KratosMultiphysics.Expression.ContainerType.ConditionNonHistorical : KratosMultiphysics.Expression.ConditionExpression
         }
