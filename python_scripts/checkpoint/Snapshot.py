@@ -257,13 +257,16 @@ class SnapshotFS(Snapshot):
     @classmethod
     def FromModelPart(cls: typing.Type["SnapshotFS"],
                       model_part: KratosMultiphysics.ModelPart,
-                      parameters: KratosMultiphysics.Parameters = None) -> "SnapshotFS":
+                      parameters: typing.Union[KratosMultiphysics.Parameters,None] = None) -> "SnapshotFS":
         """@brief Deduce variables from an input @ref ModelPart and construct a @ref SnapshotFS.
            @details Input- and output parameters are defaulted if they are not specified by the user.
                     The related file name defaults to "<model_part_name>_step_<step>_path_<path>.h5"."""
         model_part_name = model_part.Name
         step = model_part.ProcessInfo[KratosMultiphysics.STEP]
         analysis_path = model_part.ProcessInfo[WRApp.ANALYSIS_PATH]
+
+        if parameters is None:
+            parameters = cls.GetDefaultParameters()
 
         if not parameters.Has("input_parameters"):
             parameters.AddValue("input_parameters", cls.GetInputType().GetDefaultParameters())
