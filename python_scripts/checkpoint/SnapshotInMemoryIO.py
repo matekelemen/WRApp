@@ -1,6 +1,7 @@
 """ @author Máté Kelemen"""
 
 __all__ = [
+    "SnapshotInMemoryIO",
     "SnapshotInMemoryInput",
     "SnapshotInMemoryOutput"
 ]
@@ -33,9 +34,9 @@ class SnapshotInMemoryIO(SnapshotIO):
     # Key: path
     # Value: {
     #       "id" : checkpoint_id,
-    #       "data" : {container_type, {variable_name : numpy_array}},
+    #       "data" : {container_type, {variable_name : container_expression}},
     #       "flags" : {"nodes" : vector_of_flags, "elements" : vector_of_flags, "conditions" : vector_of_flags}
-    #       "process_info" : {variable_name : numpy_array}
+    #       "process_info" : {variable_name : value}
     #   }
     _cache = {}
 
@@ -45,8 +46,22 @@ class SnapshotInMemoryIO(SnapshotIO):
 
 
     @classmethod
-    def Erase(cls, path: str) -> None:
-        del cls._cache[path]
+    def GetEntry(cls, file_name: str) -> dict:
+        entry = cls._cache.get(file_name, None)
+        if entry == None:
+            newline = '\n'
+            raise KeyError(f"No in-memory snapshot found at '{file_name}'. The following items are in the current cache:{newline.join(key for key in cls._cache.keys())}")
+        return entry
+
+
+    @classmethod
+    def Erase(cls, file_name: str) -> None:
+        del cls._cache[file_name]
+
+
+    @classmethod
+    def Exists(cls, file_name: str) -> bool:
+        return file_name in cls._cache
 
 
     @classmethod
@@ -115,6 +130,10 @@ class SnapshotInMemoryIO(SnapshotIO):
 class SnapshotInMemoryInput(SnapshotInMemoryIO):
     """ @brief Implements @ref Snapshot input operations in memory."""
 
+    def __init__(self, parameters: KratosMultiphysics.Parameters):
+        super().__init__(parameters)
+
+
     class Operation(SnapshotInMemoryIO.Operation):
         """ @brief Read data from the static cache of @ref SnapshotInMemoryIO."""
 
@@ -126,7 +145,7 @@ class SnapshotInMemoryInput(SnapshotInMemoryIO):
 
 
         def Execute(self) -> None:
-            file_name = self._parameters["file_name"].GetString()
+            file_name = WRApp.CheckpointPattern(self._parameters["file_name"].GetString()).Apply(self._model_part)
             entry = SnapshotInMemoryIO._cache.get(file_name, None)
 
             if entry is None:
@@ -144,9 +163,10 @@ class SnapshotInMemoryInput(SnapshotInMemoryIO):
 
                     # Fetch data from the static cache
                     for variable_name in names:
-                        expression = self._expression_map[container_type](self._model_part)
-                        KratosMultiphysics.Expression.CArrayExpressionIO.Read(expression, entry["data"][container_type][variable_name])
                         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+                        expression = self._expression_map[container_type](self._model_part)
+                        expression.SetExpression(entry["data"][container_type][variable_name])
+
                         is_historical = container_type == KratosMultiphysics.Expression.ContainerType.NodalHistorical
 
                         # Assign data to the model part
@@ -206,7 +226,7 @@ class SnapshotInMemoryOutput(SnapshotInMemoryIO):
 
 
         def Execute(self) -> None:
-            file_name = self._parameters["file_name"].GetString()
+            file_name = WRApp.CheckpointPattern(self._parameters["file_name"].GetString()).Apply(self._model_part)
             if file_name in SnapshotInMemoryIO._cache:
                 raise FileExistsError(f"An in-memory snapshot already exists at '{file_name}'")
 
@@ -228,6 +248,7 @@ class SnapshotInMemoryOutput(SnapshotInMemoryIO):
 
                         map = dict()
                         for variable_name in names:
+                            # Construct a new expression
                             expression = self._expression_map[container_type](self._model_part)
                             variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                             is_historical = container_type == KratosMultiphysics.Expression.ContainerType.NodalHistorical
@@ -238,12 +259,8 @@ class SnapshotInMemoryOutput(SnapshotInMemoryIO):
                             else:
                                 KratosMultiphysics.Expression.VariableExpressionIO.Read(expression, variable)
 
-                            # Write the collected data to a c-array
-                            number_of_items = len(expression.GetContainer())
-                            stride = expression.GetItemComponentCount()
-                            array = numpy.empty(number_of_items if stride == 1 else (number_of_items, *expression.GetItemShape()))
-                            KratosMultiphysics.Expression.CArrayExpressionIO.Write(expression, array)
-                            map[variable_name] = array
+                            # Store the loaded expression in the new cache entry
+                            map[variable_name] = expression.GetExpression()
 
                         entry["data"][container_type] = map
                 elif "flags" in container_name:
