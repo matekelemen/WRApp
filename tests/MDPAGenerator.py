@@ -12,6 +12,11 @@ import typing
 import pathlib
 
 
+def GetMDPAPath(file_name: str) -> pathlib.Path:
+    script_directory = pathlib.Path(__file__).absolute().parent
+    return script_directory / "data" / file_name
+
+
 class MDPAGenerator:
     """@brief Convenience class for generating @ref ModelPart s for testing."""
 

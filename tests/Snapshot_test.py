@@ -8,15 +8,10 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 # --- WRApplication Imports ---
 import KratosMultiphysics.WRApplication as WRApp
 from KratosMultiphysics.WRApplication.MPIUtils import MPIUtils
-from MDPAGenerator import MDPAGenerator
+from MDPAGenerator import MDPAGenerator, GetMDPAPath
 
 # --- STD Imports ---
 import pathlib
-
-
-def GetMDPAPath(file_name: str) -> pathlib.Path:
-    script_directory = pathlib.Path(__file__).absolute().parent
-    return script_directory / "data" / file_name
 
 
 def SetModelPartData(model_part: KratosMultiphysics.ModelPart,
