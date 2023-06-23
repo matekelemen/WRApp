@@ -95,12 +95,12 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
 
 
     def __init__(self,
-                 model_part: KratosMultiphysics.ModelPart,
+                 model: KratosMultiphysics.Model,
                  parameters: KratosMultiphysics.Parameters):
         super().__init__()
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.__parameters = parameters
-        self.__model_part = model_part
+        self.__model_part = model.GetModelPart(parameters["model_part_name"].GetString())
         self.__variable = KratosMultiphysics.KratosGlobals.GetVariable(self.__parameters["variable"].GetString())
 
         try: # Try constructing the accelerator from the FSIApplication
@@ -124,6 +124,7 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
+            "model_part_name" : "",
             "variable" : "",
             "parameters" : {}
         }""")

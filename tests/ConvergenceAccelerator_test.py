@@ -33,13 +33,14 @@ class ConvergenceAcceleratorTest(WRApp.TestCase):
 
         # Construct an accelerator
         parameters = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "root",
             "variable" : "",
             "parameters" : {
                 "solver_type" : "MVQN"
             }
         }""")
         parameters["variable"].SetString(variable.Name())
-        accelerator = WRApp.ConvergenceAccelerator(model_part, parameters)
+        accelerator = WRApp.ConvergenceAccelerator(model, parameters)
 
         # Simulate a solution loop
         self.__SetNodalValues(model_part.Nodes, variable, 0)
