@@ -20,6 +20,8 @@ struct KRATOS_API(WR_APPLICATION) WRAppClass
 {
     KRATOS_CLASS_POINTER_DEFINITION(WRAppClass);
 
+    virtual ~WRAppClass() noexcept = default;
+
     WRAppClass() noexcept = default;
 
     WRAppClass(WRAppClass&& rOther) noexcept = default;
