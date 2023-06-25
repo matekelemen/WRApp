@@ -90,7 +90,7 @@ def GenerateXDMF(file_pattern: str,
 
 
 class GenerateXDMFOperation(KratosMultiphysics.Operation, WRApp.WRAppClass):
-    """ @brief """
+    """ @brief Wrap @ref GenerateXDMF in a kratos @ref Operation."""
 
     def __init__(self,
                  model: KratosMultiphysics.Model,
@@ -125,6 +125,7 @@ class GenerateXDMFOperation(KratosMultiphysics.Operation, WRApp.WRAppClass):
             "results_prefix" : "/ResultsData",
             "output_path" : "output.xdmf"
         }""")
+
 
 
 if __name__ == "__main__":
