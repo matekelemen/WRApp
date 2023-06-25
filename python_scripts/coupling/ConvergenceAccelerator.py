@@ -34,13 +34,12 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
             self.__cache_id = cache_id
             self.__variable = variable
             self.__UpdateExpression(self.__expression)
-            self.__accelerated = KratosMultiphysics.Vector(len(self.__expression.GetContainer()) * self.__expression.GetItemComponentCount())
+            self.__accelerated = KratosMultiphysics.Vector(len(self.__expression.GetContainer()) * self.__expression.GetItemComponentCount(), 0.0)
 
 
         def __enter__(self) -> "ConvergenceAccelerator.AcceleratorScope":
             """ @brief Equivalent to @ref ConvergenceAccelerator::InitializeNonLinearSolutionStep."""
-            snapshot = self.__SnapshotFactory()
-            snapshot.Write(self.__expression.GetModelPart())
+            self.__SnapshotFactory().Write(self.__expression.GetModelPart())
             return self
 
 
@@ -56,7 +55,17 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
             residual_array = KratosMultiphysics.Vector(expression_size)
             KratosMultiphysics.Expression.CArrayExpressionIO.Write(residual.Reshape([residual.GetItemComponentCount()]), residual_array)
 
+            # Apply the accelerator
+            from matplotlib import pyplot; pyplot.plot(self.__accelerated)
             self.__accelerator.UpdateSolution(residual_array, self.__accelerated)
+            pyplot.plot(self.__accelerated)
+
+            # Write updated values to the target model part
+            accelerated = self.__expression.Clone()
+            KratosMultiphysics.Expression.CArrayExpressionIO.Move(accelerated, self.__accelerated, accelerated.GetItemShape())
+            KratosMultiphysics.Expression.VariableExpressionIO.Write(accelerated,
+                                                                     self.__variable,
+                                                                     True)
 
 
         def __exit__(self,
@@ -68,6 +77,7 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
                 return False
             self.__UpdateExpression(self.__expression)
             self.__SnapshotFactory().Erase(self.__expression.GetModelPart().GetCommunicator().GetDataCommunicator())
+            from matplotlib import pyplot; pyplot.show()
             return True
 
 
@@ -92,6 +102,10 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
             parameters.AddValue("input_parameters", io_parameters)
             parameters.AddValue("output_parameters", io_parameters)
             return WRApp.SnapshotInMemory(snapshot_id, parameters)
+
+
+        def __GetCachedExpression(self) -> WRApp.Typing.ContainerExpression:
+            return self.__SnapshotFactory().GetExpression(KratosMultiphysics.Expression.ContainerType.NodalHistorical, self.__variable)
 
 
     def __init__(self,
@@ -132,9 +146,7 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
 
     def __enter__(self) -> "ConvergenceAccelerator.AcceleratorScope":
         # Check whether the reserved spot in the cache is still available
-        if WRApp.SnapshotInMemoryIO.Exists(self.__cache_id):
-            raise FileExistsError(f"In-memory snapshot for {self.__cache_id} already exists")
-
+        self.__cache_id = self.__MakeCacheID()
         self.__accelerator = self.__accelerator_factory(self.__parameters["parameters"])
         self.__accelerator.Initialize()
         self.__accelerator.InitializeSolutionStep()

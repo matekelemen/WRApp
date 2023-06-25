@@ -34,9 +34,24 @@ class SnapshotInMemory(Snapshot):
         super().__init__(id, parameters)
 
 
+    def GetExpression(self,
+                      container_type: KratosMultiphysics.Expression.ContainerType,
+                      variable: WRApp.Typing.Variable) -> WRApp.Typing.ContainerExpression:
+        return self.GetInputType().GetExpression(self._parameters["input_parameters"]["file_name"].GetString(),
+                                                 container_type,
+                                                 variable)
+
+
     def Exists(self) -> bool:
         # Return true if there's a match for CheckPointIDs regardless of model part names
         return bool(self.GetInputType().Glob(lambda pair: pair[1] == self.id))
+
+
+    def Erase(self, communicator: KratosMultiphysics.DataCommunicator) -> None:
+        for file_name in (self._parameters["input_parameters"]["file_name"], self._parameters["output_parameters"]["file_name"]):
+            name = file_name.GetString()
+            if WRApp.SnapshotInMemoryIO.Exists(name):
+                WRApp.SnapshotInMemoryIO.Erase(name)
 
 
     def IsValid(self) -> bool:

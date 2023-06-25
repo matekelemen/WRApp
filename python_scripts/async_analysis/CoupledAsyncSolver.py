@@ -59,7 +59,7 @@ class CoupledAsyncSolver(AsyncSolver):
                 self.GetSolver(partition_name).Synchronize() for partition_name in self.partitions
             ]) as subsync:
                 subsync()
-                couple()
+            couple()
 
 
     ## @}

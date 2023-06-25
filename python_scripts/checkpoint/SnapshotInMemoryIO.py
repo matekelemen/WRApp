@@ -46,15 +46,6 @@ class SnapshotInMemoryIO(SnapshotIO):
 
 
     @classmethod
-    def GetEntry(cls, file_name: str) -> dict:
-        entry = cls._cache.get(file_name, None)
-        if entry == None:
-            newline = '\n'
-            raise KeyError(f"No in-memory snapshot found at '{file_name}'. The following items are in the current cache:{newline.join(key for key in cls._cache.keys())}")
-        return entry
-
-
-    @classmethod
     def Erase(cls, file_name: str) -> None:
         del cls._cache[file_name]
 
@@ -132,6 +123,23 @@ class SnapshotInMemoryInput(SnapshotInMemoryIO):
 
     def __init__(self, parameters: KratosMultiphysics.Parameters):
         super().__init__(parameters)
+
+
+    @classmethod
+    def GetEntry(cls, file_name: str) -> dict:
+        entry = cls._cache.get(file_name, None)
+        if entry == None:
+            newline = '\n'
+            raise KeyError(f"No in-memory snapshot found at '{file_name}'. The following items are in the current cache:{newline.join(key for key in cls._cache.keys())}")
+        return entry
+
+
+    @classmethod
+    def GetExpression(cls,
+                      file_name: str,
+                      container_type: KratosMultiphysics.Expression.ContainerType,
+                      variable: WRApp.Typing.Variable) -> WRApp.Typing.ContainerExpression:
+        return cls.GetEntry(file_name)[container_type][variable]
 
 
     class Operation(SnapshotInMemoryIO.Operation):

@@ -23,6 +23,7 @@ import KratosMultiphysics.WRApplication as WRApp
 # --- STD Imports ---
 import io
 import typing
+import contextlib
 
 
 ## @addtogroup WRApplication
@@ -228,11 +229,8 @@ class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
         for criterion in self.__convergence_criteria:
             criterion.Initialize()
 
-        self.__convergence_accelerators = self.__MakeConvergenceAccelerators(self.parameters["convergence_accelerators"],
-                                                                             self.__verbosity)
-
-        for accelerator in self.__convergence_accelerators:
-            accelerator.Initialize()
+        self.__convergence_accelerators = [WRApp.ConvergenceAccelerator(model, accelerator_parameters) for accelerator_parameters in parameters["convergence_accelerators"].values()]
+        self.__accelerator_scopes: "typing.Optional[list[WRApp.ConvergenceAccelerator.AcceleratorScope]]" = None
 
         # Map transform operator names to the operators they represent
         self.__transform_operators = self.__MakeTransformOperators(self.parameters["transform_operators"],
@@ -245,40 +243,38 @@ class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
     def _Preprocess(self) -> None:
         for criterion in self.__convergence_criteria:
             criterion.InitializeSolutionStep()
-        for accelerator in self.__convergence_accelerators:
-            accelerator.InitializeSolutionStep()
+        self.__accelerator_scopes = [accelerator.__enter__() for accelerator in self.__convergence_accelerators]
 
 
     def __call__(self) -> None:
         """ @brief Execute all items in the coupling sequence in the order they were defined."""
         for i_couple in range(self.__max_iterations):
             # Coupling subiter utils preproc
-            for accelerator in self.__convergence_accelerators:
-                accelerator.InitializeNonLinearIteration()
-            for criterion in self.__convergence_criteria:
-                criterion.InitializeNonLinearIteration()
+            with contextlib.ExitStack() as scope_stack:
+                nonlinear_accelerator_scopes = [scope_stack.enter_context(scope) for scope in self.__accelerator_scopes]
 
-            # Perform coupling operations in the defined order, consisting of
-            # - data transfer between partitions
-            # - partition synchronization
-            for operation in self.__coupling_sequence:
-                operation.Execute()
+                for criterion in self.__convergence_criteria:
+                    criterion.InitializeNonLinearIteration()
 
-            # Coupling subiter utils postproc
-            for accelerator in self.__convergence_accelerators:
-                accelerator.FinalizeNonLinearIteration()
-            for criterion in self.__convergence_criteria:
-                criterion.FinalizeNonLinearIteration()
+                # Perform coupling operations in the defined order, consisting of
+                # - data transfer between partitions
+                # - partition synchronization
+                for operation in self.__coupling_sequence:
+                    operation.Execute()
 
-            # Exit early if all convergence criteria are satisfied
-            if all(criterion.IsConverged() for criterion in self.__convergence_criteria):
-                if self.__verbosity:
-                    print(f"Coupling converged after {i_couple + 1} iteration{'s' if 1 < i_couple else ''}")
-                return
+                # Coupling subiter utils postproc
+                for criterion in self.__convergence_criteria:
+                    criterion.FinalizeNonLinearIteration()
 
-            if i_couple + 1 < self.__max_iterations:
-                for accelerator in self.__convergence_accelerators:
-                    accelerator.ComputeAndApplyUpdate()
+                # Exit early if all convergence criteria are satisfied
+                if all(criterion.IsConverged() for criterion in self.__convergence_criteria):
+                    if self.__verbosity:
+                        print(f"Coupling converged after {i_couple + 1} iteration{'s' if 1 < i_couple else ''}")
+                    return
+
+                if i_couple + 1 < self.__max_iterations:
+                    for scope in nonlinear_accelerator_scopes:
+                        scope.AddTerm()
 
         # If the flow reached this point, the coupling failed
         raise RuntimeError(f"Coupling failed to converge in {self.__max_iterations} iteration{'s' if 1 < self.__max_iterations else ' '}")
@@ -287,8 +283,8 @@ class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
     def _Postprocess(self) -> None:
         for criterion in self.__convergence_criteria:
             criterion.FinalizeSolutionStep()
-        for accelerator in self.__convergence_accelerators:
-            accelerator.FinalizeSolutionStep()
+        for accelerator_scope in self.__accelerator_scopes:
+            accelerator_scope.__exit__(None, None, None)
 
 
     def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
@@ -396,19 +392,6 @@ class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
             output.append(ConvergenceCriteriaWrapper(criterion_parameters,
                                                      dataset,
                                                      self.__data_communicator))
-        return output
-
-
-    def __MakeConvergenceAccelerators(self,
-                                      parameters: KratosMultiphysics.Parameters,
-                                      verbosity: int) -> "list[ConvergenceAcceleratorWrapper]":
-        output: "list[ConvergenceAcceleratorWrapper]" = []
-        for accelerator_parameters in parameters.values():
-            if not accelerator_parameters.Has("echo_level"):
-                accelerator_parameters.AddInt("echo_level", verbosity)
-            output.append(ConvergenceAcceleratorWrapper(accelerator_parameters,
-                                                        self.__datasets,
-                                                        self.__data_communicator))
         return output
 
 
