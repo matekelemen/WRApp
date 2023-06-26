@@ -76,11 +76,6 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
             KratosMultiphysics.Expression.CArrayExpressionIO.Move(relaxed_expression, current_array)
             KratosMultiphysics.Expression.VariableExpressionIO.Write(relaxed_expression, self.__variable, True)
 
-            import pathlib
-            WRApp.Debug.PlotExpression(self.__GetCurrentExpression(),
-                                       output_file_name = pathlib.Path(f"out.png"),
-                                       show = False)
-
 
         def __exit__(self,
                      exception_type: typing.Optional[typing.Type[Exception]],

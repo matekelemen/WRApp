@@ -285,8 +285,8 @@ class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
     def _Postprocess(self) -> None:
         for criterion in self.__convergence_criteria:
             criterion.FinalizeSolutionStep()
-        for accelerator_scope in self.__accelerator_scopes:
-            accelerator_scope.__exit__(None, None, None)
+        for scope in self.__convergence_accelerators:
+            scope.__exit__(None, None, None)
 
 
     def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
