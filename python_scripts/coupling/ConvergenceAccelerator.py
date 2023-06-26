@@ -11,6 +11,10 @@ import KratosMultiphysics
 # --- WRApp Imports ---
 from KratosMultiphysics import WRApplication as WRApp
 
+# --- CoSim Imports ---
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
+import KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory
+
 # --- STD Imports ---
 import typing
 import types
@@ -25,43 +29,53 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
     class AcceleratorScope:
 
         def __init__(self,
-                     expression: KratosMultiphysics.Expression.NodalExpression,
-                     accelerator: KratosMultiphysics.ConvergenceAccelerator,
+                     model_part: KratosMultiphysics.ModelPart,
+                     accelerator: CoSimulationConvergenceAccelerator,
                      cache_id: str,
                      variable: WRApp.Typing.Variable):
-            self.__expression = expression
+            self.__model_part = model_part
             self.__accelerator = accelerator
             self.__cache_id = cache_id
             self.__variable = variable
-            self.__UpdateExpression(self.__expression)
 
 
         def __enter__(self) -> "ConvergenceAccelerator.AcceleratorScope":
             """ @brief Equivalent to @ref ConvergenceAccelerator::InitializeNonLinearSolutionStep."""
-            self.__SnapshotFactory().Write(self.__expression.GetModelPart())
+            self.__SnapshotFactory().Write(self.__model_part)
             return self
 
 
         def AddTerm(self) -> None:
+            """ @brief Push a new term on top of the stack."""
+            snapshot = self.__SnapshotFactory()
+            snapshot.Erase(self.__model_part.GetCommunicator().GetDataCommunicator())
+            snapshot.Write(self.__model_part)
+
+
+        def Relax(self) -> None:
             """ @brief Equivalent to @ref ConvergenceAccelerator::UpdateSolution."""
             # Compute the residual
-            current = KratosMultiphysics.Expression.NodalExpression(self.__expression.GetModelPart())
+            current = KratosMultiphysics.Expression.NodalExpression(self.__model_part)
             self.__UpdateExpression(current)
-            residual = current - self.__expression
+            residual = current - self.__GetCachedExpression()
 
             # Flatten the residual and write it to a contiguous array
             expression_size = len(residual.GetContainer()) * residual.GetItemComponentCount()
-            residual_array = KratosMultiphysics.Vector(expression_size)
-            KratosMultiphysics.Expression.CArrayExpressionIO.Write(residual.Reshape([residual.GetItemComponentCount()]), residual_array)
+            residual_array = numpy.empty(expression_size)
+            current_array = numpy.empty(expression_size)
+
+            for expression, array in zip((current, residual), (current_array, residual_array)):
+                KratosMultiphysics.Expression.CArrayExpressionIO.Write(expression, array)
 
             # Apply the accelerator
-            relaxed_array = KratosMultiphysics.Vector(len(self.__expression.GetContainer()) * self.__expression.GetItemComponentCount(), 0.0)
-            self.__accelerator.UpdateSolution(residual_array, relaxed_array)
+            current_array += self.__accelerator.UpdateSolution(residual_array, current_array)
 
-            # Write accelerated values to the model part
-            relaxed_expression = self.__expression.Clone()
-            KratosMultiphysics.Expression.CArrayExpressionIO.Move(relaxed_expression, relaxed_array, relaxed_expression.GetItemShape())
-            KratosMultiphysics.Expression.VariableExpressionIO.Write(relaxed_expression.Reshape(self.__expression.GetItemShape()), self.__variable, True)
+            # Write relaxed values to the model part
+            current_array = current_array.reshape([len(current.GetContainer()), *current.GetItemShape()])
+            relaxed_expression = KratosMultiphysics.Expression.NodalExpression(self.__model_part)
+            KratosMultiphysics.Expression.CArrayExpressionIO.Move(relaxed_expression, current_array)
+            KratosMultiphysics.Expression.VariableExpressionIO.Write(relaxed_expression, self.__variable, True)
+            #WRApp.Debug.PlotExpression(relaxed_expression - current)
 
 
         def __exit__(self,
@@ -71,8 +85,7 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
             """ @brief Equivalent to @ref ConvergenceAccelerator::FinalizeNonlinearSolutionStep."""
             if any(argument is not None for argument in (exception_type, exception_instance, traceback)):
                 return False
-            self.__UpdateExpression(self.__expression)
-            self.__SnapshotFactory().Erase(self.__expression.GetModelPart().GetCommunicator().GetDataCommunicator())
+            self.__SnapshotFactory().Erase(self.__model_part.GetCommunicator().GetDataCommunicator())
             return True
 
 
@@ -82,11 +95,9 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
                                                                     self.__variable,
                                                                     True)
 
-
         def __SnapshotFactory(self) -> WRApp.SnapshotInMemory:
-            model_part = self.__expression.GetModelPart()
-            snapshot_id = WRApp.CheckpointID(model_part.ProcessInfo[KratosMultiphysics.STEP],
-                                             model_part.ProcessInfo[WRApp.ANALYSIS_PATH])
+            snapshot_id = WRApp.CheckpointID(self.__model_part.ProcessInfo[KratosMultiphysics.STEP],
+                                             self.__model_part.ProcessInfo[WRApp.ANALYSIS_PATH])
             io_parameters = KratosMultiphysics.Parameters("""{
                 "nodal_historical_variables" : [],
                 "file_name" : ""
@@ -99,8 +110,10 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
             return WRApp.SnapshotInMemory(snapshot_id, parameters)
 
 
-        def __GetCachedExpression(self) -> WRApp.Typing.ContainerExpression:
-            return self.__SnapshotFactory().GetExpression(KratosMultiphysics.Expression.ContainerType.NodalHistorical, self.__variable)
+        def __GetCachedExpression(self) -> KratosMultiphysics.Expression.NodalExpression:
+            output = KratosMultiphysics.Expression.NodalExpression(self.__model_part)
+            output.SetExpression(self.__SnapshotFactory().GetExpression(KratosMultiphysics.Expression.ContainerType.NodalHistorical, self.__variable))
+            return output
 
 
     def __init__(self,
@@ -112,14 +125,7 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
         self.__model_part = model.GetModelPart(parameters["model_part_name"].GetString())
         self.__variable = KratosMultiphysics.KratosGlobals.GetVariable(self.__parameters["variable"].GetString())
 
-        try: # Try constructing the accelerator from the FSIApplication
-            from KratosMultiphysics import FSIApplication
-            from KratosMultiphysics.FSIApplication.convergence_accelerator_factory import CreateConvergenceAccelerator
-        except ImportError as exception: # Fall back to CoSim accelerators
-            KratosMultiphysics.Logger.PrintInfo("FSIApplication is not available; looking for convergence accelerators elsewhere")
-            from KratosMultiphysics import CoSimulationApplication
-            from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
-        self.__accelerator_factory = CreateConvergenceAccelerator
+        self.__accelerator_factory = KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory.CreateConvergenceAccelerator
         self.__accelerator: typing.Optional[KratosMultiphysics.ConvergenceAccelerator] = None # <== gets constructed in __enter__ and destroyed in __exit__
 
         # Convergence accelerators typically need data from the previous time step,
@@ -147,7 +153,7 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
         self.__accelerator.InitializeSolutionStep()
 
         return ConvergenceAccelerator.AcceleratorScope(
-            KratosMultiphysics.Expression.NodalExpression(self.__model_part),
+            self.__model_part,
             self.__accelerator,
             self.__cache_id,
             self.__variable)
