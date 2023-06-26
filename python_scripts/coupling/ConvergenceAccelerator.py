@@ -13,7 +13,7 @@ from KratosMultiphysics import WRApplication as WRApp
 
 # --- CoSim Imports ---
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
-import KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory
+from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory import CreateConvergenceAccelerator
 
 # --- STD Imports ---
 import typing
@@ -42,6 +42,7 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
         def __enter__(self) -> "ConvergenceAccelerator.AcceleratorScope":
             """ @brief Equivalent to @ref ConvergenceAccelerator::InitializeNonLinearSolutionStep."""
             self.__SnapshotFactory().Write(self.__model_part)
+            self.__accelerator.InitializeNonLinearIteration()
             return self
 
 
@@ -55,27 +56,30 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
         def Relax(self) -> None:
             """ @brief Equivalent to @ref ConvergenceAccelerator::UpdateSolution."""
             # Compute the residual
-            current = KratosMultiphysics.Expression.NodalExpression(self.__model_part)
-            self.__UpdateExpression(current)
-            residual = current - self.__GetCachedExpression()
+            cached = self.__GetCachedExpression()
+            residual = self.__GetCurrentExpression() - cached
 
             # Flatten the residual and write it to a contiguous array
             expression_size = len(residual.GetContainer()) * residual.GetItemComponentCount()
             residual_array = numpy.empty(expression_size)
-            current_array = numpy.empty(expression_size)
+            cached_array = numpy.empty(expression_size)
 
-            for expression, array in zip((current, residual), (current_array, residual_array)):
+            for expression, array in zip((cached, residual), (cached_array, residual_array)):
                 KratosMultiphysics.Expression.CArrayExpressionIO.Write(expression, array)
 
             # Apply the accelerator
-            current_array += self.__accelerator.UpdateSolution(residual_array, current_array)
+            relaxed = cached_array + self.__accelerator.UpdateSolution(residual_array, cached_array)
 
             # Write relaxed values to the model part
-            current_array = current_array.reshape([len(current.GetContainer()), *current.GetItemShape()])
+            current_array = relaxed.reshape([len(cached.GetContainer()), *cached.GetItemShape()])
             relaxed_expression = KratosMultiphysics.Expression.NodalExpression(self.__model_part)
             KratosMultiphysics.Expression.CArrayExpressionIO.Move(relaxed_expression, current_array)
             KratosMultiphysics.Expression.VariableExpressionIO.Write(relaxed_expression, self.__variable, True)
-            #WRApp.Debug.PlotExpression(relaxed_expression - current)
+
+            import pathlib
+            WRApp.Debug.PlotExpression(self.__GetCurrentExpression(),
+                                       output_file_name = pathlib.Path(f"out.png"),
+                                       show = False)
 
 
         def __exit__(self,
@@ -86,14 +90,18 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
             if any(argument is not None for argument in (exception_type, exception_instance, traceback)):
                 return False
             self.__SnapshotFactory().Erase(self.__model_part.GetCommunicator().GetDataCommunicator())
+            self.__accelerator.FinalizeNonLinearIteration()
             return True
 
 
-        def __UpdateExpression(self, expression: KratosMultiphysics.Expression.NodalExpression) -> None:
+        def __GetCurrentExpression(self) -> KratosMultiphysics.Expression.NodalExpression:
             """ @brief Populate the input expression with the current values from the model part."""
-            KratosMultiphysics.Expression.VariableExpressionIO.Read(expression,
+            output = KratosMultiphysics.Expression.NodalExpression(self.__model_part)
+            KratosMultiphysics.Expression.VariableExpressionIO.Read(output,
                                                                     self.__variable,
                                                                     True)
+            return output
+
 
         def __SnapshotFactory(self) -> WRApp.SnapshotInMemory:
             snapshot_id = WRApp.CheckpointID(self.__model_part.ProcessInfo[KratosMultiphysics.STEP],
@@ -125,8 +133,8 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
         self.__model_part = model.GetModelPart(parameters["model_part_name"].GetString())
         self.__variable = KratosMultiphysics.KratosGlobals.GetVariable(self.__parameters["variable"].GetString())
 
-        self.__accelerator_factory = KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerator_factory.CreateConvergenceAccelerator
-        self.__accelerator: typing.Optional[KratosMultiphysics.ConvergenceAccelerator] = None # <== gets constructed in __enter__ and destroyed in __exit__
+        self.__accelerator = CreateConvergenceAccelerator(self.__parameters["parameters"])
+        self.__accelerator.Initialize()
 
         # Convergence accelerators typically need data from the previous time step,
         # which in this case will be stored in an SnapshotInMemory. This snapshot is
@@ -146,12 +154,8 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
 
 
     def __enter__(self) -> "ConvergenceAccelerator.AcceleratorScope":
-        # Check whether the reserved spot in the cache is still available
         self.__cache_id = self.__MakeCacheID()
-        self.__accelerator = self.__accelerator_factory(self.__parameters["parameters"])
-        self.__accelerator.Initialize()
         self.__accelerator.InitializeSolutionStep()
-
         return ConvergenceAccelerator.AcceleratorScope(
             self.__model_part,
             self.__accelerator,
@@ -166,8 +170,6 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
         if any(argument is not None for argument in (exception_type, exception_instance, traceback)):
             return False
         self.__accelerator.FinalizeSolutionStep()
-        self.__accelerator = None
-        WRApp.SnapshotInMemoryIO.Erase(self.__cache_id)
         return True
 
 
