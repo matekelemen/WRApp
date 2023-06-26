@@ -138,8 +138,8 @@ class SnapshotInMemoryInput(SnapshotInMemoryIO):
     def GetExpression(cls,
                       file_name: str,
                       container_type: KratosMultiphysics.Expression.ContainerType,
-                      variable: WRApp.Typing.Variable) -> WRApp.Typing.ContainerExpression:
-        return cls.GetEntry(file_name)[container_type][variable]
+                      variable: WRApp.Typing.Variable) -> KratosMultiphysics.Expression.Expression:
+        return cls.GetEntry(file_name)["data"][container_type][variable.Name()]
 
 
     class Operation(SnapshotInMemoryIO.Operation):
