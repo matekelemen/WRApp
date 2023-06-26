@@ -248,10 +248,12 @@ class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
 
     def __call__(self) -> None:
         """ @brief Execute all items in the coupling sequence in the order they were defined."""
-        for i_couple in range(self.__max_iterations):
-            # Coupling subiter utils preproc
-            with contextlib.ExitStack() as scope_stack:
-                nonlinear_accelerator_scopes = [scope_stack.enter_context(scope) for scope in self.__accelerator_scopes]
+        with contextlib.ExitStack() as scope_stack:
+            nonlinear_accelerator_scopes = [scope_stack.enter_context(scope) for scope in self.__accelerator_scopes]
+            for i_couple in range(self.__max_iterations):
+                # Coupling subiter utils preproc
+                for scope in nonlinear_accelerator_scopes:
+                    scope.AddTerm()
 
                 for criterion in self.__convergence_criteria:
                     criterion.InitializeNonLinearIteration()
@@ -274,7 +276,7 @@ class CoSimCoupling(SolutionStageScope, WRApp.WRAppClass):
 
                 if i_couple + 1 < self.__max_iterations:
                     for scope in nonlinear_accelerator_scopes:
-                        scope.AddTerm()
+                        scope.Relax()
 
         # If the flow reached this point, the coupling failed
         raise RuntimeError(f"Coupling failed to converge in {self.__max_iterations} iteration{'s' if 1 < self.__max_iterations else ' '}")
