@@ -2,6 +2,9 @@
 
 #pragma once
 
+// --- Core Includes ---
+#include "includes/kratos_export_api.h"
+
 // --- WRApp Includes ---
 #include "wrapp/utils/inc/Range.hpp"
 
@@ -23,7 +26,7 @@ namespace Kratos::WRApp {
  *  @tparam TIterator Iterator type of the map.
  */
 template <class TIterator>
-class MapKeyIterator
+class KRATOS_API(WR_APPLICATION) MapKeyIterator
 {
 public:
     using value_type = typename TIterator::value_type::first_type;
@@ -84,7 +87,7 @@ using MapKeyRange = Range<MapKeyIterator<typename TMap::const_iterator>>;
  *  @note This is a convenience function to avoid having to specify template parameters.
  */
 template <class TMap>
-MapKeyRange<TMap> MakeConstMapKeyRange(const TMap& rMap)
+MapKeyRange<TMap> KRATOS_API(WR_APPLICATION) MakeConstMapKeyRange(const TMap& rMap)
 {
     return Range<MapKeyIterator<typename TMap::const_iterator>>(rMap.begin(), rMap.end());
 }

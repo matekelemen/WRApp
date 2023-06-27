@@ -1,13 +1,14 @@
 /// @author Máté Kelemen
 
 // --- External Includes ---
+#include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
 
 // --- Core Includes ---
 #include "includes/kratos_components.h"
+#include "utilities/parallel_utilities.h"
 
 // --- WRApplication Includes ---
-#include "pybind11/pybind11.h"
 #include "wrapp/utils/inc/AddUtilsToPython.hpp"
 #include "wrapp/utils/inc/WRAppClass.hpp"
 #include "wrapp/utils/inc/ModelPredicate.hpp"
@@ -15,8 +16,10 @@
 #include "wrapp/utils/inc/TestingUtilities.hpp"
 #include "wrapp/utils/inc/MapKeyRange.hpp"
 #include "wrapp/utils/inc/CheckpointID.hpp"
+#include "wrapp/utils/inc/DataValueContainerKeyIterator.hpp"
 
 // --- STL Includes ---
+#include <type_traits>
 #include <vector>
 #include <filesystem>
 #include <sstream>
@@ -81,14 +84,78 @@ pybind11::list GetComponentNames()
 }
 
 
+struct FlagArray {std::vector<Flags> data;};
+
+
+template <class TContainer, std::enable_if_t<std::is_base_of_v<Flags,typename TContainer::value_type>,bool> = true>
+FlagArray GetFlags(const TContainer& rContainer, Flags mask)
+{
+    FlagArray output {std::vector<Flags>(rContainer.size())};
+    IndexPartition<>(rContainer.size()).for_each([&output, &rContainer, mask](std::size_t i_item) {
+        output.data[i_item] = *(rContainer.begin() + i_item) & mask;
+    });
+    return output;
+}
+
+
+template <class TContainer, std::enable_if_t<std::is_base_of_v<Flags,typename TContainer::value_type>,bool> = true>
+void SetFlags(TContainer& rContainer, const FlagArray& rFlags, Flags mask)
+{
+    KRATOS_ERROR_IF_NOT(rContainer.size() == rFlags.data.size())
+        << "Size mismatch (target container: " << rContainer.size()
+        << ", source container: " << rFlags.data.size() << ')';
+    IndexPartition<>(rContainer.size()).for_each([&rContainer, &rFlags, mask](std::size_t i_item) mutable {
+        Flags source = rFlags.data[i_item];
+        Flags& r_target = *(rContainer.begin() + i_item);
+        Flags tmp = r_target & mask;
+        mask.Flip(Flags::AllDefined());
+        r_target = (source & mask) | tmp;
+    });
+}
+
+
 } // namespace
 
 
 void AddUtilsToPython(pybind11::module& rModule)
 {
-    rModule.def("GetGlobalFlagNames",
-                GetComponentNames<Flags>,
-                "Get a list of all registered global flag names.");
+    auto utils = rModule.def_submodule("Utils");
+
+    utils.def("GetGlobalFlagNames",
+              GetComponentNames<Flags>,
+              "Get a list of all registered global flag names.");
+
+    utils.def("GetDataValueContainerKeys",
+              [](const DataValueContainer& rContainer) {
+                        pybind11::list names;
+                        for (const auto& r_name : WRApp::DataValueContainerKeyRange(rContainer.begin(), rContainer.end()))
+                            names.append(r_name);
+                        return names;
+                    },
+              pybind11::arg("data_value_container"),
+              "Construct a list of variables' names in a DataValueContainer.");
+
+    pybind11::class_<FlagArray>(utils, "FlagArray")
+        .def(pybind11::init<>())
+        ;
+
+    #define KRATOS_DEFINE_FLAG_EXTRACTOR(CONTAINER_TYPE)        \
+        utils.def("GetFlags",                                   \
+                  &GetFlags<CONTAINER_TYPE>,                    \
+                  pybind11::arg("container"),                   \
+                  pybind11::arg("mask") = Flags::AllDefined(),  \
+                  "Convert items in a container to flags.");    \
+        utils.def("SetFlags",                                   \
+                  &SetFlags<CONTAINER_TYPE>,                    \
+                  pybind11::arg("target_container"),            \
+                  pybind11::arg("source_flags"),                \
+                  pybind11::arg("mask") = Flags::AllDefined(),  \
+                  "Convert items in a container to flags.");
+
+    KRATOS_DEFINE_FLAG_EXTRACTOR(ModelPart::NodesContainerType);
+    KRATOS_DEFINE_FLAG_EXTRACTOR(ModelPart::ElementsContainerType);
+    KRATOS_DEFINE_FLAG_EXTRACTOR(ModelPart::ConditionsContainerType);
+    #undef KRATOS_DEFINE_FLAG_EXTRACTOR
 
     pybind11::class_<WRApp::ModelPredicate, WRApp::ModelPredicate::Pointer, ModelPredicateTrampoline>(rModule, "ModelPredicate")
         .def("__call__", &WRApp::ModelPredicate::operator())
@@ -143,6 +210,12 @@ void AddUtilsToPython(pybind11::module& rModule)
         .def(pybind11::self == pybind11::self)
         .def(pybind11::self != pybind11::self)
         .def(pybind11::self < pybind11::self)
+        .def("__hash__", [](WRApp::CheckpointID& rSelf) {return std::hash<WRApp::CheckpointID>()(rSelf);})
+        .def("__repr__", [](const WRApp::CheckpointID& rThis) {
+                std::stringstream stream;
+                stream << rThis;
+                return stream.str();
+            })
         .def("__str__", [](const WRApp::CheckpointID& rThis) {
                 std::stringstream stream;
                 stream << rThis;

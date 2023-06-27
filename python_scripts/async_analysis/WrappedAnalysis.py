@@ -132,7 +132,7 @@ class WrappedAnalysis(AsyncSolver):
 
 
         def _Preprocess(self) -> None:
-            #self._solver._Open()
+            self._solver._Open()
             pass
 
 

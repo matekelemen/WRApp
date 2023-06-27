@@ -125,9 +125,9 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
         self.__parameters = parameters
 
         # Declarations to be defined in Initialize
-        self.__snapshot_manager: SnapshotManager = None
-        self.__write_predicate: WRApp.ModelPredicate = None
-        self.__checkpoint_selector: CheckpointSelector = None
+        self.__snapshot_manager: SnapshotManager
+        self.__write_predicate: WRApp.ModelPredicate
+        self.__checkpoint_selector: CheckpointSelector
 
 
     def Initialize(self) -> None:

@@ -67,7 +67,8 @@ class HDF5SnapshotIO(SnapshotFSIO):
                 "prefix" : "/snapshot_step_<step>_path_<path_id>",
                 "io_settings" : {}
             }
-            @endcode"""
+            @endcode
+        """
         parameters = super().GetDefaultParameters()
         parameters.AddString("prefix", "/snapshot_step_<step>_path_<path_id>")
         parameters.AddValue("io_settings", cls.GetDefaultIOParameters())
@@ -83,7 +84,7 @@ class HDF5SnapshotIO(SnapshotFSIO):
     def _ApplyPrefix(prefix: str,
                      operation_parameters: KratosMultiphysics.Parameters,
                      model_part: KratosMultiphysics.ModelPart) -> None:
-        for parameters in operation_parameters["list_of_operations"]:
+        for parameters in operation_parameters["list_of_operations"].values():
             prefix_full = WRApp.CheckpointPattern(prefix + "/" + parameters["prefix"].GetString()).Apply(model_part)
             while "//" in prefix_full:
                 prefix_full = prefix_full.replace("//", "/")

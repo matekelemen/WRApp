@@ -27,7 +27,7 @@ class CoupledAsyncSolver(AsyncSolver):
     """ @brief @ref AsyncSolver with coupling directives from @ref CoSimulationApplication.
         @classname CoupledAsyncSolver
         @details This class shoves most functionality from @ref CoSimulationCoupledSolver
-                 into the interface set by @AsyncSolver.
+                 into the interface set by @ref AsyncSolver.
     """
 
     def __init__(self,
@@ -55,11 +55,9 @@ class CoupledAsyncSolver(AsyncSolver):
 
     def _Synchronize(self) -> None:
         with self.__coupling_operation as couple:
-            with AggregateSolutionStageScope([
-                self.GetSolver(partition_name).Synchronize() for partition_name in self.partitions
-            ]) as subsync:
+            with AggregateSolutionStageScope([self.GetSolver(partition_name).Synchronize() for partition_name in self.partitions]) as subsync:
                 subsync()
-                couple()
+            couple()
 
 
     ## @}
@@ -116,10 +114,6 @@ class CoupledAsyncSolver(AsyncSolver):
         output.AddValue("coupling", CoSimCoupling.GetDefaultParameters())
         return output
 
-
-    ## @}
-    ## @name Solution Scope Types
-    ## @{
 
     ## @}
     ## @name Member Classes

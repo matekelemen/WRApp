@@ -12,11 +12,10 @@ import h5py
 import KratosMultiphysics
 
 # --- HDF5 Imports ---
-import KratosMultiphysics.HDF5Application as HDF5
+import KratosMultiphysics.HDF5Application
 from KratosMultiphysics.HDF5Application.xdmf_utils import RenumberConnectivitiesForXdmf,    \
                                                           CreateXdmfSpatialGrid,            \
                                                           XdmfResults,                      \
-                                                          TryOpenH5File,                    \
                                                           TemporalGrid,                     \
                                                           UniformGrid,                      \
                                                           SpatialGrid,                      \
@@ -29,6 +28,7 @@ import KratosMultiphysics.WRApplication as WRApp
 
 # --- STD Imports ---
 import pathlib
+import typing
 import xml.etree.ElementTree
 
 
@@ -65,11 +65,21 @@ def GenerateXDMF(file_pattern: str,
                  results_prefix: str = "/ResultsData",
                  output_path: pathlib.Path = pathlib.Path("output.xdmf")) -> None:
     """ @brief Generate XDMF output for an existing set of HDF5 output files."""
-    pattern = WRApp.ModelPartPattern(file_pattern)
+    pattern = WRApp.ModelPartPattern(str(pathlib.Path(file_pattern).absolute()))
 
     # Glob files and store their absolute paths along their matched placeholders.
+    def Ordering(pair: "tuple[str,dict[str,list[str]]]") -> typing.Union[int,float,str]:
+        matches = pair[1]
+        if "<step>" in matches:
+            return int(matches["<step>"][0])
+        elif "<time>" in matches:
+            return float(matches["<time>"][0])
+        else:
+            return pair[0]
+
     paths = sorted([(str(p.absolute()), pattern.Match(str(p))) for p in pattern.Glob()],
-                   key = lambda pair: int(pair[1]["<step>"][0]))
+                   key = Ordering)
+    print(pattern.GetRegexString())
     RenumberConnectivitiesForXdmf([pair[0] for pair in paths], mesh_prefix)
     temporal_grid = CreateXdmfTemporalGridFromMultifile(paths,
                                                         mesh_prefix,
@@ -80,7 +90,7 @@ def GenerateXDMF(file_pattern: str,
 
 
 class GenerateXDMFOperation(KratosMultiphysics.Operation, WRApp.WRAppClass):
-    """ @brief """
+    """ @brief Wrap @ref GenerateXDMF in a kratos @ref Operation."""
 
     def __init__(self,
                  model: KratosMultiphysics.Model,
@@ -115,6 +125,7 @@ class GenerateXDMFOperation(KratosMultiphysics.Operation, WRApp.WRAppClass):
             "results_prefix" : "/ResultsData",
             "output_path" : "output.xdmf"
         }""")
+
 
 
 if __name__ == "__main__":
