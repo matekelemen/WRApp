@@ -1,4 +1,5 @@
 """ @author Máté Kelemen"""
 
-from .DatasetTransform import *
+from .DatasetTransfer import *
 from .ConvergenceAccelerator import *
+from .CoSimCoupling import *

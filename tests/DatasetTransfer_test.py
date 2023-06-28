@@ -51,8 +51,10 @@ class TestDatasetTransfer(WRApp.TestCase):
                     }
                 ]
             },
-            "mapper" : {
-                "mapper_type" : "nearest_element"
+            "transform" : {
+                "mapper_parameters" : {
+                    "mapper_type" : "nearest_element"
+                }
             },
             "target" : {
                 "model_part_name" : "target.target_interface",
@@ -64,12 +66,12 @@ class TestDatasetTransfer(WRApp.TestCase):
                 ]
             }
         }""")
-        operation = WRApp.MappedDatasetTransform(model, transfer_parameters)
+        transfer = WRApp.DatasetMap.Factory(model, transfer_parameters)
 
         self.assertVectorAlmostEqual(target_nodes[1][KratosMultiphysics.DISPLACEMENT], [0.0, 0.0, 0.0])
         self.assertVectorAlmostEqual(target_nodes[2][KratosMultiphysics.DISPLACEMENT], [0.0, 0.0, 0.0])
 
-        operation.Execute()
+        transfer()
 
         self.assertVectorAlmostEqual(target_nodes[1][KratosMultiphysics.DISPLACEMENT], [23/5.0, 28/5.0, 33/5.0])
         self.assertVectorAlmostEqual(target_nodes[2][KratosMultiphysics.DISPLACEMENT], [32/5.0, 37/5.0, 42/5.0])

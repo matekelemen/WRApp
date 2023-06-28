@@ -12,11 +12,10 @@ from KratosMultiphysics.CoSimulationApplication.factories.helpers import CreateD
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper import ConvergenceCriteriaWrapper
-from KratosMultiphysics.CoSimulationApplication.convergence_accelerators.convergence_accelerator_wrapper import ConvergenceAcceleratorWrapper
 
 # --- WRApp Imports ---
-from .SolutionStageScope import SolutionStageScope
-from .AsyncSolver import AsyncSolver
+from ..async_analysis.SolutionStageScope import SolutionStageScope
+from ..async_analysis.AsyncSolver import AsyncSolver
 from ..ToDoException import ToDoException
 import KratosMultiphysics.WRApplication as WRApp
 
@@ -33,14 +32,14 @@ import contextlib
 
 
 class DatasetTransfer(KratosMultiphysics.Operation):
-    """ @brief Class wrapping a dataset fetch-transform-write task in a @ref KratosMultiphysics.Operation.
+    """ @brief Class wrapping a dataset fetch-map-assign task in a @ref KratosMultiphysics.Operation.
         @classname DatasetTransfer
         @details Default parameters:
                  @code
                  {
                     "source" : {
-                        "partition" : "",   // <== name of the partition to fetch the dataset from
-                        "dataset" : ""      // <== name of the dataset to fetch
+                        "model_part_name" : "",     // <== full model part name to fetch data from
+                        "variables" : []            // <== list of variables to fetch data from
                     },
                     "transform" : {
                         "operator" : "",    // <== name of the dataset transform/transfer operator (defined in "transform_operators")

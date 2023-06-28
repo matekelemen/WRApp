@@ -8,9 +8,9 @@ __all__ = [
 import KratosMultiphysics
 
 # --- WRApp Imports ---
-from .SolutionStageScope import AggregateSolutionStageScope
+from KratosMultiphysics import WRApplication as WRApp
+from .SolutionStageScope import SolutionStageScope, AggregateSolutionStageScope
 from .AsyncSolver import AsyncSolver
-from .CoSimCoupling import CoSimCoupling
 
 # --- STD Imports ---
 import io
@@ -43,10 +43,11 @@ class CoupledAsyncSolver(AsyncSolver):
         else:
             self.__data_communicator = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
 
-        self.__coupling_operation = CoSimCoupling(self,
-                                                  model,
-                                                  self.__data_communicator,
-                                                  self.parameters["coupling"])
+        self.__coupling_operation = WRApp.CoSimCoupling(
+            self,
+            model,
+            self.__data_communicator,
+            self.parameters["coupling"])
 
 
     ## @name Solution Flow
@@ -76,7 +77,7 @@ class CoupledAsyncSolver(AsyncSolver):
 
 
     @property
-    def _coupling_operation(self) -> CoSimCoupling:
+    def _coupling_operation(self) -> SolutionStageScope:
         return self.__coupling_operation
 
 
@@ -111,7 +112,7 @@ class CoupledAsyncSolver(AsyncSolver):
         """
         output = super().GetDefaultParameters()
         output.AddString("model_part_name", "")
-        output.AddValue("coupling", CoSimCoupling.GetDefaultParameters())
+        output.AddValue("coupling", WRApp.CoSimCoupling.GetDefaultParameters())
         return output
 
 
