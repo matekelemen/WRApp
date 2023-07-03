@@ -9,7 +9,6 @@ __all__ = [
 import abc
 import typing
 import types
-import io
 
 
 ## @addtogroup WRApplication
@@ -25,9 +24,6 @@ class SolutionStageScope(abc.ABC):
                  between @a AnalysisStage.InitializeSolutionStep
                  and @a AnalysisStage.FinalizeSolutionStep.
     """
-
-    def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
-        stream.write(f"{prefix}Unknown scoped operation\n")
 
 
     @abc.abstractmethod
@@ -75,11 +71,6 @@ class AggregateSolutionStageScope(SolutionStageScope):
 
     def __init__(self, scopes: "list[SolutionStageScope]"):
         self.__scopes = scopes
-
-
-    def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
-        for scope in self.__scopes:
-            scope.WriteInfo(stream, prefix)
 
 
     def _Preprocess(self) -> None:

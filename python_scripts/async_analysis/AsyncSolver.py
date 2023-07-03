@@ -14,7 +14,6 @@ import KratosMultiphysics.WRApplication as WRApp
 # --- STD Imports ---
 import typing
 import collections.abc
-import io
 
 
 ## @addtogroup WRApplication
@@ -110,10 +109,6 @@ class AsyncSolver(WRApp.WRAppClass):
             return self.__solvers[child_name].GetSolver(".".join(split_name[1:]))
         else:
             return self
-
-
-    def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
-        self.RunSolutionLoop().WriteInfo(stream, prefix)
 
 
     ## @}
@@ -287,10 +282,6 @@ class AsyncSolver(WRApp.WRAppClass):
             self.__solver = solver
 
 
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Unknown scoped operation of solver '{type(self._solver).__name__}'\n")
-
-
         @property
         def _solver(self) -> "AsyncSolver":
             return self.__solver
@@ -314,11 +305,6 @@ class AsyncSolver(WRApp.WRAppClass):
             super().__init__(solver)
 
 
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Preprocess solver '{type(self._solver).__name__}'\n")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Preprocess() for partition_name in self._solver.partitions]).WriteInfo(stream, prefix + "|  ")
-
-
         def __call__(self) -> None:
             self._solver._Preprocess()
 
@@ -331,14 +317,6 @@ class AsyncSolver(WRApp.WRAppClass):
 
         def __init__(self, solver: "AsyncSolver"):
             super().__init__(solver)
-
-
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Advance solver '{type(self._solver).__name__}'\n")
-            subprefix = prefix + "|  "
-            stream.write(f"{subprefix}While not {type(self._solver).__name__}.synchronization_predicate:\n")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Advance() for partition_name in self._solver.partitions]).WriteInfo(stream, subprefix + "|  ")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Synchronize() for partition_name in self._solver.partitions]).WriteInfo(stream, subprefix + "|  ")
 
 
         def __call__(self) -> None:
@@ -355,11 +333,6 @@ class AsyncSolver(WRApp.WRAppClass):
             super().__init__(solver)
 
 
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Synchronize solver '{type(self._solver).__name__}'\n")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Synchronize() for partition_name in self._solver.partitions]).WriteInfo(stream, prefix + "|  ")
-
-
         def __call__(self) -> None:
             self._solver._Synchronize()
 
@@ -374,11 +347,6 @@ class AsyncSolver(WRApp.WRAppClass):
             super().__init__(solver)
 
 
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Postprocess solver '{type(self._solver).__name__}'\n")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Postprocess() for partition_name in self._solver.partitions]).WriteInfo(stream, prefix + "|  ")
-
-
         def __call__(self) -> None:
             self._solver._Postprocess()
 
@@ -390,20 +358,6 @@ class AsyncSolver(WRApp.WRAppClass):
 
         def __init__(self, solver: "AsyncSolver"):
             super().__init__(solver)
-
-
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Run solution loop of solver '{type(self._solver).__name__}'\n")
-
-            sub_prefix = prefix + "|  "
-            self._solver.Preprocess().WriteInfo(stream, sub_prefix)
-            stream.write(f"{sub_prefix}While not {type(self._solver).__name__}.termination_predicate\n")
-
-            solution_loop_prefix = sub_prefix + "|  "
-            self._solver.Advance().WriteInfo(stream, solution_loop_prefix)
-            self._solver.Synchronize().WriteInfo(stream, solution_loop_prefix)
-
-            self._solver.Postprocess().WriteInfo(stream, sub_prefix)
 
 
         def _Preprocess(self) -> None:

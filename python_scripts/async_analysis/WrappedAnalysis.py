@@ -10,7 +10,6 @@ from .AsyncSolver import AsyncSolver
 
 # --- STD Imports ---
 import typing
-import io
 
 
 ## @addtogroup WRApplication
@@ -122,13 +121,6 @@ class WrappedAnalysis(AsyncSolver):
 
         def __init__(self, solver: "WrappedAnalysis"):
             super().__init__(solver)
-
-
-        def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
-            stream.write(f"{prefix}{type(self._solver._GetWrapped()).__name__}.InitializeSolutionStep\n")
-            stream.write(f"{prefix}{type(self._solver._GetWrapped()._GetSolver()).__name__}.Predict\n")
-            stream.write(f"{prefix}{type(self._solver._GetWrapped()._GetSolver()).__name__}.SolveSolutionStep\n")
-            stream.write(f"{prefix}{type(self._solver._GetWrapped()).__name__}.FinalizeSolutionStep\n")
 
 
         def _Preprocess(self) -> None:
