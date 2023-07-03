@@ -47,7 +47,14 @@ class AsyncSolver(WRApp.WRAppClass):
                     "parameters" : {}   // <== subparameters passed on to the solver's constructor
                  }
                  @endcode
-        @details @a "termination_predicate"
+        @details @a "termination_predicate" controls when to break the solution loop. It should
+                 define a @ref ModelPartPredicate accessible from the registry:
+                 @code
+                 {
+                    "type" : ""         // <== ModelPartPredicate type to use as termination predicate
+                    "parameters" : {}   // <== subparameters to forward to predicate's the constructor
+                 }
+                 @endcode
     """
 
     def __init__(self,
@@ -72,18 +79,22 @@ class AsyncSolver(WRApp.WRAppClass):
 
 
     def Preprocess(self) -> "AsyncSolver.PreprocessScope":
+        """ @brief Tasks to run before any calls to @ref AsyncSolver.Advance."""
         return self._preprocess_scope_type(self)
 
 
     def Advance(self) -> "AsyncSolver.AdvanceScope":
+        """ @brief Repeatedly solve the partition until synchronization becomes necessary."""
         return self._advance_scope_type(self)
 
 
     def Synchronize(self) -> "AsyncSolver.SynchronizeScope":
+        """ @brief Perform data synchronization and coupling tasks between partitions."""
         return self._synchronize_scope_type(self)
 
 
     def Postprocess(self) -> "AsyncSolver.PostprocessScope":
+        """ @brief Tasks to run if no more @ref AsyncSolver.Advance calls are made."""
         return self._postprocess_scope_type(self)
 
 
@@ -158,7 +169,7 @@ class AsyncSolver(WRApp.WRAppClass):
 
 
     def _Advance(self) -> None:
-        """ @brief Keep solving steps until synchronization becomes necessary."""
+        """ @brief Repeatedly solve the partition until synchronization becomes necessary."""
         while True:
             with AggregateSolutionStageScope([solver.Advance() for solver in self.__solvers.values()]) as advance:
                 advance()
