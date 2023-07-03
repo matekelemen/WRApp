@@ -43,11 +43,7 @@ class CoupledAsyncSolver(AsyncSolver):
         else:
             self.__data_communicator = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
 
-        self.__coupling_operation = WRApp.CoSimCoupling(
-            self,
-            model,
-            self.__data_communicator,
-            self.parameters["coupling"])
+        self.__coupling_operation = WRApp.CoSimCoupling(self, self.parameters["coupling"])
 
 
     ## @name Solution Flow
@@ -98,15 +94,10 @@ class CoupledAsyncSolver(AsyncSolver):
                          ...,
                          "model_part_name" : "",
                          "coupling" : {
-                             "interface_datasets" : []
-                             "transform_operators" : {},
                              "coupling_sequence" : [],
                              "convergence_accelerators" : [],
-                             "convergence_criteria" : [],
-                             "max_iterations" : 0
-                             "verbosity" : 2
-                         },
-                         "predictors" : []
+                             "convergence_criteria" : []
+                         }
                      }
                      @endcode
         """

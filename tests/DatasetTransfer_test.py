@@ -40,38 +40,42 @@ class TestDatasetTransfer(WRApp.TestCase):
         target_interface_model_part.AddNodes([6, 7])
         target_interface_model_part.CreateNewCondition("LineCondition2D2N", 2, [6, 7], KratosMultiphysics.Properties(0))
 
-
         transfer_parameters = KratosMultiphysics.Parameters("""{
-            "source" : {
-                "model_part_name" : "source.source_interface",
-                "variables" : [
-                    {
-                        "entity_type" : "nodal_historical",
+            "sources" : [
+                {
+                    "type" : "WRApplication.Dataset.KratosDataset",
+                    "parameters" : {
+                        "model_part_name" : "source.source_interface",
+                        "container_type" : "nodal_historical",
                         "variable_name" : "REACTION"
                     }
-                ]
-            },
+                }
+            ],
             "transform" : {
+                "source_model_part_name" : "source.source_interface",
+                "target_model_part_name" : "target.target_interface",
                 "mapper_parameters" : {
                     "mapper_type" : "nearest_element"
                 }
             },
-            "target" : {
-                "model_part_name" : "target.target_interface",
-                "variables" : [
-                    {
-                        "entity_type" : "nodal",
+            "targets" : [
+                {
+                    "type" : "WRApplication.Dataset.KratosDataset",
+                    "parameters" : {
+                        "model_part_name" : "target.target_interface",
+                        "container_type" : "nodal",
                         "variable_name" : "DISPLACEMENT"
                     }
-                ]
-            }
+                }
+            ]
         }""")
-        transfer = WRApp.DatasetMap.Factory(model, transfer_parameters)
+        solver = WRApp.AsyncSolver(model, KratosMultiphysics.Parameters())
+        transfer = WRApp.DatasetMap.Factory(solver, transfer_parameters)
 
         self.assertVectorAlmostEqual(target_nodes[1][KratosMultiphysics.DISPLACEMENT], [0.0, 0.0, 0.0])
         self.assertVectorAlmostEqual(target_nodes[2][KratosMultiphysics.DISPLACEMENT], [0.0, 0.0, 0.0])
 
-        transfer()
+        transfer.Execute()
 
         self.assertVectorAlmostEqual(target_nodes[1][KratosMultiphysics.DISPLACEMENT], [23/5.0, 28/5.0, 33/5.0])
         self.assertVectorAlmostEqual(target_nodes[2][KratosMultiphysics.DISPLACEMENT], [32/5.0, 37/5.0, 42/5.0])
