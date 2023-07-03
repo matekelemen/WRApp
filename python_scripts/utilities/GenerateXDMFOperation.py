@@ -79,7 +79,6 @@ def GenerateXDMF(file_pattern: str,
 
     paths = sorted([(str(p.absolute()), pattern.Match(str(p))) for p in pattern.Glob()],
                    key = Ordering)
-    print(pattern.GetRegexString())
     RenumberConnectivitiesForXdmf([pair[0] for pair in paths], mesh_prefix)
     temporal_grid = CreateXdmfTemporalGridFromMultifile(paths,
                                                         mesh_prefix,
