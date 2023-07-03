@@ -64,8 +64,7 @@ class AsyncSolver(WRApp.WRAppClass):
         # Construct the solver's synchronization predicate
         self.__synchronization_predicate: WRApp.ModelPredicate = WRApp.RegisteredClassFactory(
             self.__parameters["synchronization_predicate"]["type"].GetString(),
-            self.__parameters["synchronization_predicate"]["parameters"]
-        )
+            self.__parameters["synchronization_predicate"]["parameters"])
 
 
     ## @name Public Members
@@ -94,7 +93,12 @@ class AsyncSolver(WRApp.WRAppClass):
 
     def GetSolver(self, partition_name: str) -> "AsyncSolver":
         """ @brief Get the solver assigned to the specified partition."""
-        return self.__solvers[partition_name]
+        if partition_name:
+            split_name = partition_name.split(".")
+            child_name = split_name[0]
+            return self.__solvers[child_name].GetSolver(".".join(split_name[1:]))
+        else:
+            return self
 
 
     def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
@@ -112,7 +116,7 @@ class AsyncSolver(WRApp.WRAppClass):
 
 
     @property
-    def partitions(self) -> "collections.abc.KeysView[str]":
+    def partitions(self) -> collections.abc.KeysView[str]:
         return self.__solvers.keys()
 
 
@@ -133,16 +137,6 @@ class AsyncSolver(WRApp.WRAppClass):
 
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        """ @code
-            {
-                "partitions" : [],
-                "synchronization_predicate" : {
-                    "type" : "WRApplication.ConstModelPredicate",
-                    "parameters" : [{"value" : true}]
-                }
-            }
-            @endcode
-        """
         return KratosMultiphysics.Parameters(R"""{
             "partitions" : [],
             "synchronization_predicate" : {
@@ -250,6 +244,9 @@ class AsyncSolver(WRApp.WRAppClass):
         for solver_parameters in parameters.values():
             solver_parameters.ValidateAndAssignDefaults(default_solver_parameters)
             partition_name = solver_parameters["name"].GetString()
+
+            if not partition_name:
+                raise NameError("Empty partition names are not allowed")
 
             # No duplicate partition names allowed
             if partition_name in output:
