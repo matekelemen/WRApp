@@ -54,16 +54,17 @@ class TestCheckpointProcess(WRApp.TestCase):
 
 
     def tearDown(self) -> None:
-        #DeleteDirectoryIfExisting(str(self.test_directory))
+        WRApp.SnapshotInMemoryIO.Clear()
+        DeleteDirectoryIfExisting(str(self.test_directory))
         KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
 
 
     def test_Defaults(self) -> None:
         parameters = WRApp.CheckpointProcess.GetDefaultParameters()
-        snapshot_path_pattern = self.test_directory / parameters["snapshot_parameters"]["snapshot_path"].GetString()
+        snapshot_path_pattern = self.test_directory / "step_<step>.h5"
+        parameters["snapshot_parameters"].AddString("snapshot_path", str(snapshot_path_pattern))
         parameters["model_part_name"].SetString("test")
-        parameters["snapshot_parameters"]["snapshot_path"].SetString(str(snapshot_path_pattern))
-        parameters["snapshot_parameters"]["journal_path"].SetString(str(self.test_directory / parameters["snapshot_parameters"]["journal_path"].GetString()))
+        parameters["snapshot_parameters"].AddString("journal_path", str(self.test_directory / "journal"))
 
         _Run(self, parameters)
 
@@ -79,8 +80,8 @@ class TestCheckpointProcess(WRApp.TestCase):
             {"interval" : [3, 5]}
         ]""")
         snapshot_path_pattern = self.test_directory / "step_<step>.h5"
-        parameters["snapshot_parameters"]["snapshot_path"].SetString(str(snapshot_path_pattern))
-        parameters["snapshot_parameters"]["journal_path"].SetString(str(self.test_directory / parameters["snapshot_parameters"]["journal_path"].GetString()))
+        parameters["snapshot_parameters"].AddString("snapshot_path", str(snapshot_path_pattern))
+        parameters["snapshot_parameters"].AddString("journal_path", str(self.test_directory / "journal.jrn"))
 
         def check(_) -> None:
             self.assertEqual(set(WRApp.CheckpointPattern(str(snapshot_path_pattern)).Glob()),
@@ -90,10 +91,10 @@ class TestCheckpointProcess(WRApp.TestCase):
 
     def test_CheckpointSelector(self) -> None:
         parameters = WRApp.CheckpointProcess.GetDefaultParameters()
-        snapshot_path_pattern = self.test_directory / parameters["snapshot_parameters"]["snapshot_path"].GetString()
+        snapshot_path_pattern = self.test_directory / "step_<step>.h5"
+        parameters["snapshot_parameters"].AddString("snapshot_path", str(snapshot_path_pattern))
         parameters["model_part_name"].SetString("test")
-        parameters["snapshot_parameters"]["snapshot_path"].SetString(str(snapshot_path_pattern))
-        parameters["snapshot_parameters"]["journal_path"].SetString(str(self.test_directory / parameters["snapshot_parameters"]["journal_path"].GetString()))
+        parameters["snapshot_parameters"].AddString("journal_path", str(self.test_directory / "journal"))
 
         # Register a test checkpoint selector
         class TestCheckpointSelector(WRApp.CheckpointSelector):
@@ -119,24 +120,26 @@ class TestCheckpointProcess(WRApp.TestCase):
         _Run(self, parameters)
 
 
+    def test_InMemoryCheckpointWrite(self) -> None:
+        """ @brief Checks checkpoint output with @ref SnapshotInMemory."""
+        parameters = WRApp.CheckpointProcess.GetDefaultParameters()
+        parameters["model_part_name"].SetString("test")
+        parameters["write_predicate"]["type"].SetString("WRApplication.StepIntervalPredicate")
+        parameters["write_predicate"]["parameters"] = KratosMultiphysics.Parameters(R"""[
+            {"model_part_name" : "test"},
+            {},
+            {},
+            {"interval" : [3, 5]}
+        ]""")
+        snapshot_path_pattern = self.test_directory / "step_<step>"
+        parameters["snapshot_parameters"].AddString("snapshot_path", str(snapshot_path_pattern))
+        parameters["snapshot_parameters"].AddString("journal_path", str(self.test_directory / "journal"))
+        parameters["snapshot_type"].SetString("WRApplication.Snapshot.SnapshotInMemory")
 
-class TestHDF5CheckpointProcess(WRApp.TestCase):
-
-    @property
-    def test_directory(self) -> pathlib.Path:
-        return pathlib.Path("test_checkpoint_process").absolute()
-
-
-    def setUp(self) -> None:
-        if KratosMultiphysics.Testing.GetDefaultDataCommunicator().Rank() == 0:
-            DeleteDirectoryIfExisting(str(self.test_directory))
-            self.test_directory.mkdir(parents = True, exist_ok = True)
-        KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
-
-
-    def tearDown(self) -> None:
-        #DeleteDirectoryIfExisting(str(self.test_directory))
-        KratosMultiphysics.Testing.GetDefaultDataCommunicator().Barrier()
+        def check(_) -> None:
+            self.assertEqual(set(WRApp.SnapshotInMemoryIO.Glob(str(self.test_directory / "step_*"))),
+                             set([str(self.test_directory / f"step_{step}") for step in range(3, 5+1)]))
+        _Run(self, parameters, check)
 
 
 if __name__ == "__main__":

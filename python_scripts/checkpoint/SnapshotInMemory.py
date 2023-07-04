@@ -58,6 +58,34 @@ class SnapshotInMemory(Snapshot):
         return self.Exists()
 
 
+    @classmethod
+    def FromModelPart(cls: typing.Type["SnapshotInMemory"],
+                      model_part: KratosMultiphysics.ModelPart,
+                      parameters: typing.Union[KratosMultiphysics.Parameters,None] = None) -> "SnapshotInMemory":
+        """@brief Deduce variables from an input @ref ModelPart and construct a @ref SnapshotFS.
+           @details Input- and output parameters are defaulted if they are not specified by the user.
+                    The related file name defaults to "<model_part_name>_step_<step>_path_<path>"."""
+        step = model_part.ProcessInfo[KratosMultiphysics.STEP]
+        analysis_path = model_part.ProcessInfo[WRApp.ANALYSIS_PATH]
+
+        if parameters is None:
+            parameters = cls.GetDefaultParameters()
+
+        if not parameters.Has("input_parameters"):
+            parameters.AddValue("input_parameters", cls.GetInputType().GetDefaultParameters())
+            parameters["input_parameters"]["file_name"].SetString(f"{model_part.Name}_step_{step}_path_{analysis_path}")
+        else:
+            parameters["input_parameters"].ValidateAndAssignDefaults(cls.GetInputType().GetDefaultParameters())
+
+        if not parameters.Has("output_parameters"):
+            parameters.AddValue("output_parameters", cls.GetOutputType().GetDefaultParameters())
+            parameters["output_parameters"]["file_name"].SetString(f"{model_part.Name}_step_{step}_path_{analysis_path}")
+        else:
+            parameters["output_parameters"].ValidateAndAssignDefaults(cls.GetOutputType().GetDefaultParameters())
+
+        return cls(WRApp.CheckpointID(step, analysis_path), parameters)
+
+
     @staticmethod
     def GetInputType() -> typing.Type[SnapshotInMemoryInput]:
         return SnapshotInMemoryInput
@@ -81,6 +109,19 @@ class SnapshotInMemoryManager(SnapshotManager):
                  parameters: KratosMultiphysics.Parameters):
         super().__init__(model_part, parameters)
 
+        # Get the snapshot path and prefix patterns, then substitute placeholders that aren't
+        # supposed to change throughout the analysis; i.e.: model part name and rank ID
+        raw_path_pattern = WRApp.CheckpointPattern(parameters["snapshot_path"].GetString())
+        partial_map = {"<model_part_name>" : model_part.Name,
+                       "<rank>" : str(model_part.GetCommunicator().GetDataCommunicator().Rank())}
+        path_pattern_string = raw_path_pattern.Apply(partial_map)
+
+        # Set up IO parameters
+        self.__input_parameters = self._parameters["io"]["input_parameters"]
+        self.__output_parameters = self._parameters["io"]["output_parameters"]
+        for io in (self.__input_parameters, self.__output_parameters):
+            io["file_name"].SetString(path_pattern_string)
+
         # Set the extractor for the internal journal
         def extractor(model: KratosMultiphysics.Model) -> KratosMultiphysics.Parameters:
             output = KratosMultiphysics.Parameters()
@@ -97,6 +138,13 @@ class SnapshotInMemoryManager(SnapshotManager):
         erase_keys = [key for key, value in SnapshotInMemoryOutput._cache if value["id"] == id]
         for key in erase_keys:
             SnapshotInMemoryOutput.Erase(key)
+
+
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        output = super().GetDefaultParameters()
+        output.AddString("snapshot_path", "step_<step>")
+        return output
 
 
     @classmethod
