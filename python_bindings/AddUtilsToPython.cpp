@@ -186,6 +186,28 @@ void AddUtilsToPython(pybind11::module& rModule)
         .def("IsConst",
              &PlaceholderPattern::IsConst,
              "Return true if the input pattern contains no placeholders.")
+        .def_property_static("Integer",
+                             [](Ref<const pybind11::object>) {return RegexUtility::Integer().first;},
+                             [](Ref<pybind11::object>, Ref<const std::string>) {KRATOS_ERROR << "PlaceholderPattern::Integer is immutable";})
+        .def_property_static("UnsignedInteger",
+                             [](Ref<const pybind11::object>) {return RegexUtility::UnsignedInteger().first;},
+                             [](Ref<pybind11::object>, Ref<const std::string>) {KRATOS_ERROR << "PlaceholderPattern::UnsignedInteger is immutable";})
+        .def_property_static("FloatingPoint",
+                             [](Ref<const pybind11::object>) {return RegexUtility::FloatingPoint().first;},
+                             [](Ref<pybind11::object>, Ref<const std::string>) {KRATOS_ERROR << "PlaceholderPattern::FloatingPoint is immutable";})
+        .def(pybind11::pickle([](Ref<const PlaceholderPattern> rPattern) -> pybind11::tuple {
+                                  return pybind11::make_tuple(rPattern.GetPatternString(),
+                                                              rPattern.GetPlaceholderMap());
+                              },
+                              [](pybind11::tuple Arguments) -> PlaceholderPattern {
+                                  KRATOS_ERROR_IF_NOT(Arguments.size() == 2)
+                                      << "Failed to deserialize PlaceholderPattern. Expecting exactly 2 arguments:"
+                                      << "\n\t0:pattern_string"
+                                      << "\n\t1:placeholder_map"
+                                      << "\nbut got " << Arguments;
+                                  return PlaceholderPattern(Arguments[0].cast<std::string>(),
+                                                          Arguments[1].cast<PlaceholderPattern::PlaceholderMap>());
+                              }))
         ;
 
     pybind11::class_<ModelPartPattern, ModelPartPattern::Pointer, PlaceholderPattern>(rModule, "ModelPartPattern")

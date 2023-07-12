@@ -53,8 +53,8 @@ std::pair<std::string,std::regex> RegexUtility::FloatingPoint()
 }
 
 
-PlaceholderPattern::PlaceholderPattern(const std::string& rPattern,
-                                       const PlaceholderMap& rPlaceholderMap)
+PlaceholderPattern::PlaceholderPattern(Ref<const std::string> rPattern,
+                                       Ref<const PlaceholderMap> rPlaceholderMap)
     : mPattern(rPattern),
       mPlaceholderGroupMap(),
       mRegexString(FormatRegexLiteral(rPattern)),
@@ -144,11 +144,33 @@ PlaceholderPattern::PlaceholderPattern(const std::string& rPattern,
     mRegexString = "^" + mRegexString + "$";
     mRegex = std::regex(mRegexString);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
+    KRATOS_TRY
+
+    // Make sure that PlaceholderPattern::GetPlaceholderMap can
+    // handle the input. In particular, it doesn't support patterns
+    // in which a placeholder's regex contains the literal that it
+    // is followed by. For example, mRegexString:
+    // ^firstliteral_(regex_containing_secondliteral)_secondliteral$
+    //                                 ^^^^^^^^^^^^^
+    //                                 | regex contains literal it is followed by
+    const auto reconstructed_map = this->GetPlaceholderMap();
+    for (const auto& r_reference_pair : rPlaceholderMap) {
+        if (mPlaceholderGroupMap[r_reference_pair.first].has_value()) {              // <== placeholder is present in the pattern
+            const std::string reference_regex = "(" + r_reference_pair.second + ")"; // <== account for the extra capturing group
+            const auto it_reconstructed = reconstructed_map.find(r_reference_pair.first);
+            KRATOS_ERROR_IF(it_reconstructed == reconstructed_map.end());
+            KRATOS_ERROR_IF_NOT(reference_regex == it_reconstructed->second)
+                << "Reconstructed regex mismatch for placeholder '" << r_reference_pair.first
+                << "' in pattern '" << mPattern << "':\n'" << it_reconstructed->second << "' != '" << reference_regex << "'";
+        }
+    }
+
+    KRATOS_CATCH("")
 } // PlaceholderPattern::PlaceholderPattern
 
 
-bool PlaceholderPattern::IsAMatch(const std::string& rString) const
+bool PlaceholderPattern::IsAMatch(Ref<const std::string> rString) const
 {
     KRATOS_TRY
 
@@ -158,7 +180,7 @@ bool PlaceholderPattern::IsAMatch(const std::string& rString) const
 } // PlaceholderPattern::IsAMatch
 
 
-PlaceholderPattern::MatchType PlaceholderPattern::Match(const std::string& rString) const
+PlaceholderPattern::MatchType PlaceholderPattern::Match(Ref<const std::string> rString) const
 {
     KRATOS_TRY
 
@@ -194,7 +216,7 @@ PlaceholderPattern::MatchType PlaceholderPattern::Match(const std::string& rStri
 }
 
 
-std::string PlaceholderPattern::Apply(const PlaceholderMap& rPlaceholderValueMap) const
+std::string PlaceholderPattern::Apply(Ref<const PlaceholderMap> rPlaceholderValueMap) const
 {
     KRATOS_TRY
 
@@ -235,19 +257,103 @@ bool PlaceholderPattern::IsConst() const
 }
 
 
-const std::regex& PlaceholderPattern::GetRegex() const
+Ref<const std::regex> PlaceholderPattern::GetRegex() const
 {
     return mRegex;
 }
 
 
-const std::string& PlaceholderPattern::GetRegexString() const
+Ref<const std::string> PlaceholderPattern::GetRegexString() const
 {
     return mRegexString;
 }
 
 
-const std::string& PlaceholderPattern::GetPatternString() const
+PlaceholderPattern::PlaceholderMap PlaceholderPattern::GetPlaceholderMap() const
+{
+    PlaceholderPattern::PlaceholderMap output;
+
+    // Collect placeholders and their positions within the regex
+    // in the order they appear in the input pattern.
+    std::vector<std::pair<
+        std::size_t,                // <== group index
+        Ptr<const std::string>      // <== placeholder
+    >> placeholders;
+
+    for (const auto& r_pair : mPlaceholderGroupMap) {
+        if (r_pair.second.has_value()) {
+            const auto& r_indices = r_pair.second.value();
+            std::transform(r_indices.begin(),
+                           r_indices.end(),
+                           std::back_inserter(placeholders),
+                           [&r_pair](std::size_t position){
+                                return std::make_pair(position, &r_pair.first);
+                           });
+        }
+    }
+
+    std::sort(placeholders.begin(),
+              placeholders.end(),
+              [](const auto& r_left, const auto& r_right) {
+                return r_left.first < r_right.first;
+              });
+
+    // Loop through placeholders in the regex and find their counterparts
+    // in the input pattern. Then find the placeholder's end in the pattern,
+    // and find the leftovers in the regex, which should yield just enough
+    // info to get its representation.
+    std::size_t i_pattern = 0;                                              // <== current position within mPattern
+    std::size_t i_regex = 0;                                                // <== current position within mRegexString
+    std::string literal;                                                    // <== local var for literals between placeholders
+    const std::string regex = mRegexString.substr(1,mRegexString.size()-2); // <== strip line begin and end constraints
+    for (auto it_pair=placeholders.begin(); it_pair!=placeholders.end(); ++it_pair) {
+        const auto& r_placeholder = *it_pair->second;
+        const std::size_t i_next = mPattern.find(r_placeholder, i_pattern); // <== find the index of the next placeholder
+        KRATOS_ERROR_IF(i_next == mPattern.npos);
+        literal = mPattern.substr(i_pattern, i_next - i_pattern);
+        i_pattern = i_next + r_placeholder.size(); // <== jump past the placeholder
+
+        // Find the starting pos of the regex based on the literal
+        i_regex = regex.find(literal, i_regex);
+        KRATOS_ERROR_IF(i_regex == regex.npos)
+            << "Cannot find literal '" << literal << "' in regex '"
+            << regex << "' while processing placeholder '" << r_placeholder << "'";
+        i_regex += literal.size(); // <== jump over the literal
+
+        // Find the literals between the current and next placeholders
+        const std::size_t i_literal_end = (it_pair + 1) == placeholders.end() ? mPattern.size() : mPattern.find(*(it_pair + 1)->second, i_pattern);
+        KRATOS_ERROR_IF_NOT(i_pattern <= i_literal_end)
+            << "Cannot find next placeholder '" << (*(it_pair + 1)->second)
+            << "' in pattern " << mPattern;
+        literal = mPattern.substr(i_pattern, i_literal_end - i_pattern);
+        i_pattern = i_literal_end;
+
+        // The regex corresponding to the current placeholder is the substring in
+        // the full regex between the current position and the begin of the literal
+        // defined above.
+        const std::size_t i_regex_end = literal.empty() ? regex.size() : regex.find(literal, i_regex);
+        KRATOS_ERROR_IF(i_regex_end == regex.npos);
+        const std::string placeholder_regex = regex.substr(i_regex, i_regex_end - i_regex);
+        i_regex = i_regex_end + literal.size(); // <== jump past the regex and the literal
+
+        // Placeholders may occur repeatedly in the pattern, but their regexes must
+        // remain identical in each case. Check whether that's true.
+        const auto emplace_result = output.emplace(r_placeholder, placeholder_regex);
+        if (!emplace_result.second) {
+            // If the literal is also part of the placeholder's regex, this will fail.
+            // I can't think of a good fix for this right now.
+            /// @todo fixme.
+            KRATOS_ERROR_IF_NOT(emplace_result.first->second == placeholder_regex)
+                << "Placeholder '" << r_placeholder << "' in pattern '" << mPattern
+                << "' is associated with different regexes: '" << emplace_result.first->second
+                << "' and '" << placeholder_regex << "'. This is an internal error.";
+        }
+    }
+    return output;
+}
+
+
+Ref<const std::string> PlaceholderPattern::GetPatternString() const
 {
     return mPattern;
 }
