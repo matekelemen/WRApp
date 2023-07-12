@@ -2,6 +2,9 @@
 
 #pragma once
 
+// --- WRApp Includes ---
+#include "wrapp/utils/inc/common.hpp"
+
 // --- Core Includes ---
 #include "includes/kratos_export_api.h"
 #include "includes/model_part.h"
@@ -137,7 +140,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor
     PlaceholderPattern() = default;
 
     /** @brief Construct from a placeholder pattern and its associated map.
@@ -148,13 +150,11 @@ public:
      *  @warning The corresponding regexes must be bare, not containing groups (checked)
      *           or position constraints such as line begin or end modifiers (not checked).
      */
-    PlaceholderPattern(const std::string& rPattern,
-                       const PlaceholderMap& rPlaceholderMap);
+    PlaceholderPattern(Ref<const std::string> rPattern,
+                       Ref<const PlaceholderMap> rPlaceholderMap);
 
-    /// Move constructor
     PlaceholderPattern(PlaceholderPattern&& rOther) = default;
 
-    /// Copy constructor
     PlaceholderPattern(const PlaceholderPattern& rOther) = default;
 
     virtual ~PlaceholderPattern() = default;
@@ -163,10 +163,8 @@ public:
     ///@name Operators
     ///@{
 
-    /// @brief Move assignment operator
     PlaceholderPattern& operator=(PlaceholderPattern&& rOther) = default;
 
-    /// @brief Copy assignment operator
     PlaceholderPattern& operator=(const PlaceholderPattern& rOther) = default;
 
     ///@}
@@ -174,7 +172,7 @@ public:
     ///@{
 
     /// @brief Check whether a string satisfies the pattern
-    bool IsAMatch(const std::string& rString) const;
+    bool IsAMatch(Ref<const std::string> rString) const;
 
     /** @brief Find all placeholders' values in the input string.
      *
@@ -185,7 +183,7 @@ public:
      *  @note The returned placeholder values appear in the same order
      *        they do in the input pattern.
      */
-    MatchType Match(const std::string& rString) const;
+    MatchType Match(Ref<const std::string> rString) const;
 
     /** @brief Substitute values in the stored pattern.
      *
@@ -194,7 +192,7 @@ public:
      *  @param rPlaceholderValueMap string - string map associating values to placeholders
      *                              @code {"palceholder" : "placeholder_value"} @endcode
      */
-    std::string Apply(const PlaceholderMap& rPlaceholderValueMap) const;
+    std::string Apply(Ref<const PlaceholderMap> rPlaceholderValueMap) const;
 
     /** @brief Collect all file/directory paths that match the pattern.
      *  @tparam TOutputIterator: output iterator with value type constructible from @ref PathType.
@@ -212,13 +210,16 @@ public:
     bool IsConst() const;
 
     /// @brief Get the regex for the input pattern.
-    const std::regex& GetRegex() const;
+    Ref<const std::regex> GetRegex() const;
 
     /// @brief Get the string representation of the regex.
-    const std::string& GetRegexString() const;
+    Ref<const std::string> GetRegexString() const;
+
+    /// @brief Get a map of all placeholders and their associated regex representations.
+    PlaceholderMap GetPlaceholderMap() const;
 
     /// @brief Get the pattern with placeholders.
-    const std::string& GetPatternString() const;
+    Ref<const std::string> GetPatternString() const;
 
     ///@}
 
