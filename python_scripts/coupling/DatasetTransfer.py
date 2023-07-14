@@ -3,7 +3,8 @@
 __all__ = [
     "DatasetTransform",
     "NoOpDatasetTransform",
-    "DatasetMap"
+    "DatasetMap",
+    "DatasetLookup"
 ]
 
 # --- Core Imports ---
@@ -14,9 +15,12 @@ import KratosMultiphysics.MappingApplication
 
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
+from ..ToDoException import ToDoException
 
 # --- STD Imports ---
 import abc
+import typing
+import enum
 
 
 
@@ -283,3 +287,130 @@ class DatasetMap(DatasetTransform):
             },
             "targets" : []
         }""")
+
+
+
+class DatasetTable:
+    """ @brief
+        @classname DatasetTable
+    """
+
+    def __init__(self, dataset: "WRApp.Dataset"):
+        super().__init__()
+        self.__dataset = dataset
+        self.__samples: "list[tuple[float,KratosMultiphysics.Expression.Expression]]" = []
+
+
+    def AddSample(self, argument: float) -> None:
+        """ @brief Save the current state of the stored dataset and associate it with the provided argument."""
+        range_index = self._GetRangeIndex(argument)
+        self.__dataset.Fetch()
+        if range_index is None:
+            self.__samples = [(argument, self.__dataset.expression)] + self.__samples
+        else:
+            if argument == self.__samples[range_index][0]: # Don't duplicate entries, overwrite them instead
+                self.__samples[range_index] = (argument, self.__dataset.expression)
+            else:
+                self.__samples.insert(range_index + 1, (argument, self.__dataset.expression))
+
+
+    def Interpolate(self, argument: float, interpolation: "DatasetTable.Interpolation") -> KratosMultiphysics.Expression.Expression:
+        if interpolation == DatasetTable.Interpolation.NEAREST:
+            raise ToDoException(f"${interpolation.name} is not implemented yet")
+        elif interpolation == DatasetTable.Interpolation.LINEAR:
+            range_index = self._GetRangeIndex(argument)
+            if range_index is None or (len(self.__samples) - range_index) <= 1:
+                raise ValueError(f"No stored range contains samples at {argument}")
+            else:
+                left = self.__samples[range_index]
+                right = self.__samples[range_index + 1]
+                return left[1] + (right[1] - left[1]) * (argument - left[0]) * (1 / (right[0] - left[0]))
+        else:
+            raise ToDoException(f"${interpolation.name} is not implemented yet")
+
+
+    def Erase(self, predicate: typing.Callable[[float],bool]) -> None:
+        self.__samples = [pair for pair in self.__samples if not predicate(pair[0])]
+
+
+    @property
+    def _dataset(self) -> "WRApp.Dataset":
+        return self.__dataset
+
+
+    def _GetRangeIndex(self, argument: float) -> typing.Optional[int]:
+        """ @brief Return the index of the entry with the highest sample still smaller than the input argument.
+            @details Does a linear search in reverse.
+            @todo implement a binary search.
+        """
+        for reverse_index, pair in enumerate(self.__samples[::-1]):
+            if argument <= pair[0]:
+                return len(self.__samples) - reverse_index
+        return None
+
+
+    class Interpolation(enum.Enum):
+        NEAREST = 0
+        LINEAR = 1
+
+
+
+class DatasetLookup(DatasetTransform):
+    """ @brief Store, retrieve, and interpolate datasets.
+        @classname DatasetLookup
+        @details This transform expects exactly one @ref CachedDataset
+                 as source and exactly one target dataset.
+    """
+
+    __dataset_tables: "dict[str,DatasetTable]" = {}
+
+
+    def __init__(self,
+                 model: KratosMultiphysics.Model,
+                 parameters: KratosMultiphysics.Parameters):
+        super().__init__(model, parameters)
+        self.__interpolation_type = DatasetTable.Interpolation[
+            KratosMultiphysics.StringUtilities.ConvertSnakeCaseToCamelCase(parameters["interpolation"].GetString())]
+        self.__model_part = model.GetModelPart(parameters["model_part_name"].GetString())
+
+        # Check datasets
+        if len(self._datasets) != 1:
+            raise ValueError(f"DatasetLookup expects exactly 1 pair of datasets, but got {len(self._datasets)}")
+
+        if not isinstance(self._datasets[0][0], WRApp.CachedDataset):
+            raise TypeError(f"The source dataset of DatasetLookup must be a CachedDataset, but got a(n) {type(self._datasets[0][0].__name__)}")
+
+
+    def Execute(self) -> None:
+        time = self.__model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self._datasets[0][1].expression = self.__dataset_tables[str(self._datasets[0][0])].Interpolate(
+            time,
+            self.__interpolation_type)
+
+
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        output = super().GetDefaultParameters()
+        output["transform"] = KratosMultiphysics.Parameters("""{
+            "interpolation" : "nearest_neighbor",
+            "model_part_name" : ""
+        }""")
+
+
+    @classmethod
+    def __AddSample(cls, dataset: "WRApp.Dataset", argument: float) -> None:
+        cls.__datasets.setdefault(str(dataset), WRApp.DatasetTable(dataset)).AddSample(argument)
+
+
+    @classmethod
+    def __Interpolate(cls,
+                      dataset: "WRApp.Dataset",
+                      argument: float,
+                      interpolation: "WRApp.DatasetTable.Interpolation") -> KratosMultiphysics.Expression.Expression:
+        return cls.__datasets[str(dataset)].Interpolate(argument, interpolation)
+
+
+    @classmethod
+    def __Erase(cls, dataset: "WRApp.Dataset", predicate: typing.Callable[[float],bool]) -> None:
+        cls.__datasets.setdefault(str(dataset), WRApp.DatasetTable(dataset)).Erase(predicate)
+

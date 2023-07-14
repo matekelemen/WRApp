@@ -2,7 +2,8 @@
 
 __all__ = [
     "Dataset",
-    "KratosDataset"
+    "KratosDataset",
+    "CachedDataset"
 ]
 
 # --- Core Imports ---
@@ -13,6 +14,7 @@ from KratosMultiphysics import WRApplication as WRApp
 
 # --- STD Imports ---
 import abc
+import typing
 
 
 class Dataset(WRApp.WRAppClass):
@@ -81,6 +83,15 @@ class Dataset(WRApp.WRAppClass):
         return self.__parameters
 
 
+    @abc.abstractmethod
+    def __str__(self) -> str:
+        pass
+
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
 
 class KratosDataset(Dataset):
     """ @brief Class representing a @ref Variable stored in a @ref ModelPart.
@@ -103,7 +114,8 @@ class KratosDataset(Dataset):
         model_part = self._model.GetModelPart(self._parameters["model_part_name"].GetString())
         self.__container_expression = WRApp.StringMaps.expressions[self._parameters["container_type"].GetString()](model_part)
         self.__variable = KratosMultiphysics.KratosGlobals.GetVariable(self._parameters["variable_name"].GetString())
-        self.__is_historical = WRApp.StringMaps.is_historical_container[self._parameters["container_type"].GetString()]
+        self.__container_type = self._parameters["container_type"].GetString()
+        self.__is_historical = WRApp.StringMaps.is_historical_container[self.__container_type]
 
 
     @classmethod
@@ -143,3 +155,87 @@ class KratosDataset(Dataset):
     @expression.setter
     def expression(self, right: KratosMultiphysics.Expression.Expression) -> None:
         self.__container_expression.SetExpression(right)
+
+
+    def __str__(self) -> str:
+        return f"KratosDataset_{self.__container_expression.GetModelPart().Name}_{self.__container_type}_{self.__variable.Name()}"
+
+
+
+class CachedDataset(Dataset):
+    """ @brief Dataset that stores into and fetches from a static cache.
+        @classname CachedDataset
+        @details Default parameters:
+                 @code
+                 {
+                    "dataset_name" : ""
+                 }
+                 @endcode
+    """
+
+    # dataset_name : [time, expression]
+    Cache: "dict[str,list[tuple[float,KratosMultiphysics.Expression.Expression]]]" = {}
+
+
+    def __init__(self,
+                 model: KratosMultiphysics.Model,
+                 parameters: KratosMultiphysics.Parameters):
+        super().__init__(model, parameters)
+        self._parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.__name = parameters["dataset_name"].GetString()
+        self.__model_part = model.GetModelPart(parameters["model_part_name"].GetString())
+        self.__expression: typing.Optional[KratosMultiphysics.Expression.Expression] = None
+
+
+    def Fetch(self) -> None:
+        time = self.__model_part.ProcessInfo[KratosMultiphysics.TIME]
+        expression: typing.Optional[KratosMultiphysics.Expression.Expression] = next((expr for t, expr in self.Cache[str(self)] if t == time), None)
+        if expression is None:
+            raise ValueError(f"Could not fetch {str(self)} at time {time}")
+
+
+    def Assign(self) -> None:
+        time = self.__model_part.ProcessInfo[KratosMultiphysics.TIME]
+        entry = self.Cache[str(self)]
+        range_index = self.__GetRangeIndex(time, entry)
+        if range_index is None:
+            range_index = 0
+        else:
+            entry.insert(range_index + 1, (time, self.expression))
+
+
+    @property
+    def expression(self) -> KratosMultiphysics.Expression.Expression:
+        if self.__expression is None:
+            raise ValueError(f"{str(self)} has never been fetched")
+        else:
+            return self.__expression
+
+
+    @expression.setter
+    def expression(self, expr: KratosMultiphysics.Expression.Expression) -> None:
+        self.__expression = expr
+
+
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters("""{
+            "dataset_name" : "",
+            "model_part_name" : ""
+        }""")
+
+
+    def __str__(self) -> str:
+        return self.__name
+
+
+    @classmethod
+    def __GetRangeIndex(cls, time: float, cache: "list[tuple[float,KratosMultiphysics.Expression.Expression]]") -> typing.Optional[int]:
+        """ @brief Return the index of the latest entry still older than the input time.
+            @details Does a linear search in reverse.
+            @todo implement a binary search.
+        """
+        for reverse_index, pair in enumerate(cache[::-1]):
+            if time <= pair[0]:
+                return len(cache) - reverse_index
+        return None

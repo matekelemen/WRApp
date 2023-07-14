@@ -14,10 +14,8 @@ from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import C
 from KratosMultiphysics.CoSimulationApplication.convergence_criteria.convergence_criteria_wrapper import ConvergenceCriteriaWrapper
 
 # --- WRApp Imports ---
-from .DatasetTransfer import DatasetTransform
 from ..async_analysis.SolutionStageScope import SolutionStageScope
 from ..async_analysis.AsyncSolver import AsyncSolver
-from ..ToDoException import ToDoException
 import KratosMultiphysics.WRApplication as WRApp
 
 # --- STD Imports ---

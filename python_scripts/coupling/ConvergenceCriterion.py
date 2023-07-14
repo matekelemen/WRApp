@@ -67,12 +67,7 @@ class ConvergenceCriterion(WRApp.WRAppClass):
         expression_size = self.__dataset.expression.NumberOfEntities() * self.__dataset.expression.GetItemComponentCount()
 
         # Copy the dataset in its cached state
-        cached_array = numpy.empty(expression_size)
-        KratosMultiphysics.Expression.CArrayExpressionIO.Output(cached_array).Execute(self.__dataset.expression)
-        cached = KratosMultiphysics.Expression.CArrayExpressionIO.Input(
-            cached_array,
-            self.__dataset.expression.NumberOfEntities(),
-            self.__dataset.expression.GetItemShape()).Execute()
+        cached = self.__dataset.expression
 
         # Compute residual
         self.__dataset.Fetch()
@@ -82,7 +77,7 @@ class ConvergenceCriterion(WRApp.WRAppClass):
         KratosMultiphysics.Expression.CArrayExpressionIO.Output(residual_array).Execute(residual)
 
         # Copy the dataset in its current state
-        current_array = cached_array # <== reuse the cached array for the current values
+        current_array = numpy.empty(expression_size)
         KratosMultiphysics.Expression.CArrayExpressionIO.Output(current_array).Execute(self.__dataset.expression)
 
         # Check criterion

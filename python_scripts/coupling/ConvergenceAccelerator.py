@@ -103,12 +103,9 @@ class ConvergenceAccelerator(WRApp.WRAppClass):
             expression_size = self.__dataset.expression.NumberOfEntities() * self.__dataset.expression.GetItemComponentCount()
 
             # Copy the dataset in its cached state
+            cached = self.__dataset.expression
             cached_array = numpy.empty(expression_size)
-            KratosMultiphysics.Expression.CArrayExpressionIO.Output(cached_array).Execute(self.__dataset.expression)
-            cached = KratosMultiphysics.Expression.CArrayExpressionIO.Input(
-                cached_array,
-                self.__dataset.expression.NumberOfEntities(),
-                self.__dataset.expression.GetItemShape()).Execute()
+            KratosMultiphysics.Expression.CArrayExpressionIO.Output(cached_array).Execute(cached)
 
             # Compute the residual
             self.__dataset.Fetch()
