@@ -18,6 +18,7 @@ from KratosMultiphysics import WRApplication as WRApp
 
 # --- STD Imports ---
 import typing
+import fnmatch
 
 
 ## @addtogroup WRApplication
@@ -56,8 +57,8 @@ class SnapshotInMemoryIO(SnapshotIO):
 
 
     @classmethod
-    def Glob(cls, predicate: "typing.Callable[[str],bool]") -> "list[tuple[str,WRApp.CheckpointID]]":
-        return [key for key in cls._cache.keys() if predicate(key)]
+    def Glob(cls, pattern: str) -> "list[str]":
+        return fnmatch.filter(cls._cache.keys(), pattern)
 
 
     @classmethod
@@ -67,19 +68,6 @@ class SnapshotInMemoryIO(SnapshotIO):
 
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        """ @code
-            {
-                "nodal_historical_variables" : [],
-                "nodal_variables" : [],
-                "nodal_flags" : [],
-                "element_variables" : [],
-                "element_flags" : [],
-                "condition_variables" : [],
-                "condition_flags" : [],
-                "file_name" : ""
-            }
-            @endcode
-        """
         output = super().GetDefaultParameters()
         output.AddString("file_name", "")
         return output
@@ -158,8 +146,6 @@ class SnapshotInMemoryInput(SnapshotInMemoryIO):
 
             if entry is None:
                 raise RuntimeError(f"No in-memory snapshot found at '{file_name}'")
-
-            map: "dict[str,numpy.ndarray]"
 
             # Assign data from nodes, elements, and conditions
             for container_name, variable_names in self._parameters.items():

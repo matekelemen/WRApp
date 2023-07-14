@@ -2,6 +2,9 @@
 
 #pragma once
 
+// --- WRApp Includes ---
+#include "wrapp/utils/inc/common.hpp"
+
 // --- Core Includes ---
 #include "includes/kratos_parameters.h"
 #include "includes/smart_pointers.h"

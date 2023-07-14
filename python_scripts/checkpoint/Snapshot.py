@@ -160,9 +160,10 @@ class Snapshot(WRApp.WRAppClass):
         return solution_path[::-1]
 
 
-    @staticmethod
+    @classmethod
     @abc.abstractmethod
-    def FromModelPart(model_part: KratosMultiphysics.ModelPart,
+    def FromModelPart(cls,
+                      model_part: KratosMultiphysics.ModelPart,
                       parameters: KratosMultiphysics.Parameters) -> "Snapshot":
         pass
 
@@ -277,6 +278,8 @@ class SnapshotFS(Snapshot):
         if not parameters.Has("output_parameters"):
             parameters.AddValue("output_parameters", cls.GetOutputType().GetDefaultParameters())
             parameters["output_parameters"]["io_settings"]["file_name"].SetString(f"{model_part_name}_step_{step}_path_{analysis_path}.h5")
+        else:
+            parameters["output_parameters"].ValidateAndAssignDefaults(cls.GetOutputType().GetDefaultParameters())
 
         return cls(WRApp.CheckpointID(step, analysis_path), parameters)
 
@@ -405,37 +408,6 @@ class SnapshotManager(metaclass = abc.ABCMeta):
 
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        """ @code
-            {
-                "io" : {
-                    "input_parameters" : {
-                        "nodal_historical_variables" : [],
-                        "nodal_variables" : [],
-                        "nodal_flags" : [],
-                        "element_variables" : [],
-                        "element_flags" : [],
-                        "condition_variables" : [],
-                        "condition_flags" : []
-                    },
-                    "output_parameters" : {
-                        "nodal_historical_variables" : [],
-                        "nodal_variables" : [],
-                        "nodal_flags" : [],
-                        "element_variables" : [],
-                        "element_flags" : [],
-                        "condition_variables" : [],
-                        "condition_flags" : []
-                    }
-                },
-                "erase_predicate" : {
-                    "type" : "WRApplication.ConstModelPredicate",
-                    "parameters" : [{"value" : false}]
-                },
-                "journal_path" : "snapshots_rank_<rank>.jrn",
-                "check_duplicates" : false
-            }
-            @endcode
-        """
         parameters = KratosMultiphysics.Parameters(R"""{
             "io" : {},
             "erase_predicate" : {

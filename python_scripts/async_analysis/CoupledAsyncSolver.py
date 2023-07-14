@@ -8,12 +8,11 @@ __all__ = [
 import KratosMultiphysics
 
 # --- WRApp Imports ---
-from .SolutionStageScope import AggregateSolutionStageScope
+from KratosMultiphysics import WRApplication as WRApp
+from .SolutionStageScope import SolutionStageScope, AggregateSolutionStageScope
 from .AsyncSolver import AsyncSolver
-from .CoSimCoupling import CoSimCoupling
 
 # --- STD Imports ---
-import io
 import typing
 
 
@@ -34,19 +33,7 @@ class CoupledAsyncSolver(AsyncSolver):
                  model: KratosMultiphysics.Model,
                  parameters: KratosMultiphysics.Parameters):
         super().__init__(model, parameters)
-
-        # Decide which DataCommunicator to use
-        model_part_name = parameters["model_part_name"].GetString()
-        self.__data_communicator: KratosMultiphysics.DataCommunicator
-        if model_part_name:
-            self.__data_communicator = model.GetModelPart(model_part_name).GetCommunicator().GetDataCommunicator()
-        else:
-            self.__data_communicator = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
-
-        self.__coupling_operation = CoSimCoupling(self,
-                                                  model,
-                                                  self.__data_communicator,
-                                                  self.parameters["coupling"])
+        self.__coupling_operation = WRApp.CoSimCoupling(self, self.parameters["coupling"])
 
 
     ## @name Solution Flow
@@ -76,7 +63,7 @@ class CoupledAsyncSolver(AsyncSolver):
 
 
     @property
-    def _coupling_operation(self) -> CoSimCoupling:
+    def _coupling_operation(self) -> SolutionStageScope:
         return self.__coupling_operation
 
 
@@ -95,47 +82,18 @@ class CoupledAsyncSolver(AsyncSolver):
                      @code
                      {
                          ...,
-                         "model_part_name" : "",
                          "coupling" : {
-                             "interface_datasets" : []
-                             "transform_operators" : {},
                              "coupling_sequence" : [],
                              "convergence_accelerators" : [],
-                             "convergence_criteria" : [],
-                             "max_iterations" : 0
-                             "verbosity" : 2
-                         },
-                         "predictors" : []
+                             "convergence_criteria" : []
+                         }
                      }
                      @endcode
         """
         output = super().GetDefaultParameters()
         output.AddString("model_part_name", "")
-        output.AddValue("coupling", CoSimCoupling.GetDefaultParameters())
+        output.AddValue("coupling", WRApp.CoSimCoupling.GetDefaultParameters())
         return output
-
-
-    ## @}
-    ## @name Member Classes
-    ## @{
-
-
-    class SynchronizeScope(AsyncSolver.SynchronizeScope):
-
-        def __init__(self, solver: "CoupledAsyncSolver"):
-            super().__init__(solver)
-
-
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            #super().WriteInfo(stream, prefix)
-            subprefix = prefix + "|  "
-            AggregateSolutionStageScope([
-                self._solver.GetSolver(partition_name).Synchronize() for partition_name in self._solver.partitions
-            ]).WriteInfo(stream, subprefix)
-            self._solver._coupling_operation.WriteInfo(stream, subprefix)
-
-
-    ## @}
 
 
 ## @}

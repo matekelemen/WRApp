@@ -95,39 +95,6 @@ class HDF5SnapshotManager(SnapshotManager):
 
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        """ @code
-             {
-                 "io" : {
-                    "input_parameters" : {
-                        "nodal_historical_variables" : [],
-                        "nodal_variables" : [],
-                        "nodal_flags" : [],
-                        "element_variables" : [],
-                        "element_flags" : [],
-                        "condition_variables" : [],
-                        "condition_flags" : []
-                    },
-                    "output_parameters" : {
-                        "nodal_historical_variables" : [],
-                        "nodal_variables" : [],
-                        "nodal_flags" : [],
-                        "element_variables" : [],
-                        "element_flags" : [],
-                        "condition_variables" : [],
-                        "condition_flags" : []
-                    }
-                },
-                "erase_predicate" : {
-                    "type" : "WRApplication.ConstModelPredicate",
-                    "parameters" : [{"value" : false}]
-                },
-                "journal_path" : "snapshots.jrn",
-                "snapshot_path" : "snapshots.h5",
-                "prefix" : "/snapshot_step_<step>_path_<path_id>",
-                "check_duplicates" : false
-             }
-            @endcode
-        """
         output = super().GetDefaultParameters()
         output.AddString("snapshot_path", "snapshots.h5")
         output.AddString("prefix", "/snapshot_step_<step>_path_<path_id>")

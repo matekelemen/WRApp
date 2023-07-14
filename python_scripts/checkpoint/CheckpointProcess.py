@@ -124,6 +124,11 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
         self.__model_part = self.__model.GetModelPart(parameters["model_part_name"].GetString())
         self.__parameters = parameters
 
+        # Populate nested default parameters
+        snapshot_type: typing.Type[Snapshot] = WRApp.GetRegisteredClass(self.__parameters["snapshot_type"].GetString())
+        manager_type = snapshot_type.GetManagerType()
+        self.__parameters["snapshot_parameters"].ValidateAndAssignDefaults(manager_type.GetDefaultParameters())
+
         # Declarations to be defined in Initialize
         self.__snapshot_manager: SnapshotManager
         self.__write_predicate: WRApp.ModelPredicate
@@ -143,15 +148,17 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
         condition_variables = WRApp.MPIUtils.ExtractConditionDataNames(self.__model_part)
         condition_flags = WRApp.MPIUtils.ExtractConditionFlagNames(self.__model_part)
 
+        default_parameters["snapshot_parameters"].AddValue("io", KratosMultiphysics.Parameters())
         for io_name in ("input_parameters", "output_parameters"):
+            default_parameters["snapshot_parameters"]["io"].AddValue(io_name, KratosMultiphysics.Parameters())
             io_parameters = default_parameters["snapshot_parameters"]["io"][io_name]
-            io_parameters["nodal_historical_variables"].SetStringArray(nodal_historical_variables)
-            io_parameters["nodal_variables"].SetStringArray(nodal_variables)
-            io_parameters["nodal_flags"].SetStringArray(nodal_flags)
-            io_parameters["element_variables"].SetStringArray(element_variables)
-            io_parameters["element_flags"].SetStringArray(element_flags)
-            io_parameters["condition_variables"].SetStringArray(condition_variables)
-            io_parameters["condition_flags"].SetStringArray(condition_flags)
+            io_parameters.AddStringArray("nodal_historical_variables", nodal_historical_variables)
+            io_parameters.AddStringArray("nodal_variables", nodal_variables)
+            io_parameters.AddStringArray("nodal_flags", nodal_flags)
+            io_parameters.AddStringArray("element_variables", element_variables)
+            io_parameters.AddStringArray("element_flags", element_flags)
+            io_parameters.AddStringArray("condition_variables", condition_variables)
+            io_parameters.AddStringArray("condition_flags", condition_flags)
 
         self.__parameters.RecursivelyAddMissingParameters(default_parameters)
 
@@ -210,10 +217,6 @@ class CheckpointProcess(KratosMultiphysics.Process, WRApp.WRAppClass, metaclass 
                 "parameters" : []
             }
         }""")
-        # Populate nested defaults
-        snapshot_type: typing.Type[Snapshot] = WRApp.GetRegisteredClass(output["snapshot_type"].GetString())
-        manager_type = snapshot_type.GetManagerType()
-        output["snapshot_parameters"] = manager_type.GetDefaultParameters()
         return output
 
 

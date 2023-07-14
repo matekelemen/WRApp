@@ -14,7 +14,6 @@ import KratosMultiphysics.WRApplication as WRApp
 # --- STD Imports ---
 import typing
 import collections.abc
-import io
 
 
 ## @addtogroup WRApplication
@@ -71,8 +70,7 @@ class AsyncSolver(WRApp.WRAppClass):
         # Construct the solver's synchronization predicate
         self.__synchronization_predicate: WRApp.ModelPredicate = WRApp.RegisteredClassFactory(
             self.__parameters["synchronization_predicate"]["type"].GetString(),
-            self.__parameters["synchronization_predicate"]["parameters"]
-        )
+            self.__parameters["synchronization_predicate"]["parameters"])
 
 
     ## @name Public Members
@@ -105,11 +103,12 @@ class AsyncSolver(WRApp.WRAppClass):
 
     def GetSolver(self, partition_name: str) -> "AsyncSolver":
         """ @brief Get the solver assigned to the specified partition."""
-        return self.__solvers[partition_name]
-
-
-    def WriteInfo(self, stream: io.StringIO, prefix: str = "") -> None:
-        self.RunSolutionLoop().WriteInfo(stream, prefix)
+        if partition_name:
+            split_name = partition_name.split(".")
+            child_name = split_name[0]
+            return self.__solvers[child_name].GetSolver(".".join(split_name[1:]))
+        else:
+            return self
 
 
     ## @}
@@ -123,7 +122,7 @@ class AsyncSolver(WRApp.WRAppClass):
 
 
     @property
-    def partitions(self) -> "collections.abc.KeysView[str]":
+    def partitions(self) -> collections.abc.KeysView[str]:
         return self.__solvers.keys()
 
 
@@ -144,16 +143,6 @@ class AsyncSolver(WRApp.WRAppClass):
 
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        """ @code
-            {
-                "partitions" : [],
-                "synchronization_predicate" : {
-                    "type" : "WRApplication.ConstModelPredicate",
-                    "parameters" : [{"value" : true}]
-                }
-            }
-            @endcode
-        """
         return KratosMultiphysics.Parameters(R"""{
             "partitions" : [],
             "synchronization_predicate" : {
@@ -262,6 +251,9 @@ class AsyncSolver(WRApp.WRAppClass):
             solver_parameters.ValidateAndAssignDefaults(default_solver_parameters)
             partition_name = solver_parameters["name"].GetString()
 
+            if not partition_name:
+                raise NameError("Empty partition names are not allowed")
+
             # No duplicate partition names allowed
             if partition_name in output:
                 raise NameError(f"Duplicate partition name '{partition_name}' in {solver_parameters}")
@@ -290,10 +282,6 @@ class AsyncSolver(WRApp.WRAppClass):
             self.__solver = solver
 
 
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Unknown scoped operation of solver '{type(self._solver).__name__}'\n")
-
-
         @property
         def _solver(self) -> "AsyncSolver":
             return self.__solver
@@ -317,11 +305,6 @@ class AsyncSolver(WRApp.WRAppClass):
             super().__init__(solver)
 
 
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Preprocess solver '{type(self._solver).__name__}'\n")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Preprocess() for partition_name in self._solver.partitions]).WriteInfo(stream, prefix + "|  ")
-
-
         def __call__(self) -> None:
             self._solver._Preprocess()
 
@@ -334,14 +317,6 @@ class AsyncSolver(WRApp.WRAppClass):
 
         def __init__(self, solver: "AsyncSolver"):
             super().__init__(solver)
-
-
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Advance solver '{type(self._solver).__name__}'\n")
-            subprefix = prefix + "|  "
-            stream.write(f"{subprefix}While not {type(self._solver).__name__}.synchronization_predicate:\n")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Advance() for partition_name in self._solver.partitions]).WriteInfo(stream, subprefix + "|  ")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Synchronize() for partition_name in self._solver.partitions]).WriteInfo(stream, subprefix + "|  ")
 
 
         def __call__(self) -> None:
@@ -358,11 +333,6 @@ class AsyncSolver(WRApp.WRAppClass):
             super().__init__(solver)
 
 
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Synchronize solver '{type(self._solver).__name__}'\n")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Synchronize() for partition_name in self._solver.partitions]).WriteInfo(stream, prefix + "|  ")
-
-
         def __call__(self) -> None:
             self._solver._Synchronize()
 
@@ -377,11 +347,6 @@ class AsyncSolver(WRApp.WRAppClass):
             super().__init__(solver)
 
 
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Postprocess solver '{type(self._solver).__name__}'\n")
-            AggregateSolutionStageScope([self._solver.GetSolver(partition_name).Postprocess() for partition_name in self._solver.partitions]).WriteInfo(stream, prefix + "|  ")
-
-
         def __call__(self) -> None:
             self._solver._Postprocess()
 
@@ -393,20 +358,6 @@ class AsyncSolver(WRApp.WRAppClass):
 
         def __init__(self, solver: "AsyncSolver"):
             super().__init__(solver)
-
-
-        def WriteInfo(self, stream: io.StringIO, prefix: str = ""):
-            stream.write(f"{prefix}Run solution loop of solver '{type(self._solver).__name__}'\n")
-
-            sub_prefix = prefix + "|  "
-            self._solver.Preprocess().WriteInfo(stream, sub_prefix)
-            stream.write(f"{sub_prefix}While not {type(self._solver).__name__}.termination_predicate\n")
-
-            solution_loop_prefix = sub_prefix + "|  "
-            self._solver.Advance().WriteInfo(stream, solution_loop_prefix)
-            self._solver.Synchronize().WriteInfo(stream, solution_loop_prefix)
-
-            self._solver.Postprocess().WriteInfo(stream, sub_prefix)
 
 
         def _Preprocess(self) -> None:
