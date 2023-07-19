@@ -180,6 +180,9 @@ void AddUtilsToPython(pybind11::module& rModule)
         .def("Glob",
              &Glob,
              "Collect all file/directory paths that match the pattern.")
+        .def("GetPatternString",
+             &PlaceholderPattern::GetPatternString,
+             "Get the placeholder pattern the object was constructed with.")
         .def("GetRegexString",
              &PlaceholderPattern::GetRegexString,
              "Get the string representation of the regex.")
