@@ -5,4 +5,5 @@ from .types import *
 from .Debug import *
 from .RegistryExtensionOperation import *
 from .WorkingDirectoryOperation import *
-from .GenerateXDMFOperation import *
+from .GenerateHDF5Journal import *
+from .GenerateXDMF import *
