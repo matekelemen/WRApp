@@ -296,6 +296,7 @@ def CreateXdmfTemporalGridFromMultifile(batch: _Batch, verbose: bool = False) ->
     for i_dataset, dataset in enumerate(batch.datasets):
         current_spatial_grid = SpatialGrid()
         if dataset.HasUniqueMesh() or i_dataset == 0:
+            RenumberConnectivitiesForXdmf([str(dataset.mesh.file_path)], dataset.mesh.prefix)
             with h5py.File(dataset.mesh.file_path, "r") as file:
                 spatial_grid = CreateXdmfSpatialGrid(file[dataset.mesh.prefix])
         for grid in spatial_grid.grids:
