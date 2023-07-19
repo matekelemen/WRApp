@@ -212,7 +212,7 @@ class GenerateXDMF(KratosMultiphysics.Operation, WRApp.WRAppClass):
     """
 
     def __init__(self,
-                 model: KratosMultiphysics.Model,
+                 _: KratosMultiphysics.Model,
                  parameters: KratosMultiphysics.Parameters):
         KratosMultiphysics.Operation.__init__(self)
         WRApp.WRAppClass.__init__(self)
@@ -272,3 +272,7 @@ if __name__ == "__main__":
              output_pattern = arguments.output_pattern,
              batch_size = arguments.batch_size,
              verbose = arguments.verbose)
+
+
+
+WRApp.CLI.AddOperation(GenerateXDMF)

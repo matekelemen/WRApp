@@ -1,49 +1,113 @@
 """ @author Máté Kelemen"""
 
 __all__ = [
-    "MakeCLI"
+    "CLI"
 ]
+
+# --- Core Imports ---
+import KratosMultiphysics
 
 # --- STD Imports ---
 import argparse
 import typing
-import pathlib
-import os
 
 
-def MakeCLI() -> argparse.ArgumentParser:
-    root_parser = argparse.ArgumentParser(prog = "wrapp",
-                                          description = "WRApplication aggregate command line interface.")
-    subparser = root_parser.add_subparsers(dest = "subcommand")
-    MakeLauncherCLI(subparser)
-    return root_parser
-
-
-def MakeLauncherCLI(subparser: typing.Optional[argparse.Action] = None) -> typing.Optional[argparse.ArgumentParser]:
-    """ @brief Create a command line interface for launching analyses with WRApplication.
-        @param subparser: If @a subparser is passed the newly created parser will be added
-                          to it as a subcommand instead of creating a standalone one.
-    """
-    parser: argparse.ArgumentParser
-
-    # Choose between a standalone parser or a subcommand
-    if subparser is None:
-        parser = argparse.ArgumentParser("launch", description = "Launch an analysis with WRApplication")
+def _GetParameterType(parameters: KratosMultiphysics.Parameters) -> typing.Union[
+        typing.Type[bool],
+        typing.Type[int],
+        typing.Type[float],
+        typing.Type[str]]:
+    if parameters.IsBool():
+        return bool
+    elif parameters.IsInt():
+        return int
+    elif parameters.IsDouble():
+        return float
+    elif parameters.IsString():
+        return str
+    elif parameters.IsArray() or parameters.IsStringArray():
+        raise TypeError(f"CLI operations cannot have array parameters")
+    elif parameters.IsMatrix():
+        raise TypeError(f"CLI operations cannot have matrix parameters")
+    elif parameters.IsSubParameter():
+        raise TypeError(f"CLI operations cannot have nested parameters")
     else:
-        parser = subparser.add_parser("launch",description = "Launch an analysis with WRApplication")
+        raise RuntimeError(f"Unexpected parameter type: {parameters}")
 
-    # Define arguments
-    parser.add_argument("-i",
-                        "--input",
-                        dest = "input_path",
-                        type = pathlib.Path,
-                        required = True,
-                        help = "Path to the input JSON configuration.")
-    parser.add_argument("--cd",
-                        dest = "working_directory",
-                        type = pathlib.Path,
-                        default = pathlib.Path(os.getcwd()),
-                        help = "Change the working directory to the provided path.")
 
-    return parser
 
+def _GetParameter(parameters: KratosMultiphysics.Parameters) -> typing.Union[bool,int,float,str]:
+    if parameters.IsBool():
+        return parameters.GetBool()
+    elif parameters.IsInt():
+        return parameters.GetInt()
+    elif parameters.IsDouble():
+        return parameters.GetDouble()
+    elif parameters.IsString():
+        return parameters.GetString()
+    else:
+        raise RuntimeError(f"Invalid parameter: {parameters}")
+
+
+
+def _AddParameter(parameters: KratosMultiphysics.Parameters,
+                  name: str,
+                  value: typing.Union[bool,int,float,str]) -> None:
+    if isinstance(value, bool):
+        parameters.AddBool(name, value)
+    elif isinstance(value, int):
+        parameters.AddInt(name, value)
+    elif isinstance(value, float):
+        parameters.AddDouble(name, value)
+    elif isinstance(value, str):
+        parameters.AddString(name, value)
+    else:
+        raise TypeError(f"Unexpected value: {value}")
+
+
+
+class CLI:
+    """"""
+
+    parser_root, subparser = (lambda p: (p, p.add_subparsers(dest = "subcommand")))(argparse.ArgumentParser())
+
+
+    operations: "dict[str,tuple[argparse.ArgumentParser,typing.Type[KratosMultiphysics.Operation]]]" = {}
+
+
+    @classmethod
+    def AddOperation(cls, operation_type: typing.Type[KratosMultiphysics.Operation]) -> None:
+        """ @brief Add a @ref Kratos::Operation as a subcommand."""
+        if not issubclass(operation_type, KratosMultiphysics.Operation):
+            raise TypeError(f"Expecting a Kratos::Operation, but got {operation_type} instead")
+
+        parser = cls.subparser.add_parser(operation_type.__name__,
+                                          description = operation_type.__doc__)
+
+        parameters: KratosMultiphysics.Parameters = operation_type.GetDefaultParameters()
+        for key, value in parameters.items():
+            parser.add_argument(f"--{key.replace('_','-')}",
+                                dest = key,
+                                type = _GetParameterType(value),
+                                default = _GetParameter(value))
+
+        cls.operations[operation_type.__name__] = (parser, operation_type)
+
+
+    @classmethod
+    def RunOperation(cls,
+                     operation_name: str,
+                     arguments: argparse.Namespace) -> None:
+        parser, operation_type = cls.operations[operation_name]
+        model = KratosMultiphysics.Model()
+        parameters = KratosMultiphysics.Parameters()
+        for name, value in arguments.__dict__.items():
+            if name != "subcommand":
+                _AddParameter(parameters, name, value)
+        operation_type(model, parameters).Execute()
+
+
+    @classmethod
+    def Run(cls, argv: "typing.Optional[list[str]]" = None) -> None:
+        arguments = cls.parser_root.parse_args(argv)
+        cls.RunOperation(arguments.subcommand, arguments)

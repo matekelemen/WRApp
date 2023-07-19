@@ -180,7 +180,7 @@ class GenerateHDF5Journal(WRApp.WRAppClass, KratosMultiphysics.Operation):
     """
 
     def __init__(self,
-                 model: KratosMultiphysics.Model,
+                 _: KratosMultiphysics.Model,
                  parameters: KratosMultiphysics.Parameters):
         WRApp.WRAppClass.__init__(self)
         KratosMultiphysics.Operation.__init__(self)
@@ -205,3 +205,7 @@ class GenerateHDF5Journal(WRApp.WRAppClass, KratosMultiphysics.Operation):
             "journal_name" : "hdf5_output.jrn",
             "verbose" : false
         }""")
+
+
+
+WRApp.CLI.AddOperation(GenerateHDF5Journal)
