@@ -16,9 +16,6 @@ KratosWRApplication::KratosWRApplication()
 
 void KratosWRApplication::Register()
 {
-    KRATOS_INFO("") << "Initializing WRApplication..." << std::endl;
-
-    // Register custom variables
     KRATOS_REGISTER_VARIABLE(ANALYSIS_PATH)
 }
 
@@ -38,8 +35,6 @@ void KratosWRApplication::PrintInfo(std::ostream& rStream) const
 
 void KratosWRApplication::PrintData(std::ostream& rStream) const
 {
-    KRATOS_WATCH("In WRApplication:");
-    KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
     rStream << "Variables:" << std::endl;
     KratosComponents<VariableData>().PrintData(rStream);
     rStream << std::endl;
