@@ -33,7 +33,13 @@ with __SuppressStream(1):
     from KratosWRApplication import *
 
     # --- WRApp Imports ---
-    from .registry_utils import RecursivelyRegisterClass
+    from .registry_utils import RecursivelyRegisterClass,   \
+                                RecursivelyRegisterClass,   \
+                                GetRegistryEntry,           \
+                                GetRegisteredClass,         \
+                                RegisteredClassFactory,     \
+                                IsRegisteredPath,           \
+                                ImportAndRegister
 
     # Rename WRAppClass because it'll have to be replaced,
     # since abc.ABC and classes wrapped by pybind aren't

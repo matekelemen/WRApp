@@ -3,16 +3,18 @@
 # --- Core Imports ---
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-# --- WRApplication Imports ---
+# --- WRApp Imports ---
+import KratosMultiphysics.WRApplication as _
 from KratosMultiphysics.WRApplication.TestCase import SuiteFlags, TestSuite, TestCase
 
-# STL imports
+# --- STD Imports ---
 import pathlib
+import typing
 
 
 class TestLoader(UnitTest.TestLoader):
     @property
-    def suiteClass(self):
+    def suiteClass(self) -> typing.Type[TestSuite]:
         return TestSuite
 
 
@@ -40,7 +42,7 @@ def AssembleTestSuites(enable_mpi = False):
     # Glob all test cases in this application
     this_directory = pathlib.Path(__file__).absolute().parent
     test_loader = TestLoader()
-    all_tests: "list[TestCase]" = test_loader.discover(this_directory, pattern = "*test*")
+    all_tests: "TestSuite" = test_loader.discover(this_directory, pattern = "*test*.py")
 
     # Sort globbed test cases into lists based on their suite flags
     #   flags correspond to entries in KratosUnittest.TestSuites
