@@ -17,6 +17,7 @@
 #include "wrapp/utils/inc/MapKeyRange.hpp"
 #include "wrapp/utils/inc/CheckpointID.hpp"
 #include "wrapp/utils/inc/DataValueContainerKeyIterator.hpp"
+#include "wrapp/utils/inc/DynamicEntityProxy.hpp"
 
 // --- STL Includes ---
 #include <type_traits>
@@ -47,7 +48,7 @@ struct WRAppClassTrampoline : WRApp::WRAppClass
 
 
 /// @brief Wrapper class for binding a pure virtual class.
-class KRATOS_API(KratosCore) ModelPredicateTrampoline : public WRApp::ModelPredicate
+class KRATOS_API(WR_APPLICATION) ModelPredicateTrampoline : public WRApp::ModelPredicate
 {
 public:
     bool operator()(const Model& rModel) const override
@@ -111,6 +112,24 @@ void SetFlags(TContainer& rContainer, const FlagArray& rFlags, Flags mask)
         mask.Flip(Flags::AllDefined());
         r_target = (source & mask) | tmp;
     });
+}
+
+
+template <class TValue, class TClass>
+void DefineDynamicEntityProxyMembers(TClass& rPythonClass)
+{
+    rPythonClass
+        .def("HasValue",
+             &WRApp::DynamicEntityProxy::HasValue<Variable<TValue>>,
+             pybind11::arg("variable"))
+        .def("GetValue",
+             [](const WRApp::DynamicEntityProxy Self, const Variable<TValue>& rVariable){return Self.GetValue(rVariable);},
+             pybind11::arg("variable"))
+        .def("SetValue",
+             &WRApp::DynamicEntityProxy::SetValue<Variable<TValue>>,
+             pybind11::arg("variable"),
+             pybind11::arg("new_value"))
+        ;
 }
 
 
@@ -253,6 +272,34 @@ void AddUtilsToPython(pybind11::module& rModule)
         .def_static("TestJournal", &Testing::TestingUtilities::TestJournal)
         ;
     #endif
+
+    auto dynamic_entity_proxy = pybind11::class_<WRApp::DynamicEntityProxy>(rModule, "EntityProxy");
+    dynamic_entity_proxy
+        .def(pybind11::init<Globals::DataLocation,Node&>(),
+             pybind11::arg("data_location"),
+             pybind11::arg("entity"))
+        .def(pybind11::init<Globals::DataLocation,Element&>(),
+             pybind11::arg("data_location"),
+             pybind11::arg("entity"))
+        .def(pybind11::init<Globals::DataLocation,Condition&>(),
+             pybind11::arg("data_location"),
+             pybind11::arg("entity"))
+        .def(pybind11::init<Globals::DataLocation,ProcessInfo&>(),
+             pybind11::arg("data_location"),
+             pybind11::arg("entity"))
+        .def(pybind11::init<Globals::DataLocation,ModelPart&>(),
+             pybind11::arg("data_location"),
+             pybind11::arg("entity"))
+        ;
+    DefineDynamicEntityProxyMembers<bool>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<int>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<double>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<array_1d<double,3>>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<array_1d<double,4>>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<array_1d<double,6>>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<array_1d<double,9>>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<Vector>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<DenseMatrix<double>>(dynamic_entity_proxy);
 }
 
 
