@@ -50,6 +50,10 @@ public:
         mpElement.integer = p | static_cast<PointerInteger>(1);
     }
 
+    OptionalRef& operator=(OptionalRef&& rRhs) noexcept = default;
+
+    OptionalRef& operator=(const OptionalRef& rRhs) noexcept = default;
+
     /// @brief Assign the provided instance to the optional.
     OptionalRef& operator=(TElement& rElement) noexcept
     {
