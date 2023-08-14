@@ -240,39 +240,4 @@ class GenerateXDMF(KratosMultiphysics.Operation, WRApp.WRAppClass):
 
 
 
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser("generate-xdmf")
-
-    parser.add_argument("journal_path",
-                        type = pathlib.Path,
-                        help = "Journal file to find the results from.")
-    parser.add_argument("-o",
-                        "--output-pattern",
-                        dest = "output_pattern",
-                        type = str,
-                        default = "batch_<batch>.xdmf",
-                        help = "Path to write the output XDMF to. Warning: existing files will be overwritten.")
-    parser.add_argument("-b",
-                        "--batch-size",
-                        dest = "batch_size",
-                        type = int,
-                        default = -1,
-                        help = "Max number of input files to process per output xdmf.")
-    parser.add_argument("-v",
-                        "--verbose",
-                        dest = "verbose",
-                        action = "store_const",
-                        default = False,
-                        const = True,
-                        help = "Print status messages while processing.")
-
-    arguments = parser.parse_args()
-    Generate(arguments.journal_path,
-             output_pattern = arguments.output_pattern,
-             batch_size = arguments.batch_size,
-             verbose = arguments.verbose)
-
-
-
 WRApp.CLI.AddOperation(GenerateXDMF)
