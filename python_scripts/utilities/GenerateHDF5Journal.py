@@ -89,7 +89,8 @@ class HDF5Path:
 
 
 def GlobHDF5(pattern: WRApp.ModelPartPattern,
-             file: h5py.File) -> "list[str]":
+             file: h5py.File,
+             verbose = False) -> "list[str]":
     stack: "list[str]" = ["/"]
     regex_string = pattern.GetRegexString()
     if not pattern.GetPatternString().startswith("/"):
@@ -103,6 +104,8 @@ def GlobHDF5(pattern: WRApp.ModelPartPattern,
         stack = []
         for path in local_stack:
             for item in file[path].keys():
+                if verbose:
+                    print(f"processing {path}{'/' if path != '/' else ''}{item}")
                 if regex.match(item):
                     stack.append(f"{path}{'/' if path != '/' else ''}{item}")
 
@@ -138,16 +141,16 @@ def MakeJournal(input_file_pattern: str,
             with h5py.File(file_path, "r") as file:
                 results = sorted(
                     HDF5Path(file_path,
-                              file_placeholders,
-                              prefix,
-                              results_pattern.Match(prefix))
-                    for prefix in GlobHDF5(results_pattern, file))
+                             file_placeholders,
+                             prefix,
+                             results_pattern.Match(prefix))
+                    for prefix in GlobHDF5(results_pattern, file, verbose = verbose))
                 meshes = sorted(
                     HDF5Path(file_path,
-                              file_placeholders,
-                              prefix,
-                              mesh_pattern.Match(prefix))
-                    for prefix in GlobHDF5(mesh_pattern, file))
+                             file_placeholders,
+                             prefix,
+                             mesh_pattern.Match(prefix))
+                    for prefix in GlobHDF5(mesh_pattern, file, verbose = verbose))
             while results:
                 current_results = results.pop(0)
 
