@@ -73,12 +73,12 @@ KRATOS_TEST_CASE_IN_SUITE(PipeOperator, KratosWRApplicationTestSuite)
 
     {
         const bool output = false >> bool_int >> int_bool;
-        KRATOS_CHECK_EQUAL(output, false);
+        KRATOS_EXPECT_EQ(output, false);
     }
 
     {
         const bool output = true >> bool_int >> int_bool;
-        KRATOS_CHECK_EQUAL(output, true);
+        KRATOS_EXPECT_EQ(output, true);
     }
 }
 
@@ -92,49 +92,49 @@ KRATOS_TEST_CASE_IN_SUITE(CompoundPipe, KratosWRApplicationTestSuite)
         Pipes::Pipeline<BoolIntTestPipe,IntBoolTestPipe,BoolIntTestPipe>,
         decltype(bool_int | int_bool | bool_int)
     >;
-    KRATOS_CHECK(is_same);
+    KRATOS_EXPECT_TRUE(is_same);
 
     // Instantiate compound pipes
     {
         const auto compound_test_pipe = NoOpTestPipe() | IntBoolTestPipe(); // NoOpTestPipe is not constructible from Parameters
         static_assert(Pipes::IsPipe<decltype(compound_test_pipe)>::value);
-        KRATOS_CHECK_EQUAL(compound_test_pipe('a'), true);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(0), false);
+        KRATOS_EXPECT_EQ(compound_test_pipe('a'), true);
+        KRATOS_EXPECT_EQ(compound_test_pipe(0), false);
     }
 
     {
         const auto compound_test_pipe = BoolIntTestPipe() | IntBoolTestPipe();
         static_assert(Pipes::IsPipe<decltype(compound_test_pipe)>::value);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(false), false);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(true), true);
+        KRATOS_EXPECT_EQ(compound_test_pipe(false), false);
+        KRATOS_EXPECT_EQ(compound_test_pipe(true), true);
     }
 
     {
         const auto compound_test_pipe = bool_int | IntBoolTestPipe();
         static_assert(Pipes::IsPipe<decltype(compound_test_pipe)>::value);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(false), false);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(true), true);
+        KRATOS_EXPECT_EQ(compound_test_pipe(false), false);
+        KRATOS_EXPECT_EQ(compound_test_pipe(true), true);
     }
 
     {
         const auto compound_test_pipe = BoolIntTestPipe() | int_bool;
         static_assert(Pipes::IsPipe<decltype(compound_test_pipe)>::value);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(false), false);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(true), true);
+        KRATOS_EXPECT_EQ(compound_test_pipe(false), false);
+        KRATOS_EXPECT_EQ(compound_test_pipe(true), true);
     }
 
     {
         const auto compound_test_pipe = bool_int | int_bool;
         static_assert(Pipes::IsPipe<decltype(compound_test_pipe)>::value);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(false), false);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(true), true);
+        KRATOS_EXPECT_EQ(compound_test_pipe(false), false);
+        KRATOS_EXPECT_EQ(compound_test_pipe(true), true);
     }
 
     {
         const auto compound_test_pipe = bool_int | int_bool | BoolIntTestPipe() | IntBoolTestPipe();
         static_assert(Pipes::IsPipe<decltype(compound_test_pipe)>::value);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(false), false);
-        KRATOS_CHECK_EQUAL(compound_test_pipe(true), true);
+        KRATOS_EXPECT_EQ(compound_test_pipe(false), false);
+        KRATOS_EXPECT_EQ(compound_test_pipe(true), true);
     }
 }
 
@@ -148,8 +148,8 @@ KRATOS_TEST_CASE_IN_SUITE(PipeFactory, KratosWRApplicationTestSuite)
             {"negate" : true}
         ])");
         const auto pipe = Pipeline(parameters);
-        KRATOS_CHECK_EQUAL(pipe(false), true);
-        KRATOS_CHECK_EQUAL(pipe(true), false);
+        KRATOS_EXPECT_EQ(pipe(false), true);
+        KRATOS_EXPECT_EQ(pipe(true), false);
     }
 
     {
@@ -161,8 +161,8 @@ KRATOS_TEST_CASE_IN_SUITE(PipeFactory, KratosWRApplicationTestSuite)
             {"negate" : true}
         ])");
         const auto pipe = Pipeline(parameters);
-        KRATOS_CHECK_EQUAL(pipe(false), false);
-        KRATOS_CHECK_EQUAL(pipe(true), true);
+        KRATOS_EXPECT_EQ(pipe(false), false);
+        KRATOS_EXPECT_EQ(pipe(true), true);
     }
 }
 
