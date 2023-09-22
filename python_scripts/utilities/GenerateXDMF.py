@@ -33,6 +33,7 @@ import xml.etree.ElementTree
 import multiprocessing
 import os
 import json
+import sys
 
 
 
@@ -42,7 +43,7 @@ class _Dataset:
     """
 
     def __init__(self,
-                 results: HDF5Path,
+                 results: typing.Optional[HDF5Path],
                  mesh: HDF5Path,
                  unique_mesh: bool):
         self.__results = results
@@ -55,7 +56,7 @@ class _Dataset:
 
 
     @property
-    def results(self) -> HDF5Path:
+    def results(self) -> typing.Optional[HDF5Path]:
         return self.__results
 
 
@@ -98,10 +99,11 @@ def MakeBatches(journal_path: pathlib.Path,
     with open(journal_path, "r") as journal:
         datasets: "list[_Dataset]" = []
         current_mesh: typing.Optional[HDF5Path] = None
+        current_results: typing.Optional[HDF5Path] = None
         output_pattern = WRApp.PlaceholderPattern(output_path,
                                                   {"<batch>" : WRApp.PlaceholderPattern.UnsignedInteger})
         i_batch = 0
-        for entry in journal.readlines():
+        for i_entry, entry in enumerate(journal.readlines()):
             map = json.loads(entry)
 
             # Get the mesh from the entry if it has one
@@ -113,10 +115,17 @@ def MakeBatches(journal_path: pathlib.Path,
                                          {})
 
             # Get results
-            current_results = HDF5Path(pathlib.Path(map["results"]["file_name"]),
-                                        {},
-                                        map["results"]["prefix"],
-                                        {})
+            results = map.get("results", None)
+            if results is not None:
+                current_results = HDF5Path(pathlib.Path(map["results"]["file_name"]),
+                                           {},
+                                           map["results"]["prefix"],
+                                           {})
+
+            if current_mesh is None and current_results is None:
+                print(f"WARNING: no mesh or results were found in journal {journal_path} entry {entry} in line {i_entry}",
+                      file = sys.stderr)
+                continue
 
             if current_mesh is None:
                 raise RuntimeError(f"Results in file '{current_results.file_path}' at '{current_results.prefix}' have no corresponding mesh")
@@ -126,12 +135,12 @@ def MakeBatches(journal_path: pathlib.Path,
                                      mesh is not None))
 
             if len(datasets) == batch_size:
-                yield _Batch(datasets, output_pattern.Apply({"<batch>" : str(i_batch)}))
+                yield _Batch(datasets, pathlib.Path(output_pattern.Apply({"<batch>" : str(i_batch)})))
                 datasets = []
                 i_batch += 1
 
     if datasets:
-        yield _Batch(datasets, output_pattern.Apply({"<batch>" : str(i_batch)}))
+        yield _Batch(datasets, pathlib.Path(output_pattern.Apply({"<batch>" : str(i_batch)})))
     return
 
 
@@ -149,10 +158,12 @@ def CreateXdmfTemporalGridFromMultifile(batch: _Batch, verbose: bool = False) ->
             current_spatial_grid.add_grid(UniformGrid(grid.name,
                                                       grid.geometry,
                                                       grid.topology))
-        with h5py.File(dataset.results.file_path, "r") as file:
-            for result in XdmfResults(file[dataset.results.prefix]):
-                current_spatial_grid.add_attribute(result)
-            temporal_grid.add_grid(Time(i_dataset), current_spatial_grid)
+        if dataset.results is not None:
+            with h5py.File(dataset.results.file_path, "r") as file:
+                for result in XdmfResults(file[dataset.results.prefix]):
+                    current_spatial_grid.add_attribute(result)
+
+        temporal_grid.add_grid(Time(i_dataset), current_spatial_grid)
 
         if verbose:
             pass # todo

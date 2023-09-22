@@ -151,20 +151,28 @@ def MakeJournal(input_file_pattern: str,
                              prefix,
                              mesh_pattern.Match(prefix))
                     for prefix in GlobHDF5(mesh_pattern, file, verbose = verbose))
-            while results:
-                current_results = results.pop(0)
+            while results or meshes:
+                current_results: typing.Optional[HDF5Path] = results.pop(0) if results else None
 
                 # Check whether there's a mesh corresponding to the current results
                 current_mesh: typing.Optional[HDF5Path] = None
-                while meshes and meshes[0] <= current_results:
+                if current_results is not None:
+                    for mesh in meshes:
+                        if mesh <= current_results:
+                            current_mesh = mesh
+                        else:
+                            break
+                elif meshes:
                     current_mesh = meshes.pop(0)
+                else:
+                    break
 
-                entry = {
-                    "results" : {
+                entry = dict()
+                if current_results is not None:
+                    entry["results"] = {
                         "file_name" : str(current_results.file_path),
                         "prefix" : str(current_results.prefix)
                     }
-                }
 
                 if current_mesh is not None:
                     entry["mesh"] = {
