@@ -122,7 +122,7 @@ class AsyncSolver(WRApp.WRAppClass):
 
 
     @property
-    def partitions(self) -> collections.abc.KeysView[str]:
+    def partitions(self) -> "collections.abc.KeysView[str]":
         return self.__solvers.keys()
 
 
