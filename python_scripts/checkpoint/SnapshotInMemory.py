@@ -35,7 +35,7 @@ class SnapshotInMemory(Snapshot):
 
 
     def GetExpression(self,
-                      container_type: KratosMultiphysics.Expression.ContainerType,
+                      container_type: KratosMultiphysics.Globals.DataLocation,
                       variable: WRApp.Typing.Variable) -> KratosMultiphysics.Expression.Expression:
         return self.GetInputType().GetExpression(self._parameters["input_parameters"]["file_name"].GetString(),
                                                  container_type,

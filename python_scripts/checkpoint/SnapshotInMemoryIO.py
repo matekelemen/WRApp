@@ -77,17 +77,17 @@ class SnapshotInMemoryIO(SnapshotIO):
         """ @brief Base class for interacting with the static cache of @ref SnapshotInMemoryIO."""
 
         _container_map = {
-            "nodal_historical_variables"    : KratosMultiphysics.Expression.ContainerType.NodalHistorical,
-            "nodal_variables"               : KratosMultiphysics.Expression.ContainerType.NodalNonHistorical,
-            "element_variables"             : KratosMultiphysics.Expression.ContainerType.ElementNonHistorical,
-            "condition_variables"           : KratosMultiphysics.Expression.ContainerType.ConditionNonHistorical
+            "nodal_historical_variables"    : KratosMultiphysics.Globals.DataLocation.NodeHistorical,
+            "nodal_variables"               : KratosMultiphysics.Globals.DataLocation.NodeNonHistorical,
+            "element_variables"             : KratosMultiphysics.Globals.DataLocation.Element,
+            "condition_variables"           : KratosMultiphysics.Globals.DataLocation.Condition
         }
 
         _expression_map = {
-            KratosMultiphysics.Expression.ContainerType.NodalHistorical : KratosMultiphysics.Expression.NodalExpression,
-            KratosMultiphysics.Expression.ContainerType.NodalNonHistorical : KratosMultiphysics.Expression.NodalExpression,
-            KratosMultiphysics.Expression.ContainerType.ElementNonHistorical : KratosMultiphysics.Expression.ElementExpression,
-            KratosMultiphysics.Expression.ContainerType.ConditionNonHistorical : KratosMultiphysics.Expression.ConditionExpression
+            KratosMultiphysics.Globals.DataLocation.NodeHistorical : KratosMultiphysics.Expression.NodalExpression,
+            KratosMultiphysics.Globals.DataLocation.NodeNonHistorical : KratosMultiphysics.Expression.NodalExpression,
+            KratosMultiphysics.Globals.DataLocation.Element : KratosMultiphysics.Expression.ElementExpression,
+            KratosMultiphysics.Globals.DataLocation.Condition : KratosMultiphysics.Expression.ConditionExpression
         }
 
 
@@ -125,7 +125,7 @@ class SnapshotInMemoryInput(SnapshotInMemoryIO):
     @classmethod
     def GetExpression(cls,
                       file_name: str,
-                      container_type: KratosMultiphysics.Expression.ContainerType,
+                      container_type: KratosMultiphysics.Globals.DataLocation,
                       variable: WRApp.Typing.Variable) -> KratosMultiphysics.Expression.Expression:
         return cls.GetEntry(file_name)["data"][container_type][variable.Name()]
 
@@ -161,10 +161,10 @@ class SnapshotInMemoryInput(SnapshotInMemoryIO):
                         expression = self._expression_map[container_type](self._model_part)
                         expression.SetExpression(entry["data"][container_type][variable_name])
 
-                        is_historical = container_type == KratosMultiphysics.Expression.ContainerType.NodalHistorical
+                        is_historical = container_type == KratosMultiphysics.Globals.DataLocation.NodeHistorical
 
                         # Assign data to the model part
-                        if is_historical or container_type == KratosMultiphysics.Expression.ContainerType.NodalNonHistorical:
+                        if is_historical or container_type == KratosMultiphysics.Globals.DataLocation.NodeNonHistorical:
                             KratosMultiphysics.Expression.VariableExpressionIO.Write(expression,
                                                                                      variable,
                                                                                      is_historical)
@@ -245,10 +245,10 @@ class SnapshotInMemoryOutput(SnapshotInMemoryIO):
                             # Construct a new expression
                             expression = self._expression_map[container_type](self._model_part)
                             variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-                            is_historical = container_type == KratosMultiphysics.Expression.ContainerType.NodalHistorical
+                            is_historical = container_type == KratosMultiphysics.Globals.DataLocation.NodeHistorical
 
                             # Read data from the model part into the expression
-                            if is_historical or container_type == KratosMultiphysics.Expression.ContainerType.NodalNonHistorical:
+                            if is_historical or container_type == KratosMultiphysics.Globals.DataLocation.NodeNonHistorical:
                                 KratosMultiphysics.Expression.VariableExpressionIO.Read(expression, variable, is_historical)
                             else:
                                 KratosMultiphysics.Expression.VariableExpressionIO.Read(expression, variable)
