@@ -5,7 +5,11 @@ __all__ = [
 ]
 
 # --- External Imports ---
-from matplotlib import pyplot
+try:
+    from matplotlib import pyplot
+except ImportError:
+    import sys
+    print(f"matplotlib is unavailable")
 
 # --- Core Imports ---
 import KratosMultiphysics
