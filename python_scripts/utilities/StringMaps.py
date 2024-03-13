@@ -20,11 +20,11 @@ class StringMaps:
         "condition"         : KratosMultiphysics.Expression.ConditionExpression
     }
 
-    containers: "dict[str,KratosMultiphysics.Expression.ContainerType]" = {
-        "nodal_historical"  : KratosMultiphysics.Expression.ContainerType.NodalHistorical,
-        "nodal"             : KratosMultiphysics.Expression.ContainerType.NodalNonHistorical,
-        "element"           : KratosMultiphysics.Expression.ContainerType.ElementNonHistorical,
-        "condition"         : KratosMultiphysics.Expression.ContainerType.ConditionNonHistorical
+    containers: "dict[str,KratosMultiphysics.Globals.DataLocation]" = {
+        "nodal_historical"  : KratosMultiphysics.Globals.DataLocation.NodeHistorical,
+        "nodal"             : KratosMultiphysics.Globals.DataLocation.NodeNonHistorical,
+        "element"           : KratosMultiphysics.Globals.DataLocation.Element,
+        "condition"         : KratosMultiphysics.Globals.DataLocation.Condition
     }
 
     is_historical_container: "dict[str,bool]" = {
