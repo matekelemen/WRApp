@@ -157,11 +157,12 @@ def MakeJournal(input_file_pattern: str,
                 # Check whether there's a mesh corresponding to the current results
                 current_mesh: typing.Optional[HDF5Path] = None
                 if current_results is not None:
-                    for mesh in meshes:
+                    for i_mesh, mesh in enumerate(meshes):
                         if mesh <= current_results:
                             current_mesh = mesh
                         else:
                             break
+                    meshes = meshes[i_mesh + 1:]
                 elif meshes:
                     current_mesh = meshes.pop(0)
                 else:
