@@ -132,7 +132,7 @@ def MakeJournal(input_file_pattern: str,
                 verbose: bool = False) -> None:
     """ @brief Create a @ref Kratos::Journal from globbed paths."""
     # Collect all files and sort them in chronological order (analysis time/step)
-    input_pattern = WRApp.ModelPartPattern(str(pathlib.Path(input_file_pattern).absolute()))
+    input_pattern = WRApp.ModelPartPattern(input_file_pattern)
     results_pattern = WRApp.ModelPartPattern(results_prefix)
     mesh_pattern = WRApp.ModelPartPattern(mesh_prefix)
 
