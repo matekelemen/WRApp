@@ -34,7 +34,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(Kratos${application_name} PROPERTIES SUFFIX .so) # Suffix on MacOS
 endif()
 
-include(pybind11Tools)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS}
                                 "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts"
                                 KratosMultiphysics/${application_name})

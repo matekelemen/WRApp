@@ -23,10 +23,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
     KratosWRApplication();
 
-    /// Destructor.
     ~KratosWRApplication() override {}
 
     ///@}
@@ -47,14 +45,9 @@ public:
 
     ///@}
 private:
-    ///@name Un accessible methods
-    ///@{
-
     KratosWRApplication& operator=(const KratosWRApplication& rOther) = delete;
 
     KratosWRApplication(const KratosWRApplication& rOther) = delete;
-
-    ///@}
 
 }; // class KratosWRApplication
 

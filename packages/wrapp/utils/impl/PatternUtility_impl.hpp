@@ -25,7 +25,7 @@ void PlaceholderPattern::Glob(TOutputIterator it) const
         paths.emplace_back(pattern.root_path());
         ++it_pattern_part;
     } else { // the pattern is relative => begin globbing at the current working directory
-        paths.emplace_back(std::filesystem::current_path());
+        paths.emplace_back(".");
     }
 
     // Compare the pattern parts to the globbed files'/directories' parts

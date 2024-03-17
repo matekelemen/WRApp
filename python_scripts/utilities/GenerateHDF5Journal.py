@@ -119,18 +119,6 @@ else:
 
 
 
-    def InputFileOrdering(item: "tuple[str,dict[str,list[str]],bool]") -> typing.Union[int,float,str]:
-        """ @brief Takes a file name and its output from @ref ModelPartPattern, and extract data on which it should be ordered.
-            @details Ordering happens on the first available variable in the following list:
-                    - step index, if present in the match results
-                    - time, if present in the match results
-                    - 0
-        """
-        # item: {file_path, match_dict, has_mesh}
-        return ExtractTimeLabel(item[1], 0)
-
-
-
     def MakeJournal(input_file_pattern: str,
                     results_prefix: str,
                     mesh_prefix: str,
@@ -138,7 +126,7 @@ else:
                     verbose: bool = False) -> None:
         """ @brief Create a @ref Kratos::Journal from globbed paths."""
         # Collect all files and sort them in chronological order (analysis time/step)
-        input_pattern = WRApp.ModelPartPattern(str(pathlib.Path(input_file_pattern).absolute()))
+        input_pattern = WRApp.ModelPartPattern(input_file_pattern)
         results_pattern = WRApp.ModelPartPattern(results_prefix)
         mesh_pattern = WRApp.ModelPartPattern(mesh_prefix)
 
@@ -163,11 +151,12 @@ else:
                     # Check whether there's a mesh corresponding to the current results
                     current_mesh: typing.Optional[HDF5Path] = None
                     if current_results is not None:
-                        for mesh in meshes:
+                        for i_mesh, mesh in enumerate(meshes):
                             if mesh <= current_results:
                                 current_mesh = mesh
                             else:
                                 break
+                        meshes = meshes[i_mesh + 1:]
                     elif meshes:
                         current_mesh = meshes.pop(0)
                     else:
@@ -188,6 +177,19 @@ else:
 
                     journal.write(json.dumps(entry))
                     journal.write("\n")
+
+
+
+
+    def InputFileOrdering(item: "tuple[str,dict[str,list[str]],bool]") -> typing.Union[int,float,str]:
+        """ @brief Takes a file name and its output from @ref ModelPartPattern, and extract data on which it should be ordered.
+            @details Ordering happens on the first available variable in the following list:
+                    - step index, if present in the match results
+                    - time, if present in the match results
+                    - 0
+        """
+        # item: {file_path, match_dict, has_mesh}
+        return ExtractTimeLabel(item[1], 0)
 
 
 
