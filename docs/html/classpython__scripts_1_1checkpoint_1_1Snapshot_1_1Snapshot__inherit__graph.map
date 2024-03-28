@@ -1,0 +1,7 @@
+<map id="Snapshot" name="Snapshot">
+<area shape="rect" id="node1" title="Class representing a snapshot of a ModelPart state." alt="" coords="76,131,268,399"/>
+<area shape="rect" id="node3" href="$classpython__scripts_1_1checkpoint_1_1Snapshot_1_1SnapshotFS.html" title="Class representing a snapshot of a ModelPart state and its associated output file on the filesystem." alt="" coords="11,461,157,612"/>
+<area shape="rect" id="node5" href="$classpython__scripts_1_1checkpoint_1_1SnapshotInMemory_1_1SnapshotInMemory.html" title="Snapshot that stores/fetches its data in/from memory." alt="" coords="181,447,339,627"/>
+<area shape="rect" id="node2" title=" " alt="" coords="120,5,224,83"/>
+<area shape="rect" id="node4" href="$classpython__scripts_1_1checkpoint_1_1HDF5Snapshot_1_1HDF5Snapshot.html" title="Class representing a snapshot of a ModelPart state and its associated output file in HDF5 format." alt="" coords="5,675,163,796"/>
+</map>

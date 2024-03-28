@@ -1,0 +1,5 @@
+<map id="StepFromProcessInfo" name="StepFromProcessInfo">
+<area shape="rect" id="node1" title="Get STEP from a ProcessInfo." alt="" coords="17,373,201,495"/>
+<area shape="rect" id="node2" href="$classKratos_1_1Pipes_1_1VariableFromProcessInfo.html" title=" " alt="" coords="5,145,213,325"/>
+<area shape="rect" id="node3" href="$structKratos_1_1Pipes_1_1Traits.html" title=" " alt="" coords="16,5,203,97"/>
+</map>

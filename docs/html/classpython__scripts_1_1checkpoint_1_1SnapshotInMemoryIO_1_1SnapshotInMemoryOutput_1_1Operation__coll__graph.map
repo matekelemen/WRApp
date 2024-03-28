@@ -1,0 +1,5 @@
+<map id="SnapshotInMemoryOutput.Operation" name="SnapshotInMemoryOutput.Operation">
+<area shape="rect" id="node1" title="Write data to the static cache of SnapshotInMemoryIO." alt="" coords="5,256,265,333"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1checkpoint_1_1SnapshotInMemoryIO_1_1SnapshotInMemoryIO_1_1Operation.html" title="Base class for interacting with the static cache of SnapshotInMemoryIO." alt="" coords="20,131,251,208"/>
+<area shape="rect" id="node3" title=" " alt="" coords="92,5,179,83"/>
+</map>

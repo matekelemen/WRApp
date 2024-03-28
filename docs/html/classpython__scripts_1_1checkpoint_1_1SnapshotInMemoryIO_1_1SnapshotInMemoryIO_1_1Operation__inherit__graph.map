@@ -1,0 +1,6 @@
+<map id="SnapshotInMemoryIO.Operation" name="SnapshotInMemoryIO.Operation">
+<area shape="rect" id="node1" title="Base class for interacting with the static cache of SnapshotInMemoryIO." alt="" coords="153,131,384,208"/>
+<area shape="rect" id="node3" href="$classpython__scripts_1_1checkpoint_1_1SnapshotInMemoryIO_1_1SnapshotInMemoryInput_1_1Operation.html" title="Read data from the static cache of SnapshotInMemoryIO." alt="" coords="5,256,255,333"/>
+<area shape="rect" id="node4" href="$classpython__scripts_1_1checkpoint_1_1SnapshotInMemoryIO_1_1SnapshotInMemoryOutput_1_1Operation.html" title="Write data to the static cache of SnapshotInMemoryIO." alt="" coords="279,256,539,333"/>
+<area shape="rect" id="node2" title=" " alt="" coords="225,5,312,83"/>
+</map>

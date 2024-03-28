@@ -1,0 +1,4 @@
+<map id="CompoundPipe&lt; TInputPipe, TOutputPipe &gt;" name="CompoundPipe&lt; TInputPipe, TOutputPipe &gt;">
+<area shape="rect" id="node1" title="A composable pipe that takes the output of one pipe and feeds its result into another." alt="" coords="5,160,213,355"/>
+<area shape="rect" id="node2" href="$structKratos_1_1Pipes_1_1Traits.html" title=" " alt="" coords="19,5,200,112"/>
+</map>

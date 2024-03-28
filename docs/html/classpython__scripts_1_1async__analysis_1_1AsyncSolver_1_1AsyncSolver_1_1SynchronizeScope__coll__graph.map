@@ -1,0 +1,6 @@
+<map id="AsyncSolver.SynchronizeScope" name="AsyncSolver.SynchronizeScope">
+<area shape="rect" id="node1" title="Embed AsyncSolver._Synchronize in a SolutionStageScope." alt="" coords="5,381,228,459"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1SolverScope.html" title="Embed some part of AsyncSolver in a SolutionStageScope." alt="" coords="24,256,209,333"/>
+<area shape="rect" id="node3" href="$classpython__scripts_1_1async__analysis_1_1SolutionStageScope_1_1SolutionStageScope.html" title="RAII context manager for tasks during solver execution." alt="" coords="41,131,192,208"/>
+<area shape="rect" id="node4" title=" " alt="" coords="92,5,141,83"/>
+</map>
