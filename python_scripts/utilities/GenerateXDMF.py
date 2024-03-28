@@ -9,6 +9,7 @@ import KratosMultiphysics
 
 # --- HDF5 Imports ---
 import KratosMultiphysics.HDF5Application
+from KratosMultiphysics.HDF5Application.core.xdmf import Attribute
 from KratosMultiphysics.HDF5Application.xdmf_utils import RenumberConnectivitiesForXdmf,    \
                                                           CreateXdmfSpatialGrid,            \
                                                           XdmfResults,                      \
@@ -22,6 +23,7 @@ from KratosMultiphysics.HDF5Application.xdmf_utils import RenumberConnectivities
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
 from .GenerateHDF5Journal import HDF5Path
+#from .xdmf import HDF5CoordinateDataItem
 
 # --- STD Imports ---
 import pathlib
@@ -105,7 +107,7 @@ else:
             current_mesh: typing.Optional[HDF5Path] = None
             current_results: typing.Optional[HDF5Path] = None
             output_pattern = WRApp.PlaceholderPattern(output_path,
-                                                    {"<batch>" : WRApp.PlaceholderPattern.UnsignedInteger})
+                                                      {"<batch>" : WRApp.PlaceholderPattern.UnsignedInteger})
             i_batch = 0
             for i_entry, entry in enumerate(journal.readlines()):
                 map = json.loads(entry)
@@ -114,7 +116,6 @@ else:
                 mesh = map.get("mesh", None)
                 if mesh is not None:
                     current_mesh = HDF5Path(pathlib.Path(mesh["file_name"]),
-                                            {},
                                             mesh["prefix"],
                                             {})
 
@@ -122,7 +123,6 @@ else:
                 results = map.get("results", None)
                 if results is not None:
                     current_results = HDF5Path(pathlib.Path(map["results"]["file_name"]),
-                                            {},
                                             map["results"]["prefix"],
                                             {})
 
@@ -149,6 +149,14 @@ else:
 
 
 
+    def AddResultsToGrid(results: "list[Attribute]",
+                         mesh_path: HDF5Path,
+                         spatial_grid: SpatialGrid) -> None:
+        for result in results:
+            spatial_grid.add_attribute(result)
+
+
+
     def CreateXdmfTemporalGridFromMultifile(batch: _Batch, verbose: bool = False) -> TemporalGrid:
         temporal_grid = TemporalGrid()
         spatial_grid = SpatialGrid()
@@ -160,12 +168,12 @@ else:
                     spatial_grid = CreateXdmfSpatialGrid(file[dataset.mesh.prefix])
             for grid in spatial_grid.grids:
                 current_spatial_grid.add_grid(UniformGrid(grid.name,
-                                                        grid.geometry,
-                                                        grid.topology))
+                                                          grid.geometry,
+                                                          grid.topology))
             if dataset.results is not None:
                 with h5py.File(dataset.results.file_path, "r") as file:
-                    for result in XdmfResults(file[dataset.results.prefix]):
-                        current_spatial_grid.add_attribute(result)
+                    results = XdmfResults(file[dataset.results.prefix])
+                AddResultsToGrid(results, dataset.mesh, current_spatial_grid)
 
             temporal_grid.add_grid(Time(i_dataset), current_spatial_grid)
 
@@ -239,9 +247,9 @@ else:
 
         def Execute(self) -> None:
             Generate(pathlib.Path(self.__parameters["journal_path"].GetString()),
-                    output_pattern = self.__output_pattern,
-                    batch_size = self.__batch_size,
-                    verbose = self.__parameters["verbose"].GetBool())
+                     output_pattern = self.__output_pattern,
+                     batch_size = self.__batch_size,
+                     verbose = self.__parameters["verbose"].GetBool())
 
 
         @classmethod
