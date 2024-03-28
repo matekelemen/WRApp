@@ -18,6 +18,9 @@
 #include "wrapp/utils/inc/CheckpointID.hpp"
 #include "wrapp/utils/inc/DataValueContainerKeyIterator.hpp"
 #include "wrapp/utils/inc/DynamicEntityProxy.hpp"
+#include "wrapp/utils/inc/Hdf5IdToIndexOperation.hpp"
+#include "wrapp/utils/inc/Hdf5LinSpaceOperation.hpp"
+#include "wrapp/utils/inc/Hdf5IndexConnectivitiesOperation.hpp"
 
 // --- STL Includes ---
 #include <type_traits>
@@ -300,6 +303,30 @@ void AddUtilsToPython(pybind11::module& rModule)
     DefineDynamicEntityProxyMembers<array_1d<double,9>>(dynamic_entity_proxy);
     DefineDynamicEntityProxyMembers<Vector>(dynamic_entity_proxy);
     DefineDynamicEntityProxyMembers<DenseMatrix<double>>(dynamic_entity_proxy);
+
+    pybind11::class_<WRApp::Hdf5IdToIndexOperation,
+                     WRApp::Hdf5IdToIndexOperation::Pointer,
+                     WRApp::WRAppClass>(rModule, "Hdf5IdToIndexOperation")
+        .def(pybind11::init<Parameters>())
+        .def(pybind11::init<Model&,Parameters>())
+        .def("Execute", &WRApp::Hdf5IdToIndexOperation::Execute)
+        ;
+
+    pybind11::class_<WRApp::Hdf5LinSpaceOperation,
+                     WRApp::Hdf5LinSpaceOperation::Pointer,
+                     WRApp::WRAppClass>(rModule, "Hdf5LinSpaceOperation")
+        .def(pybind11::init<Parameters>())
+        .def(pybind11::init<Model&,Parameters>())
+        .def("Execute", &WRApp::Hdf5LinSpaceOperation::Execute)
+        ;
+
+    pybind11::class_<WRApp::Hdf5IndexConnectivitiesOperation,
+                     WRApp::Hdf5IndexConnectivitiesOperation::Pointer,
+                     WRApp::WRAppClass>(rModule, "Hdf5IndexConnectivitiesOperation")
+        .def(pybind11::init<Parameters>())
+        .def(pybind11::init<Model&,Parameters>())
+        .def("Execute", &WRApp::Hdf5IndexConnectivitiesOperation::Execute)
+        ;
 }
 
 
