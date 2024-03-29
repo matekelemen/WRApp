@@ -76,7 +76,7 @@ void WriteSubGroupMaps(Ref<HDF5::File> rFile,
 
             // Write node indices
             KRATOS_TRY
-                const std::string output_node_index_prefix = output_subgroup_prefix + "/NodeIndices";
+                const std::string output_node_index_prefix = output_subgroup_prefix + "/Nodes/Indices";
                 [[maybe_unused]] HDF5::WriteInfo write_info;
                 rFile.WriteDataSet(output_node_index_prefix,
                                    node_ids,
