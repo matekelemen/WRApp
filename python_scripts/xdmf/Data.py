@@ -71,7 +71,7 @@ class HDF5Data(Data):
 
 
     def GetAttributes(self) -> "list[tuple[str,str]]":
-        return super().GetAttributes() + [("Format", "HDF5")]
+        return super().GetAttributes() + [("Format", "HDF")]
 
 
     def GetText(self) -> str:
