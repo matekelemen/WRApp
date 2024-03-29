@@ -20,7 +20,11 @@ class Data(abc.ABC):
 
     def __init__(self, data_type: DataType, shape: "Collection[int]") -> None:
         self.__data_type = data_type
-        self.__shape = shape
+        self.__shape = [v for v in shape]
+
+        # Remove trailing 1s from the shape (otherwise paraview craps out sometimes)
+        while 1 < len(self.__shape) and self.__shape[-1] == 1:
+            self.__shape = self.__shape[:-1]
 
 
     def GetAttributes(self) -> "list[tuple[str,str]]":
