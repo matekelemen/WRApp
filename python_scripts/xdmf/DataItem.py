@@ -51,17 +51,14 @@ class CoordinateDataItem(DataItem):
                  reference_set: DataItem) -> None:
         super().__init__()
         self.attrib.update(reference_set.attrib)
-
-        # Even though indices are supposed to be integers, Paraview
-        # will crap out if that's explicitly mentioned.
-        for attribute_name in ("DataType", "Precision"):
-            if attribute_name in index_set.attrib:
-                del index_set.attrib[attribute_name]
+        if "Format" in self.attrib:
+            del self.attrib["Format"]
 
         # Paraview drops the ball if nested items have names
-        for element in (index_set, reference_set):
-            if "Name" in element.attrib:
-                del element.attrib["Name"]
+        #for element in (index_set, reference_set):
+        #    for key in ("Name", "DataType", "Precision"):
+        #        if key in element.attrib:
+        #            del element.attrib[key]
 
         self.append(index_set)
         self.append(reference_set)
