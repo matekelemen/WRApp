@@ -129,18 +129,19 @@ void WriteSubGroupMaps(Ref<HDF5::File> rFile,
         } // for group_name in ("Elements", "Conditions")
     } // for r_subgroup_names in subgroup_names
 
-    // Recursive call to nested subgroups
-    const std::string input_nesting_prefix = rInputSubGroupPrefix + "/SubModelParts";
-    if (rFile.HasPath(input_nesting_prefix)) {
-        KRATOS_TRY
-        const std::string output_nesting_prefix = rOutputSubGroupPrefix + "/SubModelParts";
-        WriteSubGroupMaps(rFile,
-                          input_nesting_prefix,
-                          output_nesting_prefix,
-                          rNodeIdMap,
-                          rCellIdMaps);
-        KRATOS_CATCH(input_nesting_prefix)
-    }
+        // Recursive call to nested subgroups
+        const std::string input_nesting_prefix = input_subgroup_prefix + "/SubModelParts";
+        if (rFile.HasPath(input_nesting_prefix)) {
+            KRATOS_TRY
+            const std::string output_nesting_prefix = output_subgroup_prefix + "/SubModelParts";
+            WriteSubGroupMaps(rFile,
+                              input_nesting_prefix,
+                              output_nesting_prefix,
+                              rNodeIdMap,
+                              rCellIdMaps);
+            KRATOS_CATCH(input_nesting_prefix)
+        }
+    } // for r_subgroup_names in subgroup_names
     KRATOS_CATCH("")
 }
 } // Anonymous namespace
