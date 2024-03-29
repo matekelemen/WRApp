@@ -87,11 +87,9 @@ void WriteSubGroupMaps(Ref<HDF5::File> rFile,
         // Write cell sets
         for (std::string group_name : {"Elements", "Conditions"}) {
             const std::string input_parent_prefix = input_subgroup_prefix + "/" + group_name;
-            KRATOS_WATCH(input_parent_prefix);
 
             if (rFile.HasPath(input_parent_prefix)) {
                 const std::string output_parent_prefix = output_subgroup_prefix + "/" + group_name;
-                KRATOS_WATCH(output_parent_prefix);
                 const auto cell_names = rFile.GetGroupNames(input_parent_prefix);
                 for (const std::string& r_cell_name : cell_names) {
                     const auto it_cell_id_map = rCellIdMaps.find(r_cell_name);
@@ -119,7 +117,6 @@ void WriteSubGroupMaps(Ref<HDF5::File> rFile,
                     KRATOS_TRY
                         const std::string output_cell_index_prefix = output_parent_prefix + "/" + r_cell_name + "/Indices";
                         [[maybe_unused]] HDF5::WriteInfo write_info;
-                        std::cout << "writing cell set to " << output_cell_index_prefix << "\n";
                         rFile.WriteDataSet(output_cell_index_prefix,
                                            cell_ids,
                                            write_info);
@@ -127,7 +124,6 @@ void WriteSubGroupMaps(Ref<HDF5::File> rFile,
                 } // for r_cell_name in cell_names
             } // if input_parent_prefix in rFile
         } // for group_name in ("Elements", "Conditions")
-    } // for r_subgroup_names in subgroup_names
 
         // Recursive call to nested subgroups
         const std::string input_nesting_prefix = input_subgroup_prefix + "/SubModelParts";
