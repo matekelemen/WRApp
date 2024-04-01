@@ -45,7 +45,6 @@ class Topology(Element):
 
     def __init__(self,
                  topology_type: "Type",
-                 element_count: int,
                  nodes_per_element: Optional[int] = None) -> None:
         super().__init__("Topology")
 
@@ -58,13 +57,16 @@ class Topology(Element):
                 raise RuntimeError(f"failed to deduce number of nodes per element from topology type {topology_type.name}")
 
         self.attrib["TopologyType"] = topology_type.name
-        self.attrib["NumberOfElements"] = str(element_count)
+        self.attrib["NumberOfElements"] = "0"
         self.attrib["NodesPerElement"] = str(nodes_per_element)
 
 
     def append(self, child: DataItem) -> None:
+        if len(self) != 0:
+            raise RuntimeError(f"Topology already has data")
         if not isinstance(child, DataItem):
             raise TypeError(f"expecting a DataItem, but got {type(child)}")
+        self.attrib["NumberOfElements"] = str(child.GetShape()[0])
         return super().append(child)
 
 
