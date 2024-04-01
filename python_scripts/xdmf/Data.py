@@ -6,13 +6,22 @@ __all__ = [
     "HDF5Data"
 ]
 
+# --- External Imports ---
+import numpy
+try:
+    import h5py
+except ModuleNotFoundError:
+    class h5py:
+        class Group: pass
+        class Dataset: pass
+
 # --- WRApp Imports ---
-from KratosMultiphysics.WRApplication.xdmf.DataType import DataType
+from KratosMultiphysics.WRApplication.xdmf.DataType import DataType, Int, Double
 
 # --- STD Imports ---
 import abc
 import pathlib
-from typing import Collection, Union
+from typing import Collection, Union, Optional
 
 
 
@@ -80,3 +89,16 @@ class HDF5Data(Data):
 
     def GetText(self) -> str:
         return f"{self.__file_path}:{self.__prefix}"
+
+
+    @classmethod
+    def FromDataset(cls, dataset: h5py.Dataset) -> "HDF5Data":
+        file_path = pathlib.Path(dataset.file.filename)
+        prefix = str(dataset.name)
+        data_type: Optional[DataType] = Int() if dataset.dtype == numpy.int32 else Double() if dataset.dtype == numpy.float64 else None
+        if data_type is None:
+            raise TypeError(f"{file_path}:{prefix} unsupported data type {dataset.dtype}")
+        return HDF5Data(data_type,
+                        dataset.shape,
+                        file_path,
+                        prefix)
