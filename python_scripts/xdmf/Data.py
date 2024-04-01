@@ -31,19 +31,23 @@ class Data(abc.ABC):
         self.__data_type = data_type
         self.__shape = [v for v in shape]
 
-        # Remove trailing 1s from the shape (otherwise paraview craps out sometimes)
-        while 1 < len(self.__shape) and self.__shape[-1] == 1:
-            self.__shape = self.__shape[:-1]
-
 
     def GetAttributes(self) -> "list[tuple[str,str]]":
         output = self.__data_type.GetAttributes()
-        output.append(("Dimensions", " ".join(str(component) for component in self.GetShape())))
+        shape = self.__shape.copy()
+
+        # Remove 1s from the shape (otherwise paraview craps out sometimes)
+        if shape:
+            shape = [v for v in shape if v != 1]
+            if not shape:
+                shape = [1]
+        output.append(("Dimensions", " ".join(str(component) for component in shape)))
+
         return output
 
 
     def GetShape(self) -> "list[int]":
-        return [value for value in self.__shape]
+        return self.__shape.copy()
 
 
     @abc.abstractmethod
