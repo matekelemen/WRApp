@@ -15,7 +15,6 @@ from enum import Enum
 
 class Geometry(Element):
 
-
     class Type(Enum):
         XYZ             = 0
         XY              = 1
