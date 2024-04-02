@@ -275,42 +275,6 @@ class __ParentElements:
 
 
 
-def ParseResults(path: h5py.Group,
-                 grid: Grid,
-                 node_indices: Optional[DataItem] = None,
-                 element_indices: Optional[DataItem] = None,
-                 condition_indices: Optional[DataItem] = None,
-                 parent_elements: Optional[__ParentElements] = None) -> "dict[Attribute.Center,dict[str,DataItem]]":
-    attribute_sets: "dict[Attribute.Center,dict[str,DataItem]]" = {}
-    group_map: "list[tuple[Attribute.Center,Optional[DataItem],list[str]]]" = [
-        (Attribute.Center.Node, node_indices, ["NodalSolutionStepData", "NodalDataValues", "NodalFlagValues"]),
-        (Attribute.Center.Cell, element_indices, ["ElementDataValues", "ElementFlagValues"]),
-        (Attribute.Center.Cell, condition_indices, ["ConditionDataValues", "ConditionFlagValues"])
-    ]
-
-    # Parse node attributes
-    for center, cell_indices, group_names in group_map:
-        attribute_set: "dict[str,DataItem]" = attribute_sets.setdefault(center, {})
-        for group_name in group_names:
-            group: Optional[h5py.Group] = path.get(group_name, None)
-            if group is not None:
-                root_attribute_sets: "Optional[dict[str,DataItem]]"
-                if parent_elements is not None and parent_elements.attribute_sets is not None:
-                    root_attribute_sets = parent_elements.attribute_sets[center]
-
-                attribute_map = __ParseAttributeGroup(group,
-                                                      center,
-                                                      cell_index_set = cell_indices,
-                                                      root_attribute_sets = root_attribute_sets)
-                for attribute_name, attribute in attribute_map.items():
-                    grid.append(attribute)
-                    attribute_data: DataItem = attribute[0]
-                    attribute_set[attribute_name] = attribute_data
-
-    return attribute_sets
-
-
-
 class SubgroupNaming(Enum):
     Default     = 0
     Paraview    = 1
