@@ -108,14 +108,9 @@ void WriteSubGroupMaps(Ref<HDF5::File> rFile,
                         rFile.ReadDataSet(cell_id_prefix, cell_ids, 0, cell_ids.size());
                     KRATOS_CATCH("")
 
-                    // Map cell IDs to indices
-                    IndexPartition<std::size_t>(cell_ids.size()).for_each([&rNodeIdMap, &cell_ids](std::size_t Index) mutable {
-                        cell_ids[Index] = rNodeIdMap[cell_ids[Index]];
-                    });
-
                     // Write cell indices to the HDF5 file
                     KRATOS_TRY
-                        const std::string output_cell_index_prefix = output_parent_prefix + "/" + r_cell_name + "/Indices";
+                        const std::string output_cell_index_prefix = output_parent_prefix + "/" + r_cell_name + "/Ids";
                         [[maybe_unused]] HDF5::WriteInfo write_info;
                         rFile.WriteDataSet(output_cell_index_prefix,
                                            cell_ids,
