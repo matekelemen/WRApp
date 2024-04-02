@@ -210,7 +210,7 @@ def __ParseCellGroup(cell_name: str,
                      node_coordinate_set: DataItem,
                      attribute_paths: "list[h5py.Group]",
                      grid: Grid,
-                     root_cell_data: "Optional[dict[str,DataItem]]" = None) -> DataItem:
+                     root_cell_data: "Optional[dict[str,DataItem]]" = None) -> "tuple[DataItem,DataItem]":
     cell_grid = GridLeaf(cell_name)
 
     # Parse topology
@@ -221,7 +221,8 @@ def __ParseCellGroup(cell_name: str,
         connectivity_set: h5py.Dataset = path["Connectivities"]
         topology_data = LeafDataItem(HDF5Data.FromDataset(connectivity_set))
     else:
-        cell_indices = LeafDataItem(HDF5Data.FromDataset(path["Indices"]))
+        cell_ids = LeafDataItem(HDF5Data.FromDataset(path["Ids"]))
+        cell_indices = CoordinateDataItem()
         topology_data = CoordinateDataItem(cell_indices, root_cell_data[cell_name])
     topology.append(topology_data)
     cell_grid.append(topology)
@@ -239,7 +240,8 @@ def __ParseCellGroup(cell_name: str,
             cell_grid.append(attribute)
 
     grid.append(cell_grid)
-    return topology_data
+
+    return topology_data, LeafDataItem(HDF5Data.FromDataset(path["IdMap"]))
 
 
 
@@ -247,8 +249,8 @@ def __ParseCellGroups(path: h5py.Group,
                       node_coordinate_set: DataItem,
                       attribute_paths: "list[h5py.Group]",
                       grid: Grid,
-                      root_cell_data: "Optional[dict[str,DataItem]]" = None) -> "dict[str,DataItem]":
-    output: "dict[str,DataItem]" = {}
+                      root_cell_data: "Optional[dict[str,DataItem]]" = None) -> "dict[str,tuple[DataItem,DataItem]]":
+    output: "dict[str,tuple[DataItem,DataItem]]" = {}
     for name, cell_group in path.items():
         if isinstance(cell_group, h5py.Group):
             output[name] = __ParseCellGroup(name,
@@ -265,10 +267,12 @@ class __ParentElements:
 
     def __init__(self,
                  node_coordinate_data: DataItem,
+                 node_id_map: DataItem,
                  node_index_data: DataItem,
-                 element_data: "dict[str,DataItem]",
-                 condition_data: "dict[str,DataItem]") -> None:
+                 element_data: "dict[str,tuple[DataItem,DataItem]]",
+                 condition_data: "dict[str,tuple[DataItem,DataItem]]") -> None:
         self.node_coordinate_data = node_coordinate_data
+        self.node_id_map = node_id_map
         self.node_index_data = node_index_data
         self.element_data = element_data
         self.condition_data = condition_data
@@ -320,17 +324,18 @@ def ParseRootMesh(path: h5py.Group,
     grid.append(node_grid)
 
     # Parse elements and conditions
-    element_data: "dict[str,DataItem]" = {}
-    condition_data: "dict[str,DataItem]" = {}
+    element_data: "dict[str,tuple[DataItem,DataItem]]" = {}
+    condition_data: "dict[str,tuple[DataItem,DataItem]]" = {}
     xdmf_group: h5py.Group = path["Xdmf"]
 
     element_groups: Optional[h5py.Group] = xdmf_group.get("Elements", None)
     if element_groups is not None:
         attribute_paths: "list[h5py.Group]" = []
-        for attribute_group_name in ("ElementDataValues", "ElementFlagValues"):
-            attribute_group: Optional[h5py.Group] = attribute_path.get(attribute_group_name, None)
-            if attribute_group is not None:
-                attribute_paths.append(attribute_group)
+        if attribute_path is not None:
+            for attribute_group_name in ("ElementDataValues", "ElementFlagValues"):
+                attribute_group: Optional[h5py.Group] = attribute_path.get(attribute_group_name, None)
+                if attribute_group is not None:
+                    attribute_paths.append(attribute_group)
 
         element_data.update(__ParseCellGroups(element_groups,
                                               node_coordinate_data,
@@ -340,10 +345,11 @@ def ParseRootMesh(path: h5py.Group,
     condition_groups: Optional[h5py.Group] = xdmf_group.get("Conditions", None)
     if condition_groups is not None:
         attribute_paths: "list[h5py.Group]" = []
-        for attribute_group_name in ("ConditionDataValues", "ConditionFlagValues"):
-            attribute_group: Optional[h5py.Group] = attribute_path.get(attribute_group_name, None)
-            if attribute_group is not None:
-                attribute_paths.append(attribute_group)
+        if attribute_path is not None:
+            for attribute_group_name in ("ConditionDataValues", "ConditionFlagValues"):
+                attribute_group: Optional[h5py.Group] = attribute_path.get(attribute_group_name, None)
+                if attribute_group is not None:
+                    attribute_paths.append(attribute_group)
 
         condition_data.update(__ParseCellGroups(condition_groups,
                                                 node_coordinate_data,
@@ -353,7 +359,9 @@ def ParseRootMesh(path: h5py.Group,
     # Parse sub model parts
     sub_groups: Optional[h5py.Group] = xdmf_group.get("SubModelParts", None)
     if sub_groups is not None:
+        node_id_map = LeafDataItem(HDF5Data.FromDataset(path["Xdmf"]["Nodes"]["IdMap"]))
         root_elements = __ParentElements(node_coordinate_data,
+                                         node_id_map,
                                          node_index_data,
                                          element_data,
                                          condition_data)
@@ -382,8 +390,9 @@ def ParseSubmesh(path: h5py.Group,
         node_grid: Grid = GridLeaf(node_subgroup_name)
 
         # Point cloud topology
-        node_index_set: h5py.Dataset = node_group["Indices"]
-        node_indices = LeafDataItem(HDF5Data.FromDataset(node_index_set))
+        node_id_set: h5py.Dataset = node_group["Ids"]
+        node_ids = LeafDataItem(HDF5Data.FromDataset(node_id_set))
+        node_indices = CoordinateDataItem(node_ids, parent_elements.node_id_map)
         point_cloud_topology = Topology(Topology.Type.Polyvertex)
         point_cloud_topology.append(CoordinateDataItem(node_indices, parent_elements.node_index_data))
         node_grid.append(point_cloud_topology)
@@ -405,22 +414,24 @@ def ParseSubmesh(path: h5py.Group,
                     cell_subgroup_name = f"{name}.{cell_name}" if subgroup_naming == SubgroupNaming.Paraview else cell_name
                     cell_grid = GridLeaf(cell_subgroup_name)
 
-                    cell_index_set = LeafDataItem(HDF5Data.FromDataset(cell_group["Indices"]))
+                    cell_id_set = LeafDataItem(HDF5Data.FromDataset(cell_group["Ids"]))
+                    cell_index_set = CoordinateDataItem(cell_id_set, cell_data[cell_name][1])
                     topology_type = __ParseCellType(cell_name)
                     cell_topology = Topology(topology_type)
-                    cell_topology.append(CoordinateDataItem(cell_index_set, cell_data[cell_name]))
+                    cell_topology.append(CoordinateDataItem(cell_index_set, cell_data[cell_name][0]))
 
                     cell_grid.append(cell_topology)
                     cell_grid.append(node_geometry)
 
                     # Add attributes to the current grid level
-                    for attribute_group_name in attribute_group_names:
-                        attribute_group: Optional[h5py.Group] = attribute_path.get(attribute_group_name, None)
-                        if attribute_group is not None:
-                            for attribute in __ParseAttributeGroup(attribute_group,
-                                                                   Attribute.Center.Cell,
-                                                                   cell_index_set = cell_index_set).values():
-                                cell_grid.append(attribute)
+                    if attribute_path is not None:
+                        for attribute_group_name in attribute_group_names:
+                            attribute_group: Optional[h5py.Group] = attribute_path.get(attribute_group_name, None)
+                            if attribute_group is not None:
+                                for attribute in __ParseAttributeGroup(attribute_group,
+                                                                       Attribute.Center.Cell,
+                                                                       cell_index_set = cell_index_set).values():
+                                    cell_grid.append(attribute)
 
                     # Insert the current grid level into the grid tree
                     grid_tree.append(cell_grid)
@@ -455,6 +466,7 @@ def ParseMesh(path: h5py.Group,
                  "Nodes" must contain the IDs and coordinates of all nodes in the mesh,
                  while "Xdmf" must contain "NodeIDMap".
     """
+    attribute_path = None
     if parent_elements is None:
         return ParseRootMesh(path,
                              name = name,
