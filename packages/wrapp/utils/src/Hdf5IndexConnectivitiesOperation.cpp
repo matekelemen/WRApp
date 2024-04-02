@@ -31,6 +31,9 @@ HDF5::File::Vector<int> MakeIdMap(Ref<const HDF5::File::Vector<int>> rIds)
         [&rIds](std::size_t Index){return rIds[Index];}
     );
     output.resize(max_id + 1, false); // <== kratos IDs are 1-based
+    IndexPartition<std::size_t>(output.size()).for_each([&output](std::size_t Index) mutable {
+            output[Index] = 0;
+    });
 
     // Build the ID-index map
     IndexPartition<std::size_t>(output.size()).for_each([&rIds, &output](std::size_t Index) mutable {
@@ -69,14 +72,9 @@ void WriteSubGroupMaps(Ref<HDF5::File> rFile,
                 rFile.ReadDataSet(input_node_id_prefix, node_ids, 0, node_ids.size());
             KRATOS_CATCH("")
 
-            // Map node IDs to indices
-            IndexPartition<std::size_t>(node_ids.size()).for_each([&rNodeIdMap, &node_ids](std::size_t Index) mutable {
-                node_ids[Index] = rNodeIdMap[node_ids[Index]];
-            });
-
             // Write node indices
             KRATOS_TRY
-                const std::string output_node_index_prefix = output_subgroup_prefix + "/Nodes/Indices";
+                const std::string output_node_index_prefix = output_subgroup_prefix + "/Nodes/Ids";
                 [[maybe_unused]] HDF5::WriteInfo write_info;
                 rFile.WriteDataSet(output_node_index_prefix,
                                    node_ids,
