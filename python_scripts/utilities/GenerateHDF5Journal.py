@@ -18,29 +18,33 @@ import pathlib
 
 
 
+def MapUnion(left: "dict[str,list[str]]", right: "dict[str,list[str]]") -> "dict[str,list[str]]":
+    """ Try combing the two placeholder maps.
+        If the two maps have identical keys, their values must match.
+    """
+    output: dict[str,list[str]] = left.copy()
+    for key, value in right.items():
+        other = left.get(key, None)
+        if other is not None:
+            if not (len(value) == len(other) and all(l == r for l, r in zip(value, other))):
+                raise RuntimeError(f"placeholder mismatch for key {key}: {other} != {value}")
+        output[key] = value
+    return output
+
+
+
 class HDF5Path:
     """ @brief Filesystem path to an HDF5 file and a prefix within, uniquely identifying dataset/group.
         @classname HDF5Path
     """
 
     def __init__(self,
-                file_path: pathlib.Path,
-                file_path_placeholder_map: "dict[str,list[str]]",
-                prefix: str,
-                prefix_placeholder_map: "dict[str,list[str]]"):
+                 file_path: pathlib.Path,
+                 prefix: str,
+                 placeholder_map: "dict[str,list[str]]"):
         self.__file_path = file_path
         self.__prefix = prefix
-
-        # Try combing the two placeholder maps
-        # if the two maps have identical keys, their values must match
-        self.__placeholders = file_path_placeholder_map.copy()
-        for key, value in prefix_placeholder_map.items():
-            other = self.__placeholders.get(key, None)
-            if other is not None: # both map have an entry for this key: check whether they're identical
-                if other[0] != value[0]:
-                    raise RuntimeError(f"Placeholder mismatch for key {key}: {other} != {value}")
-            self.__placeholders[key] = value
-
+        self.__placeholders = placeholder_map
         self.__label = ExtractTimeLabel(self.__placeholders, 0)
 
 
@@ -135,15 +139,13 @@ else:
                 with h5py.File(file_path, "r") as file:
                     results = sorted(
                         HDF5Path(file_path,
-                                file_placeholders,
-                                prefix,
-                                results_pattern.Match(prefix))
+                                 prefix,
+                                 MapUnion(file_placeholders, results_pattern.Match(prefix)))
                         for prefix in GlobHDF5(results_pattern, file, verbose = verbose))
                     meshes = sorted(
                         HDF5Path(file_path,
-                                file_placeholders,
-                                prefix,
-                                mesh_pattern.Match(prefix))
+                                 prefix,
+                                 MapUnion(file_placeholders, mesh_pattern.Match(prefix)))
                         for prefix in GlobHDF5(mesh_pattern, file, verbose = verbose))
                 while results or meshes:
                     current_results: typing.Optional[HDF5Path] = results.pop(0) if results else None
@@ -156,7 +158,7 @@ else:
                                 current_mesh = mesh
                             else:
                                 break
-                        meshes = meshes[i_mesh + 1:]
+                        meshes = meshes[len(meshes):]
                     elif meshes:
                         current_mesh = meshes.pop(0)
                     else:
