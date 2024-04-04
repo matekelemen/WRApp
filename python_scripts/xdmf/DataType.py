@@ -3,7 +3,8 @@
 __all__ = [
     "DataType",
     "Int",
-    "Double"
+    "UInt",
+    "Float"
 ]
 
 # --- STD Imports ---
@@ -21,12 +22,40 @@ class DataType(abc.ABC):
 
 class Int(DataType):
 
+    def __init__(self, precision: int) -> None:
+        super().__init__()
+        if not isinstance(precision, int):
+            raise TypeError(f"expecting an integer, got {type(precision)}")
+        self.__precision = precision
+
+
     def GetAttributes(self) -> "list[tuple[str,str]]":
-        return [("DataType", "Int")]
+        return [("NumberType", "Int"), ("Precision", str(self.__precision))]
 
 
 
-class Double(DataType):
+class UInt(DataType):
+
+    def __init__(self, precision: int) -> None:
+        super().__init__()
+        if not isinstance(precision, int):
+            raise TypeError(f"expecting an integer, got {type(precision)}")
+        self.__precision = precision
+
 
     def GetAttributes(self) -> "list[tuple[str,str]]":
-        return [("DataType", "Float"), ("Precision", "8")]
+        return [("NumberType", "UInt"), ("Precision", str(self.__precision))]
+
+
+
+class Float(DataType):
+
+    def __init__(self, precision: int) -> None:
+        super().__init__()
+        if not isinstance(precision, int):
+            raise TypeError(f"expecting an integer, got {type(precision)}")
+        self.__precision = precision
+
+
+    def GetAttributes(self) -> "list[tuple[str,str]]":
+        return [("NumberType", "Float"), ("Precision", str(self.__precision))]

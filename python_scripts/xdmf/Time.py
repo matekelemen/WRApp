@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 # --- WRApp Imports ---
-from KratosMultiphysics.WRApplication.xdmf.DataType import Double
+from KratosMultiphysics.WRApplication.xdmf.DataType import Float
 from KratosMultiphysics.WRApplication.xdmf.Data import XmlData
 from KratosMultiphysics.WRApplication.xdmf.DataItem import LeafDataItem
 
@@ -40,7 +40,7 @@ class TimeGrid(Time):
         super().__init__()
         self.attrib["TimeType"] = "HyperSlab"
         self.append(LeafDataItem(XmlData(
-            Double(),
+            Float(8),
             [3],
             linspace
         )))
@@ -53,7 +53,7 @@ class TimeList(Time):
         super().__init__()
         self.attrib["TimeType"] = "List"
         self.append(LeafDataItem(XmlData(
-            Double(),
+            Float(8),
             [len(values)],
             values
         )))

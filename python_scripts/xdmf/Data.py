@@ -16,7 +16,7 @@ except ModuleNotFoundError:
         class Dataset: pass
 
 # --- WRApp Imports ---
-from KratosMultiphysics.WRApplication.xdmf.DataType import DataType, Int, Double
+from KratosMultiphysics.WRApplication.xdmf.DataType import DataType, Int, UInt, Float
 
 # --- STD Imports ---
 import abc
@@ -99,9 +99,21 @@ class HDF5Data(Data):
     def FromDataset(cls, dataset: h5py.Dataset) -> "HDF5Data":
         file_path = pathlib.Path(dataset.file.filename)
         prefix = str(dataset.name)
-        data_type: Optional[DataType] = Int() if dataset.dtype == numpy.int32 else Double() if dataset.dtype == numpy.float64 else None
-        if data_type is None:
-            raise TypeError(f"{file_path}:{prefix} unsupported data type {dataset.dtype}")
+        data_type: Optional[DataType] = {
+            numpy.int32 : Int(4),
+            numpy.int64 : Int(8),
+            numpy.uint32 : UInt(4),
+            numpy.uint64 : UInt(8),
+            numpy.float32 : Float(4),
+            numpy.float64 : Float(8)
+        }.get(dataset.dtype, None)
+        if dataset.dtype == numpy.int32: data_type = Int(4)
+        elif dataset.dtype == numpy.int64: data_type = Int(8)
+        elif dataset.dtype == numpy.uint32: data_type = UInt(4)
+        elif dataset.dtype == numpy.uint64: data_type = UInt(8)
+        elif dataset.dtype == numpy.float32: data_type = Float(4)
+        elif dataset.dtype == numpy.float64: data_type = Float(8)
+        else: raise TypeError(f"{file_path}:{prefix} unsupported data type {dataset.dtype}")
         return HDF5Data(data_type,
                         dataset.shape,
                         file_path,
