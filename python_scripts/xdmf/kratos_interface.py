@@ -278,7 +278,7 @@ def __ParseCellGroups(path: h5py.Group,
 
 
 
-class __RootElements:
+class __RootData:
 
     def __init__(self,
                  node_coordinate_data: DataItem,
@@ -410,18 +410,18 @@ def ParseRootMesh(path: h5py.Group,
     # Parse sub model parts
     sub_groups: Optional[h5py.Group] = xdmf_group.get("SubModelParts", None)
     if sub_groups is not None:
-        root_elements = __RootElements(node_coordinate_data,
-                                       node_ids,
-                                       element_topologies,
-                                       element_index_maps,
-                                       element_ids,
-                                       condition_topologies,
-                                       condition_index_maps,
-                                       condition_ids)
+        root_data = __RootData(node_coordinate_data,
+                               node_ids,
+                               element_topologies,
+                               element_index_maps,
+                               element_ids,
+                               condition_topologies,
+                               condition_index_maps,
+                               condition_ids)
         for name, sub_group in sub_groups.items():
             grid.append(ParseMesh(sub_group,
                                   name = name,
-                                  root_elements = root_elements,
+                                  root_data = root_data,
                                   attribute_path = attribute_path,
                                   subgroup_naming = subgroup_naming))
 
@@ -431,7 +431,7 @@ def ParseRootMesh(path: h5py.Group,
 
 def ParseSubmesh(path: h5py.Group,
                  name: str,
-                 root_elements: __RootElements,
+                 root_data: __RootData,
                  attribute_path: Optional[h5py.Group] = None,
                  subgroup_naming: SubgroupNaming = SubgroupNaming.Paraview) -> Grid:
     grid_tree: Grid = GridTree(name)
@@ -451,7 +451,7 @@ def ParseSubmesh(path: h5py.Group,
 
         # Point cloud geometry
         node_geometry = Geometry(Geometry.Type.XYZ)
-        node_geometry.append(root_elements.node_coordinate_data)
+        node_geometry.append(root_data.node_coordinate_data)
         node_grid.append(node_geometry)
 
         # Parse node attributes
@@ -469,21 +469,21 @@ def ParseSubmesh(path: h5py.Group,
 
         # Add node IDs as an attribute
         node_id_attribute = Attribute("ID", Attribute.Center.Node)
-        node_id_attribute.append(root_elements.node_ids)
+        node_id_attribute.append(root_data.node_ids)
         node_grid.append(node_id_attribute)
 
         grid_tree.append(node_grid)
 
         # Add elements and conditions if the subgroup contains them
         for cell_type, cell_topologies, cell_index_maps, cell_ids, attribute_group_names in (("Elements",
-                                                                                              root_elements.element_topologies,
-                                                                                              root_elements.element_index_maps,
-                                                                                              root_elements.element_ids,
+                                                                                              root_data.element_topologies,
+                                                                                              root_data.element_index_maps,
+                                                                                              root_data.element_ids,
                                                                                               ("ElementDataValues", "ElementFlagValues")),
                                                                                              ("Conditions",
-                                                                                              root_elements.condition_topologies,
-                                                                                              root_elements.condition_index_maps,
-                                                                                              root_elements.condition_ids,
+                                                                                              root_data.condition_topologies,
+                                                                                              root_data.condition_index_maps,
+                                                                                              root_data.condition_ids,
                                                                                               ("ConditionDataValues", "ConditionFlagValues"))):
             cell_groups: Optional[h5py.Group] = path.get(cell_type, None)
             if cell_groups is not None:
@@ -539,7 +539,7 @@ def ParseSubmesh(path: h5py.Group,
             grid_tree.append(ParseMesh(subgroup,
                                        subgroup_name,
                                        attribute_path = attribute_path,
-                                       root_elements = root_elements,
+                                       root_data = root_data,
                                        subgroup_naming = subgroup_naming))
 
     return grid_tree
@@ -549,7 +549,7 @@ def ParseSubmesh(path: h5py.Group,
 def ParseMesh(path: h5py.Group,
               name: str = "RootModelPart",
               attribute_path: Optional[h5py.Group] = None,
-              root_elements: Optional[__RootElements] = None,
+              root_data: Optional[__RootData] = None,
               subgroup_naming: SubgroupNaming = SubgroupNaming.Paraview) -> Grid:
     """ @brief Parse a mesh corresponding to a @ref Kratos::ModelPart "model part".
         @arg name name of the model part.
@@ -561,7 +561,7 @@ def ParseMesh(path: h5py.Group,
                  "Nodes" must contain the IDs and coordinates of all nodes in the mesh,
                  while "Xdmf" must contain "NodeIDMap".
     """
-    if root_elements is None:
+    if root_data is None:
         return ParseRootMesh(path,
                              name = name,
                              attribute_path = attribute_path,
@@ -569,7 +569,7 @@ def ParseMesh(path: h5py.Group,
     else:
         return ParseSubmesh(path,
                             name,
-                            root_elements,
+                            root_data,
                             attribute_path = attribute_path,
                             subgroup_naming = subgroup_naming)
 
