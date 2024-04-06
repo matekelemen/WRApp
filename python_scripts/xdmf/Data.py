@@ -34,15 +34,7 @@ class Data(abc.ABC):
 
     def GetAttributes(self) -> "list[tuple[str,str]]":
         output = self.__data_type.GetAttributes()
-        shape = self.__shape.copy()
-
-        # Remove 1s from the shape (otherwise paraview craps out sometimes)
-        if shape:
-            shape = [v for v in shape if v != 1]
-            if not shape:
-                shape = [1]
-        output.append(("Dimensions", " ".join(str(component) for component in shape)))
-
+        output.append(("Dimensions", " ".join(str(component) for component in self.__shape)))
         return output
 
 
