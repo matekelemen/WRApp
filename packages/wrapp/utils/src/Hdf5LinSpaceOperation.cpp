@@ -92,16 +92,9 @@ void Hdf5LinSpaceOperation::Execute()
     DataCommunicator serial_communicator;
     HDF5::File file(serial_communicator, file_parameters);
 
-    if (file.HasPath(mpImpl->mPrefix)) {
-        if (mpImpl->mOverwrite) {
-            // @todo @matekelemen
-            KRATOS_ERROR
-                << "overwriting an existing dataset is not supprted yet.\n"
-                << mpImpl->mFilePath << ":" << mpImpl->mPrefix;
-        } else {
-            // Nothing to do here
-            return;
-        }
+    if (file.HasPath(mpImpl->mPrefix) && !mpImpl->mOverwrite) {
+        // Nothing to do here
+        return;
     }
 
     // Map IDs to indices
