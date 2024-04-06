@@ -36,7 +36,7 @@ class Attribute(Element):
             raise TypeError(f"expecting a DataItem, but got {type(data_item)}")
 
         shape = data_item.GetShape()
-        if len(shape) == 1:
+        if len(shape) == 1 or (len(shape) == 2 and shape[1] == 1):
             self.attrib["AttributeType"] = "Scalar"
         elif len(shape) == 2:
             self.attrib["AttributeType"] = "Vector"
