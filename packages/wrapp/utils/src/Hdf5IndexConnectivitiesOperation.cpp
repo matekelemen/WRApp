@@ -226,6 +226,7 @@ void Hdf5IndexConnectivitiesOperation::Execute()
         KRATOS_TRY
         const std::string input_node_id_prefix = mpImpl->mInputPrefix + "/Nodes/Local/Ids";
 
+        KRATOS_ERROR_IF_NOT(p_file->HasPath(input_node_id_prefix));
         const auto node_id_shape = p_file->GetDataDimensions(input_node_id_prefix);
         KRATOS_ERROR_IF(node_id_shape.empty());
         const std::size_t node_count = node_id_shape[0];
@@ -261,10 +262,12 @@ void Hdf5IndexConnectivitiesOperation::Execute()
     HDF5::File::Vector<int> element_id_map, element_type_id_map, condition_id_map, condition_type_id_map;
 
     for (auto [parent_group_name, p_id_map, p_type_id_map] : std::array<std::tuple<std::string,Ptr<HDF5::File::Vector<int>>,Ptr<HDF5::File::Vector<int>>>,2>
-                                                             {{{"Elements", &element_id_map, &element_type_id_map},
-                                                              {"Conditions", &condition_id_map, &condition_type_id_map}}}) {
+                                                             {{{"Elements",     &element_id_map,    &element_type_id_map},
+                                                               {"Conditions",   &condition_id_map,  &condition_type_id_map}}}) {
         const std::string input_group_prefix = mpImpl->mInputPrefix + "/" + parent_group_name;
         const std::string output_group_prefix = mpImpl->mOutputPrefix + "/" + parent_group_name;
+
+        KRATOS_ERROR_IF_NOT(p_file->HasPath(input_group_prefix));
         const auto group_names = p_file->GetGroupNames(input_group_prefix);
         auto& r_id_map = *p_id_map; // <== this map will be capured in a lambda later, but capturing structured bindings is a C++20 feature
         auto& r_type_id_map = *p_type_id_map;
@@ -286,7 +289,7 @@ void Hdf5IndexConnectivitiesOperation::Execute()
 
                     // Concatenate the IDs
                     std::size_t old_size = all_cell_ids.size();
-                    all_cell_ids.resize(old_size + cell_ids.size());
+                    all_cell_ids.resize(old_size + cell_ids.size(), true);
                     std::copy(cell_ids.begin(),
                               cell_ids.end(),
                               all_cell_ids.begin() + old_size);
@@ -321,6 +324,7 @@ void Hdf5IndexConnectivitiesOperation::Execute()
                 // Read Ids
                 KRATOS_TRY
                     const std::string input_cell_id_prefix = input_cell_group_prefix + "/Ids";
+                    KRATOS_ERROR_IF_NOT(p_file->HasPath(input_cell_id_prefix));
                     const auto cell_id_shape = p_file->GetDataDimensions(input_cell_id_prefix);
                     KRATOS_ERROR_IF(cell_id_shape.empty());
                     p_file->ReadDataSet(input_cell_id_prefix, cell_ids, 0, cell_id_shape.front());
@@ -353,6 +357,7 @@ void Hdf5IndexConnectivitiesOperation::Execute()
                 const std::string input_cell_connectivity_prefix = input_cell_group_prefix + "/Connectivities";
                 HDF5::File::Matrix<int> id_connectivities;
 
+                KRATOS_ERROR_IF_NOT(p_file->HasPath(input_cell_connectivity_prefix));
                 const auto connectivity_shape = p_file->GetDataDimensions(input_cell_connectivity_prefix);
                 KRATOS_ERROR_IF(connectivity_shape.empty());
                 p_file->ReadDataSet(input_cell_connectivity_prefix, id_connectivities, 0, connectivity_shape.front());
