@@ -91,7 +91,7 @@ void WriteSubGroupMaps(Ref<HDF5::File> rFile,
                 for (const std::string& r_cell_name : cell_names) {
                     // Read cell IDs
                     HDF5::File::Vector<int> cell_ids;
-                    HDF5::File::Vector<std::size_t> cell_indices;
+                    HDF5::File::Vector<int> cell_indices;
                     KRATOS_TRY
                         const std::string cell_id_prefix = input_parent_prefix + "/" + r_cell_name + "/Ids";
                         const auto cell_id_shape = rFile.GetDataDimensions(cell_id_prefix);
