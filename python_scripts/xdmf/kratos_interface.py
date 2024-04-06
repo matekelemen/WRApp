@@ -15,12 +15,19 @@ from KratosMultiphysics.WRApplication.xdmf.DataItem import DataItem, LeafDataIte
 from KratosMultiphysics.WRApplication.xdmf.Attribute import Attribute
 from KratosMultiphysics.WRApplication.xdmf.Topology import Topology
 from KratosMultiphysics.WRApplication.xdmf.Geometry import Geometry
-from KratosMultiphysics.WRApplication.xdmf.Grid import Grid, GridTree, GridLeaf
+from KratosMultiphysics.WRApplication.xdmf.Grid import Grid, GridLeaf, GridCollection
+from KratosMultiphysics.WRApplication.xdmf.Time import TimePoint
 
 # --- STD Imports ---
-from typing import Optional
+from typing import Optional, Union
 import re
 from enum import Enum
+
+
+
+def __TimeStamp(grid: Grid, time: Union[int,float,None]) -> None:
+    if time is not None:
+        grid.append(TimePoint(time))
 
 
 
@@ -242,11 +249,12 @@ def __ParseCellGroup(cell_name: str,
                      id_set: DataItem,
                      attribute_paths: "list[h5py.Group]",
                      node_attributes: "dict[str,Attribute]",
-                     grid: Grid) -> "tuple[DataItem,DataItem]":
+                     grid: Grid,
+                     time: Optional[Union[int,float]] = None) -> "tuple[DataItem,DataItem]":
     cell_grid = GridLeaf(cell_name)
+    __TimeStamp(cell_grid, time)
 
     # Parse topology
-    topology = Topology(__ParseCellType(cell_name))
     connectivity_set: h5py.Dataset = path["Connectivities"]
     topology = Topology(__ParseCellType(cell_name, connectivity_set.shape[1]))
     topology_data = LeafDataItem(HDF5Data.FromDataset(connectivity_set))
@@ -286,7 +294,8 @@ def __ParseCellGroups(path: h5py.Group,
                       id_set: DataItem,
                       attribute_paths: "list[h5py.Group]",
                       node_attributes: "dict[str,Attribute]",
-                      grid: Grid) -> "tuple[dict[str,DataItem],dict[str,DataItem]]":
+                      grid: Grid,
+                      time: Optional[Union[int,float]] = None) -> "tuple[dict[str,DataItem],dict[str,DataItem]]":
     topologies: "dict[str,DataItem]" = {}
     index_maps: "dict[str,DataItem]" = {}
     for name, cell_group in path.items():
@@ -298,7 +307,8 @@ def __ParseCellGroups(path: h5py.Group,
                 id_set,
                 attribute_paths,
                 node_attributes,
-                grid)
+                grid,
+                time = time)
             topologies[name] = topology
             index_maps[name] = index_map
     return topologies, index_maps
@@ -336,11 +346,14 @@ class SubgroupNaming(Enum):
 def ParseRootMesh(path: h5py.Group,
                   name: str = "RootModelPart",
                   attribute_path: Optional[h5py.Group] = None,
+                  time: Optional[Union[int,float]] = None,
                   subgroup_naming: SubgroupNaming = SubgroupNaming.Paraview) -> Grid:
-    grid: Grid = GridTree(name)
+    grid: Grid = GridCollection(name, GridCollection.Type.Spatial)
+    __TimeStamp(grid, time)
 
     # Parse nodes
     node_grid = GridLeaf("Nodes")
+    __TimeStamp(node_grid, time)
 
     if not "Nodes" in path:
         raise RuntimeError(f"no Nodes found in {path}")
@@ -409,7 +422,8 @@ def ParseRootMesh(path: h5py.Group,
             element_ids,
             attribute_paths,
             node_attributes,
-            grid)
+            grid,
+            time = time)
         element_topologies.update(topologies)
         element_index_maps.update(index_maps)
 
@@ -450,6 +464,7 @@ def ParseRootMesh(path: h5py.Group,
                                   name = name,
                                   root_data = root_data,
                                   attribute_path = attribute_path,
+                                  time = time,
                                   subgroup_naming = subgroup_naming))
 
     return grid
@@ -459,15 +474,18 @@ def ParseRootMesh(path: h5py.Group,
 def ParseSubmesh(path: h5py.Group,
                  name: str,
                  root_data: __RootData,
+                 time: Optional[Union[int,float]] = None,
                  attribute_path: Optional[h5py.Group] = None,
                  subgroup_naming: SubgroupNaming = SubgroupNaming.Paraview) -> Grid:
-    grid_tree: Grid = GridTree(name)
+    grid_tree: Grid = GridCollection(name, GridCollection.Type.Spatial)
+    __TimeStamp(grid_tree, time)
 
     # Add point cloud if the subgroup contains nodes
     node_group: Optional[h5py.Group] = path.get("Nodes", None)
     if node_group is not None:
         node_subgroup_name = f"{name}.Nodes" if subgroup_naming == SubgroupNaming.Paraview else "Nodes"
         node_grid: Grid = GridLeaf(node_subgroup_name)
+        __TimeStamp(node_grid, time)
 
         # Point cloud topology
         node_index_set: h5py.Dataset = node_group["Indices"]
@@ -518,10 +536,9 @@ def ParseSubmesh(path: h5py.Group,
                     # Add the mesh to the current grid level
                     cell_subgroup_name = f"{name}.{cell_name}" if subgroup_naming == SubgroupNaming.Paraview else cell_name
                     cell_grid = GridLeaf(cell_subgroup_name)
+                    __TimeStamp(cell_grid, time)
 
                     cell_type_index_set = LeafDataItem(HDF5Data.FromDataset(cell_group["TypeIndices"]))
-                    topology_type = __ParseCellType(cell_name)
-                    cell_topology = Topology(topology_type)
                     cell_topology_set: DataItem = cell_topologies[cell_name]
                     topology_type = __ParseCellType(cell_name, cell_topology_set.GetShape()[1])
                     cell_topology = Topology(topology_type)
@@ -568,6 +585,7 @@ def ParseSubmesh(path: h5py.Group,
             grid_tree.append(ParseMesh(subgroup,
                                        subgroup_name,
                                        attribute_path = attribute_path,
+                                       time = time,
                                        root_data = root_data,
                                        subgroup_naming = subgroup_naming))
 
@@ -578,6 +596,7 @@ def ParseSubmesh(path: h5py.Group,
 def ParseMesh(path: h5py.Group,
               name: str = "RootModelPart",
               attribute_path: Optional[h5py.Group] = None,
+              time: Optional[Union[int,float]] = None,
               root_data: Optional[__RootData] = None,
               subgroup_naming: SubgroupNaming = SubgroupNaming.Paraview) -> Grid:
     """ @brief Parse a mesh corresponding to a @ref Kratos::ModelPart "model part".
@@ -594,12 +613,14 @@ def ParseMesh(path: h5py.Group,
         return ParseRootMesh(path,
                              name = name,
                              attribute_path = attribute_path,
+                             time = time,
                              subgroup_naming = subgroup_naming)
     else:
         return ParseSubmesh(path,
                             name,
                             root_data,
                             attribute_path = attribute_path,
+                            time = time,
                             subgroup_naming = subgroup_naming)
 
 
