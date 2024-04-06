@@ -23,16 +23,17 @@ from KratosMultiphysics.HDF5Application.xdmf_utils import RenumberConnectivities
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
 from .GenerateHDF5Journal import HDF5Path
-#from .xdmf import HDF5CoordinateDataItem
+import KratosMultiphysics.WRApplication.xdmf as XDMF
 
 # --- STD Imports ---
 import pathlib
-import typing
+from typing import Optional, Generator
 import xml.etree.ElementTree
 import multiprocessing
 import os
 import json
 import sys
+from contextlib import ExitStack
 
 # --- External Imports ---
 try:
@@ -49,7 +50,7 @@ else:
         """
 
         def __init__(self,
-                    results: typing.Optional[HDF5Path],
+                    results: Optional[HDF5Path],
                     mesh: HDF5Path,
                     unique_mesh: bool):
             self.__results = results
@@ -62,7 +63,7 @@ else:
 
 
         @property
-        def results(self) -> typing.Optional[HDF5Path]:
+        def results(self) -> Optional[HDF5Path]:
             return self.__results
 
 
@@ -98,14 +99,14 @@ else:
     def MakeBatches(journal_path: pathlib.Path,
                     output_path: str,
                     batch_size: int = -1,
-                    verbose: bool = False) -> typing.Generator[_Batch,None,None]:
+                    verbose: bool = False) -> Generator[_Batch,None,None]:
         if batch_size == 0:
             raise ValueError(f"Invalid batch size: {batch_size}")
 
         with open(journal_path, "r") as journal:
             datasets: "list[_Dataset]" = []
-            current_mesh: typing.Optional[HDF5Path] = None
-            current_results: typing.Optional[HDF5Path] = None
+            current_mesh: Optional[HDF5Path] = None
+            current_results: Optional[HDF5Path] = None
             output_pattern = WRApp.PlaceholderPattern(output_path,
                                                       {"<batch>" : WRApp.PlaceholderPattern.UnsignedInteger})
             i_batch = 0
@@ -157,29 +158,45 @@ else:
 
 
 
-    def CreateXdmfTemporalGridFromMultifile(batch: _Batch, verbose: bool = False) -> TemporalGrid:
-        temporal_grid = TemporalGrid()
-        spatial_grid = SpatialGrid()
+    def CreateXdmfTemporalGridFromMultifile(batch: _Batch, verbose: bool = False) -> XDMF.Grid:
+        transient_grid = XDMF.GridCollection("Transient", XDMF.GridCollection.Type.Temporal)
+
         for i_dataset, dataset in enumerate(batch.datasets):
-            current_spatial_grid = SpatialGrid()
-            if dataset.HasUniqueMesh() or i_dataset == 0:
-                RenumberConnectivitiesForXdmf([str(dataset.mesh.file_path)], dataset.mesh.prefix)
-                with h5py.File(dataset.mesh.file_path, "r") as file:
-                    spatial_grid = CreateXdmfSpatialGrid(file[dataset.mesh.prefix])
-            for grid in spatial_grid.grids:
-                current_spatial_grid.add_grid(UniformGrid(grid.name,
-                                                          grid.geometry,
-                                                          grid.topology))
-            if dataset.results is not None:
-                with h5py.File(dataset.results.file_path, "r") as file:
-                    results = XdmfResults(file[dataset.results.prefix])
-                AddResultsToGrid(results, dataset.mesh, current_spatial_grid)
+            grid: XDMF.Grid
 
-            temporal_grid.add_grid(Time(i_dataset), current_spatial_grid)
+            # Run a preprocessing operation for XDMF that generates index-based
+            # connectivities from the ID-based system that Kratos uses.
+            operation_parameters = KratosMultiphysics.Parameters()
+            operation_parameters.AddString("file_path", str(dataset.mesh.file_path))
+            operation_parameters.AddString("input_prefix", dataset.mesh.prefix)
+            operation_parameters.AddString("output_prefix", dataset.mesh.prefix + "/Xdmf")
+            operation_parameters.AddBool("overwrite", True)
+            WRApp.Hdf5IndexConnectivitiesOperation(operation_parameters).Execute()
 
-            if verbose:
-                pass # todo
-        return temporal_grid
+            # Get the file containing the mesh
+            with ExitStack() as context_manager:
+                mesh_file = h5py.File(dataset.mesh.file_path, "r")
+                context_manager.enter_context(mesh_file)
+
+                # Get the file containing the results,
+                # but avoid trying to open the same file
+                results_file: Optional[h5py.File] = None
+                attribute_path: Optional[h5py.Group] = None
+                if dataset.results is not None:
+                    if dataset.results.file_path == dataset.mesh.file_path:
+                        results_file = mesh_file
+                    else:
+                        results_file = h5py.File(dataset.results.file_path, "r")
+                        context_manager.enter_context(results_file)
+                    attribute_path = results_file[dataset.results.prefix]
+
+                    grid = XDMF.ParseMesh(mesh_file[dataset.mesh.prefix],
+                                          attribute_path = attribute_path)
+
+            grid.append(XDMF.TimePoint(i_dataset))
+            transient_grid.append(grid)
+
+        return transient_grid
 
 
 
@@ -191,10 +208,12 @@ else:
                     - results_prefix: str (prefix of the mesh in HDF5 files that contain results data)
                     - verbose: bool (print status messages while processing)
         """
-        temporal_grid = CreateXdmfTemporalGridFromMultifile(*arguments)
-        domain = Domain(temporal_grid)
-        xdmf = Xdmf(domain)
-        xml.etree.ElementTree.ElementTree(xdmf.create_xml_element()).write(arguments[0].output_path)
+        document = XDMF.Document()
+        domain = XDMF.Domain()
+        domain.append(CreateXdmfTemporalGridFromMultifile(*arguments))
+        document.append(domain)
+
+        xml.etree.ElementTree.ElementTree(document).write(arguments[0].output_path)
 
 
 
@@ -204,9 +223,9 @@ else:
                     verbose: bool = False) -> None:
         """ @brief Generate XDMF output for an existing set of HDF5 output files."""
         batches = MakeBatches(journal_path,
-                            output_pattern,
-                            batch_size,
-                            verbose = verbose)
+                              output_pattern,
+                              batch_size,
+                              verbose = verbose)
 
         thread_count = int(os.environ.get("OMP_NUM_THREADS", max([multiprocessing.cpu_count() - 1,1])))
         if 1 < thread_count:
