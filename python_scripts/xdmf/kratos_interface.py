@@ -92,11 +92,37 @@ __CELL_MAP : "dict[tuple[int,int],list[Topology.Type]]" = {
 
 
 
-def __ParseCellType(cell_name: str) -> Topology.Type:
+def __ParseCellType(cell_name: str, nodes_per_element: int) -> Topology.Type:
     regex = re.compile(R"(\w+)([123])d([1-9][0-9]*)n")
     regex_match = regex.match(cell_name.lower())
 
     if not regex_match:
+        # All terrible names from here: there's no reference to their
+        # geometry at all.
+
+        # VMS fluid elements
+        # This one's relatively simple because it leaks info
+        # about its dimension at least. Also, there's no point to
+        # quadratic line for a fluid element, so its not ambiguous.
+        if cell_name == "VMS2D":
+            if nodes_per_element == 3:
+                return Topology.Type.Triangle
+            elif nodes_per_element == 4:
+                return Topology.Type.Quadrilateral
+            elif nodes_per_element == 6:
+                return Topology.Type.Triangle_6
+            elif nodes_per_element == 8:
+                return Topology.Type.Quadrilateral_8
+
+        # 2D conditions (e.g.: MonolithicWallCondition2D)
+        # The usual confusing business with Kratos conditions:
+        # the geometry is 1 dimension less than what the name indicates.
+        if cell_name.lower().endswith("condition2d"):
+            if nodes_per_element == 2:
+                return Topology.Type.Polyline
+            elif nodes_per_element == 2:
+                return Topology.Type.Edge_3
+
         raise RuntimeError(f"failed to parse cell type '{cell_name}'")
 
     dimensions = int(regex_match.group(2))
@@ -222,6 +248,7 @@ def __ParseCellGroup(cell_name: str,
     # Parse topology
     topology = Topology(__ParseCellType(cell_name))
     connectivity_set: h5py.Dataset = path["Connectivities"]
+    topology = Topology(__ParseCellType(cell_name, connectivity_set.shape[1]))
     topology_data = LeafDataItem(HDF5Data.FromDataset(connectivity_set))
     topology.append(topology_data)
     cell_grid.append(topology)
@@ -496,6 +523,8 @@ def ParseSubmesh(path: h5py.Group,
                     topology_type = __ParseCellType(cell_name)
                     cell_topology = Topology(topology_type)
                     cell_topology_set: DataItem = cell_topologies[cell_name]
+                    topology_type = __ParseCellType(cell_name, cell_topology_set.GetShape()[1])
+                    cell_topology = Topology(topology_type)
                     maybe_cell_topology_data = MakeCoordinateSlice(
                         cell_type_index_set,
                         cell_topology_set,
