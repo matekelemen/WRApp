@@ -30,7 +30,7 @@ void FillIdMap(Ref<const HDF5::File::Vector<int>> rIds,
     // Build the ID-index map
     IndexPartition<std::size_t>(rMap.size()).for_each([&rIds, &rMap](std::size_t Index) {
         if (Index < rIds.size()) {
-            KRATOS_ERROR_IF_NOT(rIds[Index] < rMap.size()); // <== prevent segfaults
+            KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(rIds[Index]) < rMap.size()); // <== prevent segfaults
             rMap[rIds[Index]] = Index;
         }
     });
@@ -259,18 +259,18 @@ void Hdf5IndexConnectivitiesOperation::Execute()
     //   within the container that holds ALL cells (necessary for attributes).
     // - The type ID maps relate each cell's ID to its index
     //   within the container that holds all cells of ITS SPECIFIC TYPE (necessary for the mesh).
-    HDF5::File::Vector<int> element_id_map, element_type_id_map, condition_id_map, condition_type_id_map;
+    HDF5::File::Vector<int> element_type_id_map, condition_type_id_map;
 
-    for (auto [parent_group_name, p_id_map, p_type_id_map] : std::array<std::tuple<std::string,Ptr<HDF5::File::Vector<int>>,Ptr<HDF5::File::Vector<int>>>,2>
-                                                             {{{"Elements",     &element_id_map,    &element_type_id_map},
-                                                               {"Conditions",   &condition_id_map,  &condition_type_id_map}}}) {
+    for (auto [parent_group_name, p_type_id_map] : std::array<std::tuple<std::string,Ptr<HDF5::File::Vector<int>>>,2>
+                                                   {{{"Elements",   &element_type_id_map},
+                                                     {"Conditions", &condition_type_id_map}}}) {
         const std::string input_group_prefix = mpImpl->mInputPrefix + "/" + parent_group_name;
         const std::string output_group_prefix = mpImpl->mOutputPrefix + "/" + parent_group_name;
 
         KRATOS_ERROR_IF_NOT(p_file->HasPath(input_group_prefix));
         const auto group_names = p_file->GetGroupNames(input_group_prefix);
-        auto& r_id_map = *p_id_map; // <== this map will be capured in a lambda later, but capturing structured bindings is a C++20 feature
-        auto& r_type_id_map = *p_type_id_map;
+        HDF5::File::Vector<int> id_map;
+        auto& r_type_id_map = *p_type_id_map; // <== this map will be capured in a lambda later, but capturing structured bindings is a C++20 feature
 
         // First, collect all cell ids and resize the map accordingly.
         // The assumption here is that each cell is appears exactly once in each
@@ -296,14 +296,14 @@ void Hdf5IndexConnectivitiesOperation::Execute()
                 KRATOS_CATCH(r_cell_group_name)
             }
 
-            r_type_id_map.resize(all_cell_ids.size(), false);
 
             // Construct the ID map and write the IDs to file
             // @todo the sorting will have to be done for each MPI range separately @matekelemen
             std::sort(all_cell_ids.begin(), all_cell_ids.end());
             const std::size_t max_cell_id = all_cell_ids.empty() ? 0 : all_cell_ids[all_cell_ids.size() - 1];
-            r_id_map.resize(max_cell_id + 1, false); // <== kratos IDs are 1-based
-            FillIdMap(all_cell_ids, r_id_map);
+            id_map.resize(max_cell_id + 1, false); // <== kratos IDs are 1-based
+            r_type_id_map.resize(max_cell_id + 1, false);
+            FillIdMap(all_cell_ids, id_map);
 
             // Write Ids
             KRATOS_TRY
@@ -339,8 +339,8 @@ void Hdf5IndexConnectivitiesOperation::Execute()
                 // Write indices
                 KRATOS_TRY
                     // Map cell IDs to indices
-                    IndexPartition<std::size_t>(cell_ids.size()).for_each([&cell_ids, &r_id_map](std::size_t iCell){
-                        cell_ids[iCell] = r_id_map[cell_ids[iCell]];
+                    IndexPartition<std::size_t>(cell_ids.size()).for_each([&cell_ids, &id_map](std::size_t iCell){
+                        cell_ids[iCell] = id_map[cell_ids[iCell]];
                     });
 
                     // Write to file
