@@ -581,7 +581,7 @@ def ParseSubmesh(path: h5py.Group,
     if subgroups is not None:
         for subgroup_name, subgroup in subgroups.items():
             if subgroup_naming == SubgroupNaming.Paraview:
-                subgroup_name = f"{name}/{subgroup_name}"
+                subgroup_name = f"{name}.{subgroup_name}"
             grid_tree.append(ParseMesh(subgroup,
                                        subgroup_name,
                                        attribute_path = attribute_path,
