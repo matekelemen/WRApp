@@ -1,4 +1,6 @@
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/HDF5Application)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MappingApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/CoSimulationApplication)
 
 project(WR CXX)
 
