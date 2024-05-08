@@ -1,0 +1,9 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$structKratos_1_1WRApp_1_1ModelPredicate.html" title="Base class for functors that take a Model and return a bool." alt="" coords="19,5,142,32"/>
+<area shape="rect" id="node2" href="$classKratos_1_1WRApp_1_1ModelPredicatePipe.html" title=" " alt="" coords="252,43,403,85"/>
+<area shape="rect" id="node3" href="$structKratos_1_1Pipes_1_1Traits.html" title=" " alt="" coords="5,57,156,98"/>
+<area shape="rect" id="node4" href="$structKratos_1_1WRApp_1_1WRAppClass.html" title="Dummy base class for registering and exporting exposed classes in WRApplication." alt="" coords="29,135,133,161"/>
+<area shape="rect" id="node5" href="$classKratos_1_1WRApp_1_1Hdf5IdToIndexOperation.html" title=" " alt="" coords="238,109,417,136"/>
+<area shape="rect" id="node6" href="$classKratos_1_1WRApp_1_1Hdf5IndexConnectivitiesOperation.html" title=" " alt="" coords="204,160,451,187"/>
+<area shape="rect" id="node7" href="$classKratos_1_1WRApp_1_1Hdf5LinSpaceOperation.html" title=" " alt="" coords="240,211,415,237"/>
+</map>

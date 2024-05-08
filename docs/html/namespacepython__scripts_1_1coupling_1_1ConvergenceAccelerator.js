@@ -1,0 +1,4 @@
+var namespacepython__scripts_1_1coupling_1_1ConvergenceAccelerator =
+[
+    [ "ConvergenceAccelerator", "classpython__scripts_1_1coupling_1_1ConvergenceAccelerator_1_1ConvergenceAccelerator.html", "classpython__scripts_1_1coupling_1_1ConvergenceAccelerator_1_1ConvergenceAccelerator" ]
+];

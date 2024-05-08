@@ -1,0 +1,7 @@
+<map id="SnapshotInMemoryIO" name="SnapshotInMemoryIO">
+<area shape="rect" id="node1" title="Base class for Snapshot input/output operations in memory." alt="" coords="105,256,297,392"/>
+<area shape="rect" id="node4" href="$classpython__scripts_1_1checkpoint_1_1SnapshotInMemoryIO_1_1SnapshotInMemoryInput.html" title="Implements Snapshot input operations in memory." alt="" coords="5,440,187,532"/>
+<area shape="rect" id="node5" href="$classpython__scripts_1_1checkpoint_1_1SnapshotInMemoryIO_1_1SnapshotInMemoryOutput.html" title="Implements Snapshot output operations in memory." alt="" coords="211,447,403,525"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1checkpoint_1_1SnapshotIO_1_1SnapshotIO.html" title="Interface for performing Snapshot input/output operations." alt="" coords="105,131,297,208"/>
+<area shape="rect" id="node3" title=" " alt="" coords="149,5,253,83"/>
+</map>

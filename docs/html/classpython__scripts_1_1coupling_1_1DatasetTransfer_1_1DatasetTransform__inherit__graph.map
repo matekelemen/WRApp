@@ -1,0 +1,9 @@
+<map id="DatasetTransform" name="DatasetTransform">
+<area shape="rect" id="node1" title="Fetch, transform and assign data between ModelPart s." alt="" coords="221,131,413,237"/>
+<area shape="rect" id="node5" href="$classpython__scripts_1_1coupling_1_1DatasetTransfer_1_1DatasetLookup.html" title="Store, retrieve, and interpolate datasets." alt="" coords="5,293,197,385"/>
+<area shape="rect" id="node6" href="$classpython__scripts_1_1coupling_1_1DatasetTransfer_1_1DatasetMap.html" title="DatasetTransform that uses a Mapper to map datasets before assigning them to the target ModelPart." alt="" coords="221,285,413,392"/>
+<area shape="rect" id="node7" href="$classpython__scripts_1_1coupling_1_1DatasetTransfer_1_1NoOpDatasetTransform.html" title="DatasetTransform that directly assigns fetched datasets without doing anything to them." alt="" coords="437,293,629,385"/>
+<area shape="rect" id="node2" title=" " alt="" coords="145,5,249,83"/>
+<area shape="rect" id="node3" title=" " alt="" coords="274,5,361,83"/>
+<area shape="rect" id="node4" title=" " alt="" coords="385,5,434,83"/>
+</map>

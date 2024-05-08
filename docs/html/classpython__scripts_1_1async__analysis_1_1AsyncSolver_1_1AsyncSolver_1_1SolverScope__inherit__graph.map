@@ -1,0 +1,11 @@
+<map id="AsyncSolver.SolverScope" name="AsyncSolver.SolverScope">
+<area shape="rect" id="node1" title="Embed some part of AsyncSolver in a SolutionStageScope." alt="" coords="490,256,675,333"/>
+<area shape="rect" id="node4" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1AdvanceScope.html" title="Embed AsyncSolver._Advance in a SolutionStageScope." alt="" coords="5,389,205,466"/>
+<area shape="rect" id="node5" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1PostprocessScope.html" title="Embed AsyncSolver._Postprocess in a SolutionStageScope." alt="" coords="229,389,451,466"/>
+<area shape="rect" id="node6" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1PreprocessScope.html" title="Embed AsyncSolver._Preprocess in a SolutionStageScope." alt="" coords="475,389,690,466"/>
+<area shape="rect" id="node7" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1SolutionLoopScope.html" title="Embed AsyncSolver.Run in a SolutionStageScope." alt="" coords="715,381,904,473"/>
+<area shape="rect" id="node8" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver_1_1SynchronizeScope.html" title="Embed AsyncSolver._Synchronize in a SolutionStageScope." alt="" coords="929,389,1151,466"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1async__analysis_1_1SolutionStageScope_1_1SolutionStageScope.html" title="RAII context manager for tasks during solver execution." alt="" coords="507,131,658,208"/>
+<area shape="rect" id="node3" title=" " alt="" coords="558,5,607,83"/>
+<area shape="rect" id="node9" href="$classpython__scripts_1_1async__analysis_1_1WrappedAnalysis_1_1WrappedAnalysis_1_1SynchronizeScope.html" title="Sandwich AnalysisStage.SolveSolutionStage between &quot;initialization&quot; and &quot;finalization&quot;." alt="" coords="931,521,1149,613"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="WRAppClass" name="WRAppClass">
+<area shape="rect" id="node1" title="WRApp::WRAppClass with a replaced metaclass for compatibility with abc." alt="" coords="78,256,270,333"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,5,124,83"/>
+<area shape="rect" id="node4" href="$classpython__scripts_1_1WRAppMeta.html" title="Metaclass replacing that of the C++ WRAppClass to provide derived classes access to abc...." alt="" coords="123,131,225,208"/>
+<area shape="rect" id="node3" title=" " alt="" coords="249,131,339,208"/>
+<area shape="rect" id="node5" title=" " alt="" coords="149,5,199,83"/>
+<area shape="rect" id="node6" title=" " alt="" coords="224,5,273,83"/>
+</map>

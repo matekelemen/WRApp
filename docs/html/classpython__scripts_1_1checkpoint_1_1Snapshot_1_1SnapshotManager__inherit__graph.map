@@ -1,0 +1,7 @@
+<map id="SnapshotManager" name="SnapshotManager">
+<area shape="rect" id="node1" title="Interface for Snapshot lifetime management." alt="" coords="116,131,308,267"/>
+<area shape="rect" id="node4" href="$classpython__scripts_1_1checkpoint_1_1HDF5Snapshot_1_1HDF5SnapshotManager.html" title="Snapshot manager specialized for HDF5Snapshot." alt="" coords="5,315,197,421"/>
+<area shape="rect" id="node5" href="$classpython__scripts_1_1checkpoint_1_1SnapshotInMemory_1_1SnapshotInMemoryManager.html" title=" " alt="" coords="221,322,427,414"/>
+<area shape="rect" id="node2" title=" " alt="" coords="113,5,202,83"/>
+<area shape="rect" id="node3" title=" " alt="" coords="227,5,309,83"/>
+</map>

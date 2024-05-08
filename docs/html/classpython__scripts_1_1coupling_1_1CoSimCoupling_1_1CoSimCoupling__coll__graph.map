@@ -1,0 +1,6 @@
+<map id="CoSimCoupling" name="CoSimCoupling">
+<area shape="rect" id="node1" title="Wrapper for CoSimulationApplication coupling procedures." alt="" coords="61,256,253,377"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1async__analysis_1_1SolutionStageScope_1_1SolutionStageScope.html" title="RAII context manager for tasks during solver execution." alt="" coords="5,131,156,208"/>
+<area shape="rect" id="node3" title=" " alt="" coords="56,5,105,83"/>
+<area shape="rect" id="node4" title=" " alt="" coords="181,131,285,208"/>
+</map>

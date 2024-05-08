@@ -1,0 +1,5 @@
+<map id="CoupledAsyncSolver" name="CoupledAsyncSolver">
+<area shape="rect" id="node1" title="AsyncSolver with coupling directives from CoSimulationApplication." alt="" coords="19,769,211,920"/>
+<area shape="rect" id="node2" href="$classpython__scripts_1_1async__analysis_1_1AsyncSolver_1_1AsyncSolver.html" title="Base class for composable solvers that handle their domains asynchronously." alt="" coords="5,131,224,721"/>
+<area shape="rect" id="node3" title=" " alt="" coords="63,5,167,83"/>
+</map>

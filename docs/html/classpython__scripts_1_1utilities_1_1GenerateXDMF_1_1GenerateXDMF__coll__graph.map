@@ -1,0 +1,6 @@
+<map id="GenerateXDMF" name="GenerateXDMF">
+<area shape="rect" id="node1" title="Generate XDMF output for an existing set of HDF5 output files." alt="" coords="49,131,241,223"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,5,77,83"/>
+<area shape="rect" id="node3" title=" " alt="" coords="102,5,189,83"/>
+<area shape="rect" id="node4" title=" " alt="" coords="213,5,317,83"/>
+</map>
