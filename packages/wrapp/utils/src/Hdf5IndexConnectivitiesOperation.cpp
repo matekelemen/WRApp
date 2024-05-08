@@ -54,30 +54,32 @@ void WriteSubGroupMaps(Ref<HDF5::File> rFile,
         // Write node set
         {
             HDF5::File::Vector<int> node_ids;
+            const std::string input_node_id_prefix = input_subgroup_prefix + "/" + "NodeIds";
+            if (rFile.HasPath(input_node_id_prefix)) {
 
-            // Read node IDs
-            KRATOS_TRY
-                const std::string input_node_id_prefix = input_subgroup_prefix + "/" + "NodeIds";
-                const auto node_id_shape = rFile.GetDataDimensions(input_node_id_prefix);
-                KRATOS_ERROR_IF(node_id_shape.empty());
-                const std::size_t node_count = node_id_shape[0];
-                node_ids.resize(node_count, false);
-                rFile.ReadDataSet(input_node_id_prefix, node_ids, 0, node_ids.size());
-            KRATOS_CATCH("")
+                // Read node IDs
+                KRATOS_TRY
+                    const auto node_id_shape = rFile.GetDataDimensions(input_node_id_prefix);
+                    KRATOS_ERROR_IF(node_id_shape.empty());
+                    const std::size_t node_count = node_id_shape[0];
+                    node_ids.resize(node_count, false);
+                    rFile.ReadDataSet(input_node_id_prefix, node_ids, 0, node_ids.size());
+                KRATOS_CATCH("")
 
-            // Map IDs to indices
-            IndexPartition<std::size_t>(node_ids.size()).for_each([&node_ids, &rNodeIdMap](std::size_t iNode){
-                node_ids[iNode] = rNodeIdMap[node_ids[iNode]];
-            });
+                // Map IDs to indices
+                IndexPartition<std::size_t>(node_ids.size()).for_each([&node_ids, &rNodeIdMap](std::size_t iNode){
+                    node_ids[iNode] = rNodeIdMap[node_ids[iNode]];
+                });
 
-            // Write node indices
-            KRATOS_TRY
-                const std::string output_node_index_prefix = output_subgroup_prefix + "/Nodes/Indices";
-                [[maybe_unused]] HDF5::WriteInfo write_info;
-                rFile.WriteDataSet(output_node_index_prefix,
-                                   node_ids,
-                                   write_info);
-            KRATOS_CATCH("")
+                // Write node indices
+                KRATOS_TRY
+                    const std::string output_node_index_prefix = output_subgroup_prefix + "/Nodes/Indices";
+                    [[maybe_unused]] HDF5::WriteInfo write_info;
+                    rFile.WriteDataSet(output_node_index_prefix,
+                                       node_ids,
+                                       write_info);
+                KRATOS_CATCH("")
+            }
         }
 
         // Write cell sets
