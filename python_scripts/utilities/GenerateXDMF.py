@@ -190,8 +190,8 @@ else:
                         context_manager.enter_context(results_file)
                     attribute_path = results_file[dataset.results.prefix]
 
-                    grid = XDMF.ParseMesh(mesh_file[dataset.mesh.prefix],
-                                          attribute_path = attribute_path)
+                grid = XDMF.ParseMesh(mesh_file[dataset.mesh.prefix],
+                                      attribute_path = attribute_path)
 
             grid.append(XDMF.TimePoint(i_dataset))
             transient_grid.append(grid)
@@ -227,13 +227,15 @@ else:
                               batch_size,
                               verbose = verbose)
 
-        thread_count = int(os.environ.get("OMP_NUM_THREADS", max([multiprocessing.cpu_count() - 1,1])))
-        if 1 < thread_count:
-            with multiprocessing.Pool(thread_count) as pool:
-                pool.map(BatchGenerate, ((batch, verbose) for batch in batches))
-        else:
-            for batch in batches:
-                BatchGenerate((batch, verbose))
+        #thread_count = int(os.environ.get("OMP_NUM_THREADS", max([multiprocessing.cpu_count() - 1,1])))
+        #if 1 < thread_count:
+        #    with multiprocessing.Pool(thread_count) as pool:
+        #        pool.map(BatchGenerate, ((batch, verbose) for batch in batches))
+        #else:
+        #    for batch in batches:
+        #        BatchGenerate((batch, verbose))
+        for batch in batches:
+            BatchGenerate((batch, verbose))
 
 
 
