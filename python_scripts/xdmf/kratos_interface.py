@@ -163,6 +163,8 @@ def __ParseCellType(cell_name: str, nodes_per_element: int) -> Topology.Type:
                 topology_type = topology_candidates[0]
                 if topology_type is not None:
                     return topology_type
+            elif "element" in geometry_name_lower: # <== elements always refer to an object with the same dimensionality
+                return topology_candidates[1]
 
         # Case (3, 3)
         # Decide whether the geometry refers to
@@ -196,9 +198,9 @@ def __ParseCellType(cell_name: str, nodes_per_element: int) -> Topology.Type:
                 if topology_type is not None:
                     return topology_type
             elif "condition" in geometry_name_lower: # <== a condition always refers to an object with 1 dimension less
-                topology_type = topology_candidates[0]
-                if topology_type is not None:
-                    return topology_type
+                return topology_candidates[0]
+            elif "element" in geometry_name_lower: # <== elements always refer to an object with the same dimensionality
+                return topology_candidates[1]
 
         # Case (3, 6)
         # Decide whether the geometry refers to
