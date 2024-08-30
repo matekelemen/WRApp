@@ -10,6 +10,7 @@
 // --- WRApp Includes ---
 #include "wrapp/utils/inc/EntityProxy.hpp"
 #include "wrapp/utils/inc/ContainerProxy.hpp"
+#include "wrapp/utils/inc/WRAppTestSuite.hpp"
 
 
 namespace Kratos::Testing {
@@ -124,7 +125,7 @@ void TestEntityProxy(TContainer& rEntities)
 } // unnamed namespace
 
 
-KRATOS_TEST_CASE_IN_SUITE(HistoricalNodeProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HistoricalNodeProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");
@@ -132,7 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalNodeProxy_, KratosWRApplicationTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(NonHistoricalNodeProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(NonHistoricalNodeProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");
@@ -140,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(NonHistoricalNodeProxy_, KratosWRApplicationTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ElementProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(ElementProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");
@@ -148,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementProxy_, KratosWRApplicationTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ConditionProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConditionProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");
@@ -156,7 +157,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConditionProxy_, KratosWRApplicationTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ProcessInfoProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(ProcessInfoProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
 
@@ -209,7 +210,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessInfoProxy_, KratosWRApplicationTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ModelPartProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(ModelPartProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
 
@@ -293,7 +294,7 @@ void TestContainerProxy(TMutableContainerProxy MutableProxies, TImmutableContain
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(HistoricalNodeContainerProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HistoricalNodeContainerProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");
@@ -303,7 +304,7 @@ KRATOS_TEST_CASE_IN_SUITE(HistoricalNodeContainerProxy_, KratosWRApplicationTest
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(NonHistoricalNodeContainerProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(NonHistoricalNodeContainerProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");
@@ -313,7 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(NonHistoricalNodeContainerProxy_, KratosWRApplicationT
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ElementContainerProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(ElementContainerProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");
@@ -323,7 +324,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementContainerProxy_, KratosWRApplicationTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ConditionContainerProxy_, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConditionContainerProxy_, WRAppTestSuite)
 {
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");

@@ -8,17 +8,12 @@ set(application_core_name "${PROJECT_NAME}Core")
 set(application_name "${PROJECT_NAME}Application")
 
 # Core library
-file(GLOB_RECURSE application_core_sources
-     ${application_name}.cpp
-     ${application_name}_variables.cpp
-     packages/*.cpp)
+file(GLOB application_core_sources
+     "${CMAKE_CURRENT_SOURCE_DIR}/${application_name}.cpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/${application_name}_variables.cpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/packages/wrapp/*/src/*.cpp")
 
-if (${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE application_test_sources
-         packages/*/test/*.cpp)
-endif()
-
-add_library(${application_core_name} SHARED ${application_core_sources} ${application_test_sources})
+add_library(${application_core_name} SHARED ${application_core_sources})
 target_link_libraries(${application_core_name} PUBLIC KratosCore KratosHDF5Core)
 target_include_directories(${application_core_name} PUBLIC
                            "${KRATOS_SOURCE_DIR}/kratos"
@@ -50,9 +45,12 @@ if (${INSTALL_TESTING_FILES} MATCHES ON)
 endif()
 
 # Compile definitions
-if (${KRATOS_BUILD_TESTING})
+if (${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE application_test_sources "${CMAKE_CURRENT_SOURCE_DIR}/packages/*/test/*.cpp")
     target_compile_definitions(${application_core_name} PRIVATE KRATOS_BUILD_TESTING)
     target_compile_definitions(Kratos${application_name} PRIVATE KRATOS_BUILD_TESTING)
+    #kratos_add_gtests(TARGET ${application_core_name} SOURCES "${application_test_sources}")
+    #target_link_libraries(${application_core_name} PRIVATE GTest::gtest GTest::gmock)
 endif()
 
 # Install targets

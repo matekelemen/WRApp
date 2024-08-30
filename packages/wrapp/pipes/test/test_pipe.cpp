@@ -6,6 +6,7 @@
 
 // Internal includes
 #include "wrapp/pipes/inc/pipe.hpp"
+#include "wrapp/utils/inc/WRAppTestSuite.hpp"
 
 
 namespace Kratos::Testing {
@@ -59,14 +60,14 @@ private:
 }; // struct IntBoolTestPipe
 
 
-KRATOS_TEST_CASE_IN_SUITE(PipeTraits, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(PipeTraits, WRAppTestSuite)
 {
     static_assert(Pipes::IsPipe<BoolIntTestPipe>::value);
     static_assert(Pipes::IsPipe<IntBoolTestPipe>::value);
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(PipeOperator, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(PipeOperator, WRAppTestSuite)
 {
     BoolIntTestPipe bool_int;
     IntBoolTestPipe int_bool;
@@ -83,7 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(PipeOperator, KratosWRApplicationTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(CompoundPipe, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompoundPipe, WRAppTestSuite)
 {
     BoolIntTestPipe bool_int;
     IntBoolTestPipe int_bool;
@@ -139,7 +140,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompoundPipe, KratosWRApplicationTestSuite)
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(PipeFactory, KratosWRApplicationTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(PipeFactory, WRAppTestSuite)
 {
     {
         using Pipeline = decltype(BoolIntTestPipe() | IntBoolTestPipe());

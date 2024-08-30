@@ -11,7 +11,7 @@ from KratosMultiphysics.WRApplication import *
 
 def Run():
     KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.PROGRESS)
-    KratosMultiphysics.Tester.RunTestSuite("KratosWRApplicationTestSuite")
+    KratosMultiphysics.Tester.RunTestSuite("WRAppTestSuite")
 
 
 class CppTests(WRApp.TestCase):
