@@ -10,15 +10,7 @@ import KratosMultiphysics
 # --- HDF5 Imports ---
 import KratosMultiphysics.HDF5Application
 from KratosMultiphysics.HDF5Application.core.xdmf import Attribute
-from KratosMultiphysics.HDF5Application.xdmf_utils import RenumberConnectivitiesForXdmf,    \
-                                                          CreateXdmfSpatialGrid,            \
-                                                          XdmfResults,                      \
-                                                          TemporalGrid,                     \
-                                                          UniformGrid,                      \
-                                                          SpatialGrid,                      \
-                                                          Time,                             \
-                                                          Domain,                           \
-                                                          Xdmf
+from KratosMultiphysics.HDF5Application.xdmf_utils import SpatialGrid
 
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
