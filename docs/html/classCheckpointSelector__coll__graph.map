@@ -1,0 +1,5 @@
+<map id="CheckpointSelector" name="CheckpointSelector">
+<area shape="rect" id="Node000001" title="A functor taking a Model and returning a CheckpointID to load or None." alt="" coords="5,119,145,184"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="27,5,123,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,84,78,119,73,119,73,84"/>
+</map>

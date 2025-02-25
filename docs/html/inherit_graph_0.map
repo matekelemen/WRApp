@@ -1,0 +1,133 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="21,5,140,31"/>
+<area shape="rect" id="Node000001" href="$classWRAppClass.html" title="WRApp::WRAppClass with a replaced metaclass for compatibility with abc." alt="" coords="502,55,606,80"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="154,19,273,27,408,41,502,55,502,60,408,46,273,33,154,24"/>
+<area shape="rect" id="Node000002" href="$classWRAppMeta.html" title="Metaclass replacing that of the C++ WRAppClass to provide derived classes access to abc...." alt="" coords="255,55,357,80"/>
+<area shape="poly" id="edge2_Node000000_Node000002" title=" " alt="" coords="153,31,255,54,254,59,152,36"/>
+<area shape="poly" id="edge3_Node000002_Node000001" title=" " alt="" coords="371,65,502,65,502,70,371,70"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="56,427,105,452"/>
+<area shape="poly" id="edge9_Node000003_Node000002" title=" " alt="" coords="94,414,124,359,153,292,162,262,165,234,165,185,166,162,171,138,183,115,202,91,226,75,254,67,255,72,228,80,206,95,187,118,176,140,172,162,170,185,170,235,167,263,159,294,129,361,99,416"/>
+<area shape="rect" id="Node000004" href="$classDatasetTransform.html" title="Fetch, transform and assign data between ModelPart s." alt="" coords="237,525,375,551"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="119,453,277,523,275,528,117,458"/>
+<area shape="rect" id="Node000035" href="$classSolutionStageScope.html" title="RAII context manager for tasks during solver execution." alt="" coords="231,353,381,379"/>
+<area shape="poly" id="edge8_Node000003_Node000035" title=" " alt="" coords="117,421,203,389,248,376,250,381,205,394,119,426"/>
+<area shape="rect" id="Node000036" href="$classpython__scripts_1_1xdmf_1_1Data_1_1Data.html" title=" " alt="" coords="279,403,333,428"/>
+<area shape="poly" id="edge10_Node000003_Node000036" title=" " alt="" coords="119,433,279,415,279,421,119,438"/>
+<area shape="rect" id="Node000039" href="$classpython__scripts_1_1xdmf_1_1DataItem_1_1DataItem.html" title=" " alt="" coords="265,969,347,995"/>
+<area shape="poly" id="edge13_Node000003_Node000039" title=" " alt="" coords="98,463,129,529,159,612,165,646,168,690,171,792,180,890,190,929,206,956,218,966,233,973,265,980,264,985,231,978,215,971,202,960,185,931,175,891,166,792,162,690,159,647,153,613,124,531,93,466"/>
+<area shape="rect" id="Node000058" href="$classpython__scripts_1_1xdmf_1_1DataType_1_1DataType.html" title=" " alt="" coords="265,452,347,477"/>
+<area shape="poly" id="edge17_Node000003_Node000058" title=" " alt="" coords="119,441,265,457,264,463,119,446"/>
+<area shape="rect" id="Node000005" href="$classDatasetLookup.html" title="Store, retrieve, and interpolate datasets." alt="" coords="495,637,613,663"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="389,551,410,561,426,577,434,593,442,609,457,624,495,640,493,645,455,628,438,612,430,596,422,580,406,565,387,555"/>
+<area shape="rect" id="Node000006" href="$classDatasetMap.html" title="DatasetTransform that uses a Mapper to map datasets before assigning them to the target ModelPart." alt="" coords="503,539,605,564"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="389,540,503,546,503,551,389,545"/>
+<area shape="rect" id="Node000007" href="$classNoOpDatasetTransform.html" title="DatasetTransform that directly assigns fetched datasets without doing anything to them." alt="" coords="467,588,641,613"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="373,552,409,561,457,574,501,585,500,591,455,579,407,566,372,557"/>
+<area shape="rect" id="Node000037" href="$classpython__scripts_1_1xdmf_1_1Data_1_1HDF5Data.html" title=" " alt="" coords="509,341,599,367"/>
+<area shape="poly" id="edge11_Node000036_Node000037" title=" " alt="" coords="346,404,407,389,508,363,510,368,409,394,347,409"/>
+<area shape="rect" id="Node000038" href="$classpython__scripts_1_1xdmf_1_1Data_1_1XmlData.html" title=" " alt="" coords="515,292,593,317"/>
+<area shape="poly" id="edge12_Node000036_Node000038" title=" " alt="" coords="346,410,377,403,407,389,422,375,430,360,438,343,454,328,484,314,514,306,515,311,486,319,458,332,443,347,434,362,426,378,409,394,378,408,347,415"/>
+<area shape="rect" id="Node000040" href="$classpython__scripts_1_1xdmf_1_1DataItem_1_1CoordinateDataItem.html" title=" " alt="" coords="477,1019,631,1044"/>
+<area shape="poly" id="edge14_Node000039_Node000040" title=" " alt="" coords="362,990,490,1016,489,1021,361,995"/>
+<area shape="rect" id="Node000041" href="$classpython__scripts_1_1xdmf_1_1DataItem_1_1LeafDataItem.html" title=" " alt="" coords="499,920,609,945"/>
+<area shape="poly" id="edge15_Node000039_Node000041" title=" " alt="" coords="361,969,498,941,499,946,362,974"/>
+<area shape="rect" id="Node000042" href="$classpython__scripts_1_1xdmf_1_1DataItem_1_1UniformDataItem.html" title=" " alt="" coords="486,969,622,995"/>
+<area shape="poly" id="edge16_Node000039_Node000042" title=" " alt="" coords="361,979,486,979,486,985,361,985"/>
+<area shape="rect" id="Node000059" href="$classpython__scripts_1_1xdmf_1_1DataType_1_1Float.html" title=" " alt="" coords="527,489,581,515"/>
+<area shape="poly" id="edge18_Node000058_Node000059" title=" " alt="" coords="362,470,527,495,526,501,361,476"/>
+<area shape="rect" id="Node000060" href="$classpython__scripts_1_1xdmf_1_1DataType_1_1Int.html" title=" " alt="" coords="535,391,573,416"/>
+<area shape="poly" id="edge19_Node000058_Node000060" title=" " alt="" coords="360,450,407,438,534,406,535,411,409,443,361,455"/>
+<area shape="rect" id="Node000061" href="$classpython__scripts_1_1xdmf_1_1DataType_1_1UInt.html" title=" " alt="" coords="529,440,579,465"/>
+<area shape="poly" id="edge20_Node000058_Node000061" title=" " alt="" coords="361,459,529,451,529,456,361,465"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="39,104,122,129"/>
+<area shape="rect" id="Node000015" href="$classSnapshotManager.html" title="Interface for Snapshot lifetime management." alt="" coords="237,104,375,129"/>
+<area shape="poly" id="edge21_Node000016_Node000015" title=" " alt="" coords="136,114,236,114,236,119,136,119"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="36,155,125,180"/>
+<area shape="poly" id="edge24_Node000014_Node000001" title=" " alt="" coords="139,167,264,163,336,155,407,139,443,127,478,110,533,78,535,82,480,115,445,131,409,145,337,160,264,169,139,172"/>
+<area shape="poly" id="edge23_Node000014_Node000015" title=" " alt="" coords="138,152,248,127,249,132,139,157"/>
+<area shape="rect" id="Node000013" href="$classCheckpointProcess.html" title="Main interface process for checkpointing." alt="" coords="233,205,379,231"/>
+<area shape="poly" id="edge22_Node000014_Node000013" title=" " alt="" coords="139,178,249,203,248,208,138,183"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="37,624,124,649"/>
+<area shape="poly" id="edge25_Node000008_Node000004" title=" " alt="" coords="109,614,152,587,203,561,241,548,243,553,205,566,155,591,112,618"/>
+<area shape="rect" id="Node000009" href="$classLaunch.html" title="Set up, execute, and tear down an analysis based on an input JSON file." alt="" coords="272,723,340,748"/>
+<area shape="poly" id="edge26_Node000008_Node000009" title=" " alt="" coords="112,655,155,683,205,709,239,720,272,728,271,733,238,725,203,714,152,688,109,660"/>
+<area shape="rect" id="Node000032" href="$classSubSynchronization.html" title="A class wrapping AsnycSolver._Synchronize in a KratosMultiphysics.Operation." alt="" coords="231,575,381,600"/>
+<area shape="poly" id="edge27_Node000008_Node000032" title=" " alt="" coords="137,622,247,597,248,603,138,627"/>
+<area shape="rect" id="Node000033" href="$classpython__scripts_1_1utilities_1_1RegistryExtensionOperation_1_1RegistryExtensionOperation.html" title="Extend the WRApp registry with imported objects." alt="" coords="204,624,408,649"/>
+<area shape="poly" id="edge28_Node000008_Node000033" title=" " alt="" coords="138,634,204,634,204,639,138,639"/>
+<area shape="rect" id="Node000034" href="$classpython__scripts_1_1utilities_1_1WorkingDirectoryOperation_1_1WorkingDirectoryOperation.html" title="Change the working directory." alt="" coords="207,673,405,699"/>
+<area shape="poly" id="edge29_Node000008_Node000034" title=" " alt="" coords="138,646,248,671,247,676,137,652"/>
+<area shape="rect" id="Node000017" title=" " alt="" coords="45,255,117,280"/>
+<area shape="poly" id="edge30_Node000017_Node000013" title=" " alt="" coords="130,254,247,228,248,233,131,259"/>
+<area shape="rect" id="Node000018" href="$classpython__scripts_1_1utilities_1_1GenerateHDF5Journal_1_1GenerateHDF5Journal.html" title="Generate a Kratos::Journal from globbed HDF5 results." alt="" coords="225,255,387,280"/>
+<area shape="poly" id="edge31_Node000017_Node000018" title=" " alt="" coords="130,265,224,265,224,270,130,270"/>
+<area shape="rect" id="Node000019" href="$classpython__scripts_1_1utilities_1_1GenerateXDMF_1_1GenerateXDMF.html" title="Generate XDMF output for an existing set of HDF5 output files." alt="" coords="245,304,367,329"/>
+<area shape="poly" id="edge32_Node000017_Node000019" title=" " alt="" coords="131,275,248,301,247,307,130,281"/>
+<area shape="rect" id="Node000062" title=" " alt="" coords="55,55,106,80"/>
+<area shape="poly" id="edge33_Node000062_Node000002" title=" " alt="" coords="120,65,254,65,254,70,120,70"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="29,821,133,847"/>
+<area shape="poly" id="edge45_Node000010_Node000004" title=" " alt="" coords="90,808,152,664,184,595,202,561,235,544,237,549,206,565,189,597,157,666,95,810"/>
+<area shape="poly" id="edge36_Node000010_Node000013" title=" " alt="" coords="93,808,124,743,153,661,160,621,162,568,163,445,165,383,171,325,183,277,202,242,216,230,232,222,234,227,219,234,206,245,188,279,176,326,171,383,169,445,168,568,165,621,159,663,129,745,98,810"/>
+<area shape="poly" id="edge46_Node000010_Node000009" title=" " alt="" coords="109,811,152,784,203,758,271,739,272,744,205,763,155,788,112,816"/>
+<area shape="poly" id="edge49_Node000010_Node000032" title=" " alt="" coords="86,807,101,764,124,711,158,657,179,632,202,610,229,596,232,601,206,615,183,636,162,660,129,713,106,766,91,809"/>
+<area shape="poly" id="edge50_Node000010_Node000033" title=" " alt="" coords="90,808,107,774,132,734,164,694,203,660,228,647,230,652,205,664,168,697,136,737,112,777,95,810"/>
+<area shape="poly" id="edge51_Node000010_Node000034" title=" " alt="" coords="97,808,141,758,170,731,203,709,232,696,235,701,205,714,174,736,145,762,101,812"/>
+<area shape="rect" id="Node000011" href="$classAsyncSolver.html" title="Base class for composable solvers that handle their domains asynchronously." alt="" coords="255,1019,357,1044"/>
+<area shape="poly" id="edge34_Node000010_Node000011" title=" " alt="" coords="95,858,112,892,136,932,168,972,205,1005,229,1017,255,1024,254,1029,228,1022,203,1010,164,976,132,935,107,895,90,860"/>
+<area shape="rect" id="Node000012" href="$classCheckpoint.html" title="Class representing a checkpoint, consisting of one or more consecutive Snapshot s." alt="" coords="259,1068,353,1093"/>
+<area shape="poly" id="edge35_Node000010_Node000012" title=" " alt="" coords="91,860,106,903,129,956,162,1010,182,1034,206,1054,231,1068,259,1075,258,1080,229,1073,202,1059,179,1037,158,1013,124,958,101,905,86,861"/>
+<area shape="rect" id="Node000021" href="$classCheckpointSelector.html" title="A functor taking a Model and returning a CheckpointID to load or None." alt="" coords="232,1117,380,1143"/>
+<area shape="poly" id="edge37_Node000010_Node000021" title=" " alt="" coords="89,860,100,912,122,979,156,1047,179,1077,206,1104,233,1119,230,1123,202,1108,175,1081,152,1049,117,981,95,914,83,861"/>
+<area shape="rect" id="Node000023" href="$classCoSimCoupling.html" title="Wrapper for CoSimulationApplication coupling procedures." alt="" coords="245,1216,367,1241"/>
+<area shape="poly" id="edge39_Node000010_Node000023" title=" " alt="" coords="85,860,91,929,108,1022,124,1071,144,1119,172,1164,206,1203,224,1215,246,1222,244,1227,222,1220,202,1207,167,1167,140,1122,119,1073,103,1023,85,930,80,861"/>
+<area shape="rect" id="Node000025" href="$classConvergenceAccelerator.html" title=" " alt="" coords="215,1167,397,1192"/>
+<area shape="poly" id="edge40_Node000010_Node000025" title=" " alt="" coords="87,860,95,921,115,1000,130,1042,150,1083,175,1121,206,1153,223,1164,220,1169,202,1157,171,1124,146,1086,125,1044,110,1002,90,922,81,861"/>
+<area shape="rect" id="Node000026" href="$classConvergenceCriterion.html" title="Wrapper for cosim convergence criteria." alt="" coords="225,772,387,797"/>
+<area shape="poly" id="edge41_Node000010_Node000026" title=" " alt="" coords="146,817,247,795,248,800,147,822"/>
+<area shape="rect" id="Node000027" href="$classDataset.html" title="Class representing a dataset that can be operated on during coupling." alt="" coords="269,821,343,847"/>
+<area shape="poly" id="edge42_Node000010_Node000027" title=" " alt="" coords="147,831,269,831,269,837,147,837"/>
+<area shape="rect" id="Node000030" href="$classSnapshot.html" title="Class representing a snapshot of a ModelPart state." alt="" coords="265,920,347,945"/>
+<area shape="poly" id="edge47_Node000010_Node000030" title=" " alt="" coords="112,853,155,880,205,906,265,924,264,929,203,911,152,885,109,857"/>
+<area shape="rect" id="Node000031" href="$classSnapshotIO.html" title="Interface for performing Snapshot input/output operations." alt="" coords="258,871,354,896"/>
+<area shape="poly" id="edge48_Node000010_Node000031" title=" " alt="" coords="147,846,259,870,257,876,146,851"/>
+<area shape="rect" id="Node000022" href="$classDefaultCheckpointSelector.html" title="Always returns None, i.e." alt="" coords="456,1117,652,1143"/>
+<area shape="poly" id="edge38_Node000021_Node000022" title=" " alt="" coords="394,1127,456,1127,456,1133,394,1133"/>
+<area shape="rect" id="Node000028" href="$classCachedDataset.html" title="Dataset that stores into and fetches from a static cache." alt="" coords="493,796,615,821"/>
+<area shape="poly" id="edge43_Node000027_Node000028" title=" " alt="" coords="356,826,493,812,493,817,357,832"/>
+<area shape="rect" id="Node000029" href="$classKratosDataset.html" title="Class representing a Variable stored in a ModelPart." alt="" coords="497,845,611,871"/>
+<area shape="poly" id="edge44_Node000027_Node000029" title=" " alt="" coords="357,836,497,850,496,855,356,841"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="29,205,132,231"/>
+<area shape="poly" id="edge52_Node000020_Node000013" title=" " alt="" coords="146,215,233,215,233,221,146,221"/>
+<area shape="rect" id="Node000043" title=" " alt="" coords="43,1388,119,1413"/>
+<area shape="poly" id="edge54_Node000043_Node000039" title=" " alt="" coords="95,1375,125,1320,153,1253,163,1216,165,1182,162,1122,162,1093,167,1064,179,1036,202,1005,216,995,231,987,264,980,265,985,233,992,218,999,206,1009,184,1038,172,1066,167,1093,167,1121,171,1182,168,1217,159,1255,129,1323,99,1378"/>
+<area shape="rect" id="Node000044" href="$classpython__scripts_1_1xdmf_1_1Attribute_1_1Attribute.html" title=" " alt="" coords="267,1315,345,1340"/>
+<area shape="poly" id="edge53_Node000043_Node000044" title=" " alt="" coords="123,1380,203,1350,266,1333,267,1338,205,1355,125,1385"/>
+<area shape="rect" id="Node000045" href="$classpython__scripts_1_1xdmf_1_1Document_1_1Document.html" title=" " alt="" coords="261,1364,351,1389"/>
+<area shape="poly" id="edge55_Node000043_Node000045" title=" " alt="" coords="132,1393,261,1379,261,1384,133,1398"/>
+<area shape="rect" id="Node000046" href="$classpython__scripts_1_1xdmf_1_1Domain_1_1Domain.html" title=" " alt="" coords="269,1413,343,1439"/>
+<area shape="poly" id="edge56_Node000043_Node000046" title=" " alt="" coords="133,1404,270,1419,269,1425,132,1409"/>
+<area shape="rect" id="Node000047" href="$classpython__scripts_1_1xdmf_1_1Geometry_1_1Geometry.html" title=" " alt="" coords="263,1463,349,1488"/>
+<area shape="poly" id="edge57_Node000043_Node000047" title=" " alt="" coords="122,1416,205,1449,263,1464,262,1469,203,1454,120,1421"/>
+<area shape="rect" id="Node000048" href="$classpython__scripts_1_1xdmf_1_1Grid_1_1Grid.html" title=" " alt="" coords="281,1512,331,1537"/>
+<area shape="poly" id="edge58_Node000043_Node000048" title=" " alt="" coords="105,1421,149,1461,176,1481,205,1498,245,1512,282,1520,281,1525,243,1517,203,1503,173,1486,145,1465,101,1425"/>
+<area shape="rect" id="Node000053" href="$classpython__scripts_1_1xdmf_1_1Time_1_1Time.html" title=" " alt="" coords="279,1636,333,1661"/>
+<area shape="poly" id="edge63_Node000043_Node000053" title=" " alt="" coords="102,1422,148,1481,206,1548,292,1634,289,1638,202,1552,144,1484,98,1426"/>
+<area shape="rect" id="Node000057" href="$classpython__scripts_1_1xdmf_1_1Topology_1_1Topology.html" title=" " alt="" coords="266,1265,346,1291"/>
+<area shape="poly" id="edge67_Node000043_Node000057" title=" " alt="" coords="103,1376,147,1337,203,1301,234,1289,265,1281,266,1286,236,1294,205,1306,150,1342,106,1380"/>
+<area shape="rect" id="Node000049" href="$classpython__scripts_1_1xdmf_1_1Grid_1_1GridCollection.html" title=" " alt="" coords="497,1463,611,1488"/>
+<area shape="poly" id="edge59_Node000048_Node000049" title=" " alt="" coords="343,1515,496,1484,497,1489,345,1520"/>
+<area shape="rect" id="Node000050" href="$classpython__scripts_1_1xdmf_1_1Grid_1_1GridLeaf.html" title=" " alt="" coords="515,1512,593,1537"/>
+<area shape="poly" id="edge60_Node000048_Node000050" title=" " alt="" coords="345,1522,515,1522,515,1527,345,1527"/>
+<area shape="rect" id="Node000051" href="$classpython__scripts_1_1xdmf_1_1Grid_1_1GridSubset.html" title=" " alt="" coords="507,1561,601,1587"/>
+<area shape="poly" id="edge61_Node000048_Node000051" title=" " alt="" coords="345,1530,508,1562,507,1567,344,1535"/>
+<area shape="rect" id="Node000052" href="$classpython__scripts_1_1xdmf_1_1Grid_1_1GridTree.html" title=" " alt="" coords="516,1413,592,1439"/>
+<area shape="poly" id="edge62_Node000048_Node000052" title=" " alt="" coords="344,1518,375,1511,407,1498,421,1487,430,1475,439,1462,455,1449,485,1436,515,1428,517,1433,487,1441,457,1454,443,1465,434,1478,425,1491,409,1503,377,1516,345,1524"/>
+<area shape="rect" id="Node000054" href="$classpython__scripts_1_1xdmf_1_1Time_1_1TimeGrid.html" title=" " alt="" coords="513,1660,595,1685"/>
+<area shape="poly" id="edge64_Node000053_Node000054" title=" " alt="" coords="348,1650,513,1666,512,1671,347,1655"/>
+<area shape="rect" id="Node000055" href="$classpython__scripts_1_1xdmf_1_1Time_1_1TimeList.html" title=" " alt="" coords="515,1709,593,1735"/>
+<area shape="poly" id="edge65_Node000053_Node000055" title=" " alt="" coords="347,1660,457,1695,515,1711,514,1716,455,1701,345,1665"/>
+<area shape="rect" id="Node000056" href="$classpython__scripts_1_1xdmf_1_1Time_1_1TimePoint.html" title=" " alt="" coords="510,1611,598,1636"/>
+<area shape="poly" id="edge66_Node000053_Node000056" title=" " alt="" coords="347,1642,510,1625,510,1630,347,1647"/>
+<area shape="rect" id="Node000024" title=" " alt="" coords="5,1216,156,1241"/>
+<area shape="poly" id="edge68_Node000024_Node000023" title=" " alt="" coords="170,1226,245,1226,245,1231,170,1231"/>
+</map>

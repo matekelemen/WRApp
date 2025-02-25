@@ -1,0 +1,9 @@
+<map id="Dataset" name="Dataset">
+<area shape="rect" id="Node000001" title="Class representing a dataset that can be operated on during coupling." alt="" coords="96,119,161,184"/>
+<area shape="rect" id="Node000003" href="$classCachedDataset.html" title="Dataset that stores into and fetches from a static cache." alt="" coords="5,232,119,297"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="105,197,83,233,79,230,100,194"/>
+<area shape="rect" id="Node000004" href="$classKratosDataset.html" title="Class representing a Variable stored in a ModelPart." alt="" coords="143,232,250,297"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="157,194,180,230,175,233,153,197"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="81,5,177,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,84,131,119,126,119,126,84"/>
+</map>

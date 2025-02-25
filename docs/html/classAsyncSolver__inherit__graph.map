@@ -1,0 +1,5 @@
+<map id="AsyncSolver" name="AsyncSolver">
+<area shape="rect" id="Node000001" title="Base class for composable solvers that handle their domains asynchronously." alt="" coords="6,119,101,184"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,101,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="56,84,56,119,51,119,51,84"/>
+</map>
