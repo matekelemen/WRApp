@@ -517,6 +517,7 @@ def ParseSubmesh(path: h5py.Group,
         # Add node IDs as an attribute
         node_id_attribute = Attribute("ID", Attribute.Center.Node)
         node_id_attribute.append(root_data.node_ids)
+        node_attributes["ID"] = node_id_attribute
         node_grid.append(node_id_attribute)
 
         grid_tree.append(node_grid)
