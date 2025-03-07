@@ -213,7 +213,7 @@ else:
             MakeJournal(self.__parameters["file_name"].GetString(),
                         self.__parameters["results_prefix"].GetString(),
                         self.__parameters["mesh_prefix"].GetString(),
-                        self.__parameters["journal_name"].GetString(),
+                        self.__parameters["journal_path"].GetString(),
                         verbose = self.__parameters["verbose"].GetBool())
 
 
@@ -223,7 +223,7 @@ else:
                 "file_name" : "",
                 "results_prefix" : "/ResultsData",
                 "mesh_prefix" : "/ModelData",
-                "journal_name" : "hdf5_output.jrn",
+                "journal_path" : "hdf5_output.jrn",
                 "verbose" : false
             }""")
 
