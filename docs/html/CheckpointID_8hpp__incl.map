@@ -1,0 +1,9 @@
+<map id="CheckpointID.hpp" name="CheckpointID.hpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="152,5,289,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,86,159,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,33,116,82,113,77,199,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="183,86,259,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,31,223,72,218,72,218,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="283,79,487,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="246,28,334,70,332,75,243,33"/>
+</map>
