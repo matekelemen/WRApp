@@ -237,9 +237,7 @@ else:
             @details Default parameters:
                     @code
                     {
-                        "file_pattern": "",                         // <== input file pattern compatible with ModelPartPattern
-                        "mesh_prefix" : "/ModelData",               // <== prefix of the mesh within HDF5 files
-                        "results_prefix" : "/ResultsData",          // <== prefix of the results within HDF5 files
+                        "journal_path": "",                         // <== path to the journal file containing output information
                         "batch_size" : -1,                          // <== number of input files to process per output xdmf
                         "output_pattern" : "batch_<batch>.xdmf",    // <== output file name pattern; may contain the "<batch>" placeholder
                         "verbose" : false                           // <== print status messages
@@ -248,8 +246,8 @@ else:
         """
 
         def __init__(self,
-                    _: KratosMultiphysics.Model,
-                    parameters: KratosMultiphysics.Parameters):
+                     _: KratosMultiphysics.Model,
+                     parameters: KratosMultiphysics.Parameters):
             KratosMultiphysics.Operation.__init__(self)
             WRApp.WRAppClass.__init__(self)
             self.__parameters = parameters
