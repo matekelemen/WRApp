@@ -35,22 +35,24 @@ def __MakeAttribute(root_attribute_set: DataItem,
                     attribute_name: str,
                     attribute_center: Attribute.Center,
                     index_set: Optional[DataItem] = None) -> Optional[Attribute]:
-    attribute_set: Optional[DataItem] = None
-    if index_set is None:
-        attribute_set = root_attribute_set
-    else:
-        component_indices: "list[int]" = []
-        attribute_shape = root_attribute_set.GetShape()
-        if 1 < len(attribute_shape):
-            component_indices = list(range(root_attribute_set.GetShape()[1]))
-        attribute_set = MakeCoordinateSlice(index_set,
-                                            root_attribute_set,
-                                            component_indices)
+    if attribute_name != "_partition": # <== not something we care about
+        attribute_set: Optional[DataItem] = None
 
-    if attribute_set is not None:
-        attribute = Attribute(attribute_name, attribute_center)
-        attribute.append(attribute_set)
-        return attribute
+        if index_set is None:
+            attribute_set = root_attribute_set
+        else:
+            component_indices: "list[int]" = []
+            attribute_shape = root_attribute_set.GetShape()
+            if 1 < len(attribute_shape):
+                component_indices = list(range(root_attribute_set.GetShape()[1]))
+            attribute_set = MakeCoordinateSlice(index_set,
+                                                root_attribute_set,
+                                                component_indices)
+
+        if attribute_set is not None:
+            attribute = Attribute(attribute_name, attribute_center)
+            attribute.append(attribute_set)
+            return attribute
 
 
 
@@ -110,7 +112,7 @@ def __ParseCellType(cell_name: str, nodes_per_element: int) -> Topology.Type:
         # VMS fluid elements
         # This one's relatively simple because it leaks info
         # about its dimension at least. Also, there's no point to
-        # quadratic line for a fluid element, so its not ambiguous.
+        # quadratic lines for a fluid element, so it's not ambiguous.
         if cell_name == "VMS2D":
             if nodes_per_element == 3:
                 return Topology.Type.Triangle
@@ -504,13 +506,14 @@ def ParseSubmesh(path: h5py.Group,
         # Parse node attributes
         node_attributes: "dict[str,Attribute]" = {}
         if attribute_path is not None:
-            for attribute_group_name in ("NodalSolutionStepValues",
+            for attribute_group_name in ("NodalSolutionStepData",
                                          "NodalDataValues",
                                          "NodalFlagValues"):
                 attribute_group: "Optional[h5py.Group]" = attribute_path.get(attribute_group_name, None)
                 if attribute_group is not None:
                     node_attributes.update(__ParseAttributeGroup(attribute_group,
-                                                                 Attribute.Center.Node))
+                                                                 Attribute.Center.Node,
+                                                                 index_set = node_indices))
         for attribute in node_attributes.values():
             node_grid.append(attribute)
 
@@ -522,63 +525,63 @@ def ParseSubmesh(path: h5py.Group,
 
         grid_tree.append(node_grid)
 
-        # Add elements and conditions if the subgroup contains them
-        for cell_type, cell_topologies, cell_index_maps, cell_ids, attribute_group_names in (("Elements",
-                                                                                              root_data.element_topologies,
-                                                                                              root_data.element_index_maps,
-                                                                                              root_data.element_ids,
-                                                                                              ("ElementDataValues", "ElementFlagValues")),
-                                                                                             ("Conditions",
-                                                                                              root_data.condition_topologies,
-                                                                                              root_data.condition_index_maps,
-                                                                                              root_data.condition_ids,
-                                                                                              ("ConditionDataValues", "ConditionFlagValues"))):
-            cell_groups: Optional[h5py.Group] = path.get(cell_type, None)
-            if cell_groups is not None:
-                for cell_name, cell_group in cell_groups.items():
-                    # Add the mesh to the current grid level
-                    cell_subgroup_name = f"{name}.{cell_name}" if subgroup_naming == SubgroupNaming.Paraview else cell_name
-                    cell_grid = GridLeaf(cell_subgroup_name)
-                    __TimeStamp(cell_grid, time)
+    # Add elements and conditions if the subgroup contains them
+    for cell_type, cell_topologies, cell_index_maps, cell_ids, attribute_group_names in (("Elements",
+                                                                                          root_data.element_topologies,
+                                                                                          root_data.element_index_maps,
+                                                                                          root_data.element_ids,
+                                                                                          ("ElementDataValues", "ElementFlagValues")),
+                                                                                          ("Conditions",
+                                                                                          root_data.condition_topologies,
+                                                                                          root_data.condition_index_maps,
+                                                                                          root_data.condition_ids,
+                                                                                          ("ConditionDataValues", "ConditionFlagValues"))):
+        cell_groups: Optional[h5py.Group] = path.get(cell_type, None)
+        if cell_groups is not None:
+            for cell_name, cell_group in cell_groups.items():
+                # Add the mesh to the current grid level
+                cell_subgroup_name = f"{name}.{cell_name}" if subgroup_naming == SubgroupNaming.Paraview else cell_name
+                cell_grid = GridLeaf(cell_subgroup_name)
+                __TimeStamp(cell_grid, time)
 
-                    cell_type_index_set = LeafDataItem(HDF5Data.FromDataset(cell_group["TypeIndices"]))
-                    cell_topology_set: DataItem = cell_topologies[cell_name]
-                    topology_type = __ParseCellType(cell_name, cell_topology_set.GetShape()[1])
-                    cell_topology = Topology(topology_type)
-                    maybe_cell_topology_data = MakeCoordinateSlice(
-                        cell_type_index_set,
-                        cell_topology_set,
-                        list(range(cell_topology_set.GetShape()[-1])))
+                cell_type_index_set = LeafDataItem(HDF5Data.FromDataset(cell_group["TypeIndices"]))
+                cell_topology_set: DataItem = cell_topologies[cell_name]
+                topology_type = __ParseCellType(cell_name, cell_topology_set.GetShape()[1])
+                cell_topology = Topology(topology_type)
+                maybe_cell_topology_data = MakeCoordinateSlice(
+                    cell_type_index_set,
+                    cell_topology_set,
+                    list(range(cell_topology_set.GetShape()[-1])))
 
-                    if maybe_cell_topology_data is None:
-                        continue
+                if maybe_cell_topology_data is None:
+                    continue
 
-                    cell_topology.append(maybe_cell_topology_data)
-                    cell_grid.append(cell_topology)
-                    cell_grid.append(node_geometry)
+                cell_topology.append(maybe_cell_topology_data)
+                cell_grid.append(cell_topology)
+                cell_grid.append(node_geometry)
 
-                    # Add node attributes to the current grid level
-                    for attribute in node_attributes.values():
-                        cell_grid.append(attribute)
+                # Add node attributes to the current grid level
+                for attribute in node_attributes.values():
+                    cell_grid.append(attribute)
 
-                    # Add cell attributes to the current grid level
-                    cell_index_set = CoordinateDataItem(cell_type_index_set, cell_index_maps[cell_name])
-                    if attribute_path is not None:
-                        for attribute_group_name in attribute_group_names:
-                            attribute_group: Optional[h5py.Group] = attribute_path.get(attribute_group_name, None)
-                            if attribute_group is not None:
-                                for attribute in __ParseAttributeGroup(attribute_group,
-                                                                       Attribute.Center.Cell,
-                                                                       index_set = cell_index_set).values():
-                                    cell_grid.append(attribute)
+                # Add cell attributes to the current grid level
+                cell_index_set = CoordinateDataItem(cell_type_index_set, cell_index_maps[cell_name])
+                if attribute_path is not None:
+                    for attribute_group_name in attribute_group_names:
+                        attribute_group: Optional[h5py.Group] = attribute_path.get(attribute_group_name, None)
+                        if attribute_group is not None:
+                            for attribute in __ParseAttributeGroup(attribute_group,
+                                                                    Attribute.Center.Cell,
+                                                                    index_set = cell_index_set).values():
+                                cell_grid.append(attribute)
 
-                    # Add cell IDs to the current grid level
-                    cell_id_attribute = Attribute("ID", Attribute.Center.Cell)
-                    cell_id_attribute.append(CoordinateDataItem(cell_index_set, cell_ids))
-                    cell_grid.append(cell_id_attribute)
+                # Add cell IDs to the current grid level
+                cell_id_attribute = Attribute("ID", Attribute.Center.Cell)
+                cell_id_attribute.append(CoordinateDataItem(cell_index_set, cell_ids))
+                cell_grid.append(cell_id_attribute)
 
-                    # Insert the current grid level into the grid tree
-                    grid_tree.append(cell_grid)
+                # Insert the current grid level into the grid tree
+                grid_tree.append(cell_grid)
 
     subgroups: Optional[h5py.Group] = path.get("SubModelParts", None)
     if subgroups is not None:
