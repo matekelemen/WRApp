@@ -512,8 +512,7 @@ def ParseSubmesh(path: h5py.Group,
                 attribute_group: "Optional[h5py.Group]" = attribute_path.get(attribute_group_name, None)
                 if attribute_group is not None:
                     node_attributes.update(__ParseAttributeGroup(attribute_group,
-                                                                 Attribute.Center.Node,
-                                                                 index_set = node_indices))
+                                                                 Attribute.Center.Node))
         for attribute in node_attributes.values():
             node_grid.append(attribute)
 
