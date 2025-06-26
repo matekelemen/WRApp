@@ -7,11 +7,6 @@ __all__ = [
 # --- Core Imports ---
 import KratosMultiphysics
 
-# --- HDF5 Imports ---
-import KratosMultiphysics.HDF5Application
-from KratosMultiphysics.HDF5Application.core.xdmf import Attribute
-from KratosMultiphysics.HDF5Application.xdmf_utils import SpatialGrid
-
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
 from .GenerateHDF5Journal import HDF5Path
@@ -21,8 +16,6 @@ import KratosMultiphysics.WRApplication.xdmf as XDMF
 import pathlib
 from typing import Optional, Generator
 import xml.etree.ElementTree
-import multiprocessing
-import os
 import json
 import sys
 from contextlib import ExitStack
@@ -142,14 +135,6 @@ else:
 
 
 
-    def AddResultsToGrid(results: "list[Attribute]",
-                         mesh_path: HDF5Path,
-                         spatial_grid: SpatialGrid) -> None:
-        for result in results:
-            spatial_grid.add_attribute(result)
-
-
-
     def CreateXdmfTemporalGridFromMultifile(batch: _Batch, verbose: bool = False) -> XDMF.Grid:
         transient_grid = XDMF.GridCollection("Transient", XDMF.GridCollection.Type.Temporal)
 
@@ -196,8 +181,6 @@ else:
         """ @brief Generate an XDMF file from a batch of input files.
             @details The arguments are packaged into a single tuple:
                     - batch: Batch (batch to process)
-                    - mesh_prefix: str (prefix of the mesh in HDF5 files that contain mesh data)
-                    - results_prefix: str (prefix of the mesh in HDF5 files that contain results data)
                     - verbose: bool (print status messages while processing)
         """
         document = XDMF.Document()

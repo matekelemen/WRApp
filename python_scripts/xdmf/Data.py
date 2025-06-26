@@ -92,6 +92,7 @@ class HDF5Data(Data):
         file_path = pathlib.Path(dataset.file.filename)
         prefix = str(dataset.name)
         data_type: Optional[DataType] = {
+            numpy.int8  : int(1),
             numpy.int32 : Int(4),
             numpy.int64 : Int(8),
             numpy.uint32 : UInt(4),
@@ -99,7 +100,8 @@ class HDF5Data(Data):
             numpy.float32 : Float(4),
             numpy.float64 : Float(8)
         }.get(dataset.dtype, None)
-        if dataset.dtype == numpy.int32: data_type = Int(4)
+        if dataset.dtype == numpy.int8: data_type = Int(1)
+        elif dataset.dtype == numpy.int32: data_type = Int(4)
         elif dataset.dtype == numpy.int64: data_type = Int(8)
         elif dataset.dtype == numpy.uint32: data_type = UInt(4)
         elif dataset.dtype == numpy.uint64: data_type = UInt(8)
