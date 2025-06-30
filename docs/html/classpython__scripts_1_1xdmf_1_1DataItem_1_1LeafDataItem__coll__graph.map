@@ -1,0 +1,9 @@
+<map id="LeafDataItem" name="LeafDataItem">
+<area shape="rect" id="Node000001" title=" " alt="" coords="13,232,116,297"/>
+<area shape="rect" id="Node000002" href="$classpython__scripts_1_1xdmf_1_1DataItem_1_1DataItem.html" title=" " alt="" coords="14,119,115,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,198,67,232,62,232,62,198"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,5,47,71"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="44,83,56,118,51,119,39,84"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="71,5,139,71"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="91,84,79,119,74,118,86,83"/>
+</map>

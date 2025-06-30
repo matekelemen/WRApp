@@ -1,0 +1,7 @@
+<map id="HDF5SnapshotInput" name="HDF5SnapshotInput">
+<area shape="rect" id="Node000001" title="Input class for reading most data from an HDF5 snapshot to a model part." alt="" coords="5,232,148,297"/>
+<area shape="rect" id="Node000002" href="$classHDF5SnapshotIO.html" title="Base class with common functionality to writing/loading snapshots to/from disk." alt="" coords="15,119,139,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,198,79,232,74,232,74,198"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="25,5,128,71"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,84,79,119,74,119,74,84"/>
+</map>
