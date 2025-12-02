@@ -13,7 +13,14 @@ file(GLOB application_core_sources
      "${CMAKE_CURRENT_SOURCE_DIR}/${application_name}_variables.cpp"
      "${CMAKE_CURRENT_SOURCE_DIR}/packages/wrapp/*/src/*.cpp")
 
-add_library(${application_core_name} SHARED ${application_core_sources})
+if (${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE application_test_sources
+         packages/*/test/*.cpp)
+endif()
+
+find_package(HDF5 REQUIRED COMPONENTS C)
+include_directories(${HDF5_INCLUDE_DIRS})
+add_library(${application_core_name} SHARED ${application_core_sources} ${application_test_sources})
 target_link_libraries(${application_core_name} PUBLIC KratosCore KratosHDF5Core)
 target_include_directories(${application_core_name} PUBLIC
                            "${KRATOS_SOURCE_DIR}/kratos"
