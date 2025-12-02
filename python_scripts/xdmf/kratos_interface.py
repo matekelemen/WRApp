@@ -134,10 +134,10 @@ def __ParseCellType(cell_name: str, nodes_per_element: int) -> Topology.Type:
 
         raise RuntimeError(f"failed to parse cell type '{cell_name}'")
 
-    dimensions = int(regex_match.group(2))
-    nodes = int(regex_match.group(3))
-    cell_id = (dimensions, nodes)
-    topology_candidates: "list[Topology.Type]" = __CELL_MAP.get(cell_id, [])
+    dimensions: int = int(regex_match.group(2))
+    nodes: int = int(regex_match.group(3))
+    cell_id: tuple[int, int] = (dimensions, nodes)
+    topology_candidates: list[Topology.Type] = __CELL_MAP.get(cell_id, [])
 
     if not topology_candidates:
         raise RuntimeError(f"unrecognized geometry: {cell_name}")
@@ -177,7 +177,7 @@ def __ParseCellType(cell_name: str, nodes_per_element: int) -> Topology.Type:
                 topology_type = next((t for t in topology_candidates if "line" in t.name.lower()), None)
                 if topology_type is not None:
                     return topology_type
-            elif "triangle" in geometry_name_lower:
+            elif "triangle" in geometry_name_lower or "shell" in geometry_name_lower or "surface" in geometry_name_lower:
                 topology_type = next((t for t in topology_candidates if "triangle" in t.name.lower()), None)
                 if topology_type is not None:
                     return topology_type
@@ -199,9 +199,13 @@ def __ParseCellType(cell_name: str, nodes_per_element: int) -> Topology.Type:
                 topology_type = next((t for t in topology_candidates if "quadrilateral" in t.name.lower()), None)
                 if topology_type is not None:
                     return topology_type
+            elif "shell" in geometry_name_lower or "surface" in geometry_name_lower:
+                topology_type = next((t for t in topology_candidates if "quadrilateral" in t.name.lower()), None)
+                if topology_type is not None:
+                    return topology_type
             elif "condition" in geometry_name_lower: # <== a condition always refers to an object with 1 dimension less
                 return topology_candidates[0]
-            elif "element" in geometry_name_lower: # <== elements always refer to an object with the same dimensionality
+            elif "element" in geometry_name_lower: # <== solid elements always refer to an object with the same dimensionality
                 return topology_candidates[1]
 
         # Case (3, 6)
