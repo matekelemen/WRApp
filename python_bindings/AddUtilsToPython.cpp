@@ -21,6 +21,7 @@
 #include "wrapp/utils/inc/Hdf5IdToIndexOperation.hpp"
 #include "wrapp/utils/inc/Hdf5LinSpaceOperation.hpp"
 #include "wrapp/utils/inc/Hdf5IndexConnectivitiesOperation.hpp"
+#include "wrapp/utils/inc/AttachDebugger.hpp"
 
 // --- STL Includes ---
 #include <type_traits>
@@ -156,6 +157,11 @@ void AddUtilsToPython(pybind11::module& rModule)
                     },
               pybind11::arg("data_value_container"),
               "Construct a list of variables' names in a DataValueContainer.");
+
+    utils.def("AttachDebugger",
+              &Kratos::WRApp::AttachDebugger,
+              "Attach a debugger to the current process.")
+        ;
 
     pybind11::class_<FlagArray>(utils, "FlagArray")
         .def(pybind11::init<>())
