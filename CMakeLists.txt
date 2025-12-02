@@ -20,13 +20,19 @@ endif()
 
 find_package(HDF5 REQUIRED COMPONENTS C)
 include_directories(${HDF5_INCLUDE_DIRS})
-add_library(${application_core_name} SHARED ${application_core_sources} ${application_test_sources})
-target_link_libraries(${application_core_name} PUBLIC KratosCore KratosHDF5Core)
+add_library(${application_core_name} SHARED
+            ${application_core_sources}
+            ${application_test_sources})
+target_link_libraries(${application_core_name} PUBLIC
+                      KratosCore
+                      KratosHDF5Core
+                      ${HDF5_LIBS})
 target_include_directories(${application_core_name} PUBLIC
                            "${KRATOS_SOURCE_DIR}/kratos"
                            "${CMAKE_CURRENT_SOURCE_DIR}/include"
                            "${CMAKE_CURRENT_SOURCE_DIR}/packages"
-                           "${KRATOS_SOURCE_DIR}/applications/HDF5Application")
+                           "${KRATOS_SOURCE_DIR}/applications/HDF5Application"
+                           ${HDF5_INCLUDE_DIRS})
 set_target_properties(${application_core_name} PROPERTIES COMPILE_DEFINITIONS "${PROJECT_NAME}_APPLICATION=EXPORT,API")
 
 # Python bindings
