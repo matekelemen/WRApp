@@ -31,6 +31,11 @@ class Data(abc.ABC):
         self.__data_type = data_type
         self.__shape = [v for v in shape]
 
+        # Handle special cases with vectors.
+        if len(self.__shape) == 2:
+            if self.__shape[-1] not in (1, 2, 3, 6, 9):
+                self.__shape = [self.__shape[0], 1, self.__shape[-1]]
+
 
     def GetAttributes(self) -> "list[tuple[str,str]]":
         output = self.__data_type.GetAttributes()

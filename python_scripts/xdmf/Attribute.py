@@ -39,7 +39,12 @@ class Attribute(Element):
         if len(shape) == 1 or (len(shape) == 2 and shape[1] == 1):
             self.attrib["AttributeType"] = "Scalar"
         elif len(shape) == 2:
-            self.attrib["AttributeType"] = "Vector"
+            if shape[-1] == 6:
+                self.attrib["AttributeType"] = "Tensor6"
+            elif shape[-1] == 9:
+                self.attrib["AttributeType"] = "Tensor"
+            else:
+                self.attrib["AttributeType"] = "Vector"
         elif len(shape) == 3:
             self.attrib["AttributeType"] = "Matrix"
         else:
