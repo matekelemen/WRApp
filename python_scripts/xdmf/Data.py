@@ -8,12 +8,7 @@ __all__ = [
 
 # --- External Imports ---
 import numpy
-try:
-    import h5py
-except ModuleNotFoundError:
-    class h5py:
-        class Group: pass
-        class Dataset: pass
+import h5py
 
 # --- WRApp Imports ---
 from KratosMultiphysics.WRApplication.xdmf.DataType import DataType, Int, UInt, Float
@@ -27,7 +22,9 @@ from typing import Collection, Union, Optional
 
 class Data(abc.ABC):
 
-    def __init__(self, data_type: DataType, shape: "Collection[int]") -> None:
+    def __init__(self,
+                 data_type: DataType,
+                 shape: Collection[int]) -> None:
         self.__data_type = data_type
         self.__shape = [v for v in shape]
 
@@ -37,13 +34,13 @@ class Data(abc.ABC):
                 self.__shape = [self.__shape[0], 1, self.__shape[-1]]
 
 
-    def GetAttributes(self) -> "list[tuple[str,str]]":
+    def GetAttributes(self) -> list[tuple[str,str]]:
         output = self.__data_type.GetAttributes()
         output.append(("Dimensions", " ".join(str(component) for component in self.__shape)))
         return output
 
 
-    def GetShape(self) -> "list[int]":
+    def GetShape(self) -> list[int]:
         return self.__shape.copy()
 
 
@@ -63,7 +60,7 @@ class XmlData(Data):
         self.__values = values
 
 
-    def GetAttributes(self) -> "list[tuple[str,str]]":
+    def GetAttributes(self) -> list[tuple[str,str]]:
         return super().GetAttributes() + [("Format", "XML")]
 
 
@@ -84,7 +81,7 @@ class HDF5Data(Data):
         self.__prefix = prefix
 
 
-    def GetAttributes(self) -> "list[tuple[str,str]]":
+    def GetAttributes(self) -> list[tuple[str,str]]:
         return super().GetAttributes() + [("Format", "HDF")]
 
 
@@ -96,15 +93,7 @@ class HDF5Data(Data):
     def FromDataset(cls, dataset: h5py.Dataset) -> "HDF5Data":
         file_path = pathlib.Path(dataset.file.filename)
         prefix = str(dataset.name)
-        data_type: Optional[DataType] = {
-            numpy.int8  : int(1),
-            numpy.int32 : Int(4),
-            numpy.int64 : Int(8),
-            numpy.uint32 : UInt(4),
-            numpy.uint64 : UInt(8),
-            numpy.float32 : Float(4),
-            numpy.float64 : Float(8)
-        }.get(dataset.dtype, None)
+        data_type: Optional[DataType] = None
         if dataset.dtype == numpy.int8: data_type = Int(1)
         elif dataset.dtype == numpy.int32: data_type = Int(4)
         elif dataset.dtype == numpy.int64: data_type = Int(8)
@@ -114,6 +103,14 @@ class HDF5Data(Data):
         elif dataset.dtype == numpy.float64: data_type = Float(8)
         else: raise TypeError(f"{file_path}:{prefix} unsupported data type {dataset.dtype}")
         return HDF5Data(data_type,
-                        dataset.shape,
+                        cls.__ExtractShape(dataset),
                         file_path,
                         prefix)
+
+    @staticmethod
+    def __ExtractShape(dataset: h5py.Dataset) -> list[int]:
+        print(dataset.name)
+        if "__data_shape" in dataset.attrs:
+            return [dataset.shape[0]] + list(component for component in dataset.attrs["__data_shape"])
+        else:
+            return dataset.shape
