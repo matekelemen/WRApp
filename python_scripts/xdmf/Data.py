@@ -109,7 +109,6 @@ class HDF5Data(Data):
 
     @staticmethod
     def __ExtractShape(dataset: h5py.Dataset) -> list[int]:
-        print(dataset.name)
         if "__data_shape" in dataset.attrs:
             return [dataset.shape[0]] + list(component for component in dataset.attrs["__data_shape"])
         else:
