@@ -97,15 +97,17 @@ class HDF5Data(Data):
         if dataset.dtype == numpy.int8: data_type = Int(1)
         elif dataset.dtype == numpy.int32: data_type = Int(4)
         elif dataset.dtype == numpy.int64: data_type = Int(8)
+        elif dataset.dtype == numpy.uint8: data_type = UInt(1)
         elif dataset.dtype == numpy.uint32: data_type = UInt(4)
         elif dataset.dtype == numpy.uint64: data_type = UInt(8)
         elif dataset.dtype == numpy.float32: data_type = Float(4)
         elif dataset.dtype == numpy.float64: data_type = Float(8)
-        else: raise TypeError(f"{file_path}:{prefix} unsupported data type {dataset.dtype}")
-        return HDF5Data(data_type,
-                        cls.__ExtractShape(dataset),
-                        file_path,
-                        prefix)
+        else: raise TypeError(f"{file_path}:{prefix} unsupported data type '{dataset.dtype}'")
+        return HDF5Data(
+            data_type,
+            cls.__ExtractShape(dataset),
+            file_path,
+            prefix)
 
     @staticmethod
     def __ExtractShape(dataset: h5py.Dataset) -> list[int]:
