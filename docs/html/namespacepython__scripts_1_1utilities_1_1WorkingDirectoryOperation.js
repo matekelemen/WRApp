@@ -1,0 +1,4 @@
+var namespacepython__scripts_1_1utilities_1_1WorkingDirectoryOperation =
+[
+    [ "WorkingDirectoryOperation", "classpython__scripts_1_1utilities_1_1WorkingDirectoryOperation_1_1WorkingDirectoryOperation.html", "classpython__scripts_1_1utilities_1_1WorkingDirectoryOperation_1_1WorkingDirectoryOperation" ]
+];

@@ -1,0 +1,5 @@
+<map id="ModelPredicate" name="ModelPredicate">
+<area shape="rect" id="Node000001" title="Base class for functors that take a Model and return a bool." alt="" coords="5,5,199,125"/>
+<area shape="rect" id="Node000002" href="$classKratos_1_1WRApp_1_1ModelPredicatePipe.html" title=" " alt="" coords="5,173,199,388"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,139,105,173,99,173,99,139"/>
+</map>

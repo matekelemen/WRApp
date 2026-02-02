@@ -1,0 +1,9 @@
+<map id="CoordinateDataItem" name="CoordinateDataItem">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,232,152,297"/>
+<area shape="rect" id="Node000002" href="$classpython__scripts_1_1xdmf_1_1DataItem_1_1DataItem.html" title=" " alt="" coords="28,119,129,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,198,81,232,76,232,76,198"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="19,5,61,71"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="58,83,70,118,65,119,53,84"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="85,5,153,71"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="105,84,93,119,88,118,100,83"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="WRAppMeta" name="WRAppMeta">
+<area shape="rect" id="Node000001" title="Metaclass replacing that of the C++ WRAppClass to provide derived classes access to abc...." alt="" coords="13,119,107,184"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,48,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="34,83,45,118,40,119,29,85"/>
+<area shape="poly" id="edge3_Node000001_Node000002" title=" " alt="" coords="51,83,61,118,56,119,46,84"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="73,5,114,71"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="83,84,72,119,67,118,77,83"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="138,5,249,71"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="147,81,100,121,96,116,143,77"/>
+</map>

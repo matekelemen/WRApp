@@ -1,0 +1,7 @@
+<map id="CoSimCoupling" name="CoSimCoupling">
+<area shape="rect" id="Node000001" title="Wrapper for CoSimulationApplication coupling procedures." alt="" coords="92,119,205,184"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,148,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,81,130,117,126,120,102,83"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="173,5,269,71"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,83,171,120,167,117,191,81"/>
+</map>

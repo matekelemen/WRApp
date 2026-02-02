@@ -1,0 +1,7 @@
+<map id="DataItem" name="DataItem">
+<area shape="rect" id="Node000001" title=" " alt="" coords="14,119,115,184"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,47,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="44,83,56,118,51,119,39,84"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="71,5,139,71"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="91,84,79,119,74,118,86,83"/>
+</map>

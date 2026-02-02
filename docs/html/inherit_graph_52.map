@@ -1,0 +1,7 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$structKratos_1_1Pipes_1_1Traits.html" title=" " alt="" coords="5,31,188,56"/>
+<area shape="rect" id="Node000001" href="$classKratos_1_1Pipes_1_1Add.html" title="Add a constant value to the input." alt="" coords="247,5,369,31"/>
+<area shape="poly" id="edge117_Node000000_Node000001" title=" " alt="" coords="202,28,247,23,247,28,202,33"/>
+<area shape="rect" id="Node000002" href="$classKratos_1_1Pipes_1_1Modulo.html" title="Compute the mod of the input." alt="" coords="236,55,380,80"/>
+<area shape="poly" id="edge118_Node000000_Node000002" title=" " alt="" coords="202,53,236,57,235,62,201,58"/>
+</map>

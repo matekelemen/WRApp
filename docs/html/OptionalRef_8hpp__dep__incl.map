@@ -1,0 +1,9 @@
+<map id="OptionalRef.hpp" name="OptionalRef.hpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="111,5,237,31"/>
+<area shape="rect" id="Node000002" href="$EntityProxy_8hpp.html" title=" " alt="" coords="113,79,235,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,44,177,79,171,79,171,44"/>
+<area shape="rect" id="Node000003" href="$ContainerProxy_8hpp.html" title=" " alt="" coords="5,152,153,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="149,114,96,154,93,150,146,110"/>
+<area shape="rect" id="Node000004" href="$DynamicEntityProxy_8hpp.html" title=" " alt="" coords="178,152,359,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="202,110,255,150,252,154,199,114"/>
+</map>

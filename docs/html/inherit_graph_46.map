@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$structKratos_1_1Pipes_1_1Traits.html" title=" " alt="" coords="5,69,192,109"/>
+<area shape="rect" id="Node000001" href="$classKratos_1_1Pipes_1_1VariableFromProcessInfo.html" title=" " alt="" coords="240,5,423,45"/>
+<area shape="poly" id="edge107_Node000000_Node000001" title=" " alt="" coords="185,63,257,43,259,48,186,68"/>
+<area shape="rect" id="Node000003" href="$classKratos_1_1Pipes_1_1VariableFromProcessInfo.html" title=" " alt="" coords="240,69,423,109"/>
+<area shape="poly" id="edge109_Node000000_Node000003" title=" " alt="" coords="206,87,240,87,240,92,206,92"/>
+<area shape="rect" id="Node000005" href="$classKratos_1_1Pipes_1_1VariableFromProcessInfo.html" title="Get a variable from ProcessInfo." alt="" coords="240,133,423,173"/>
+<area shape="poly" id="edge111_Node000000_Node000005" title=" " alt="" coords="186,110,259,131,257,136,185,116"/>
+<area shape="rect" id="Node000002" href="$structKratos_1_1Pipes_1_1StepFromProcessInfo.html" title="Get STEP from a ProcessInfo." alt="" coords="473,13,631,38"/>
+<area shape="poly" id="edge108_Node000001_Node000002" title=" " alt="" coords="437,23,473,23,473,28,437,28"/>
+<area shape="rect" id="Node000004" href="$structKratos_1_1Pipes_1_1TimeFromProcessInfo.html" title="Get TIME from a ProcessInfo." alt="" coords="471,77,633,102"/>
+<area shape="poly" id="edge110_Node000003_Node000004" title=" " alt="" coords="437,87,470,87,470,92,437,92"/>
+</map>
