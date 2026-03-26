@@ -84,8 +84,8 @@ with __SuppressStream(1):
     from .utilities import *
     from .TestCase import *
     from .MPIUtils import *
-    from .checkpoint import *
-    from .coupling import *
+    #from .checkpoint import *  # <== @todo replace expressions with tensor adaptors
+    #from .coupling import *    # <== @todo replace expressions with tensor adaptors
     from .async_analysis import *
     from .LaunchAnalysis import *
 

@@ -240,10 +240,11 @@ else:
 
 
         def Execute(self) -> None:
-            Generate(pathlib.Path(self.__parameters["journal_path"].GetString()),
-                     output_pattern = self.__output_pattern,
-                     batch_size = self.__batch_size,
-                     verbose = self.__parameters["verbose"].GetBool())
+            Generate(
+                pathlib.Path(self.__parameters["journal_path"].GetString()),
+                output_pattern = self.__output_pattern,
+                batch_size = self.__batch_size,
+                verbose = self.__parameters["verbose"].GetBool())
 
 
         @classmethod

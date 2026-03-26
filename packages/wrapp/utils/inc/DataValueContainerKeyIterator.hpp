@@ -54,11 +54,8 @@ public:
 
     DataValueContainerKeyIterator(const DataValueContainerKeyIterator& rOther) noexcept = default;
 
-    reference operator*()
+    value_type operator*()
     {return mWrapped->first->Name();}
-
-    pointer operator->()
-    {return &mWrapped->first->Name();}
 
     DataValueContainerKeyIterator& operator++()
     {++mWrapped; return *this;}

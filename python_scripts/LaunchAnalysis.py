@@ -6,12 +6,14 @@ __all__ = [
 
 # --- Core Imports ---
 import KratosMultiphysics
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # --- WRApp Imports ---
 import KratosMultiphysics.WRApplication as WRApp
 
 # --- STD Imports ---
 import pathlib
+import importlib
 
 
 class Launcher:
@@ -36,14 +38,42 @@ class Launcher:
 
     def Launch(self) -> None:
         self.Preprocess()
-        solver: WRApp.AsyncSolver = WRApp.RegisteredClassFactory(
-            self.__parameters["solver"]["type"].GetString(),
-            self.__model,
-            self.__parameters["solver"]["parameters"]
-        )
-        with solver.RunSolutionLoop() as solution_loop:
-            solution_loop()
-        self.Postprocess()
+        solver_type_name: str = self.__parameters["solver"]["type"].GetString()
+        if WRApp.IsRegisteredPath(solver_type_name):
+            solver: WRApp.AsyncSolver = WRApp.RegisteredClassFactory(
+                solver_type_name,
+                self.__model,
+                self.__parameters["solver"]["parameters"])
+            with solver.RunSolutionLoop() as solution_loop:
+                solution_loop()
+        else:
+            analysis: AnalysisStage
+            if KratosMultiphysics.Registry.HasItem(f"{solver_type_name}.Prototype"):
+                analysis: AnalysisStage = KratosMultiphysics.Registry[f"{solver_type_name}.Prototype"].Create(
+                    self.__model,
+                    self.__parameters["solver"]["parameters"])
+            elif KratosMultiphysics.Registry.HasItem(f"{solver_type_name}.ModuleName"):
+                class_name: str = solver_type_name.split(".")[-1]
+                module_name: str = KratosMultiphysics.Registry[f"{solver_type_name}.ModuleName"]
+                module = importlib.import_module(module_name)
+                if hasattr(module, class_name):
+                    prototype = getattr(module, class_name)
+                    analysis = prototype(
+                        self.__model,
+                        self.__parameters["solver"]["parameters"])
+                else:
+                    raise NameError(f"cannot find analysis '{class_name}' in module '{module_name}'")
+            else:
+                class_path: list[str] = solver_type_name.split(".")
+                module = importlib.import_module(".".join(class_path[:-1]))
+                if hasattr(module, class_path[-1]):
+                    prototype = getattr(module, class_path[-1])
+                    analysis = prototype(
+                        self.__model,
+                        self.__parameters["solver"]["parameters"])
+                else:
+                    raise NameError(f"cannot find analysis '{class_path[-1]}' in module '{'.'.join(class_path[:-1])}'")
+            analysis.Run()
 
 
     def Postprocess(self) -> None:
@@ -92,7 +122,19 @@ class LaunchAnalysis(WRApp.WRAppClass, KratosMultiphysics.Operation):
         else:
             raise FileNotFoundError(f"Input JSON not found: {input_path}")
 
-        self.__launcher = Launcher(model, project_parameters)
+        if project_parameters.Has("analysis_stage"):
+            analysis_stage_name: str = project_parameters["analysis_stage"].GetString()
+        else:
+            raise ValueError(f"Input configuration '{input_path}' does not define 'analysis_stage'.")
+        launcher_parameters: KratosMultiphysics.Parameters = KratosMultiphysics.Parameters(
+            R"""{
+                "solver" : {
+                    "type" : ""
+                }
+            }""")
+        launcher_parameters["solver"]["type"].SetString(analysis_stage_name)
+        launcher_parameters["solver"].AddValue("parameters", project_parameters)
+        self.__launcher: Launcher = Launcher(model, launcher_parameters)
 
 
     def Execute(self) -> None:

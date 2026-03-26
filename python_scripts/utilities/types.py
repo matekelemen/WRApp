@@ -31,8 +31,9 @@ class Typing:
         KratosMultiphysics.DoubleQuaternionVariable
     ]
 
-    ContainerExpression = typing.Union[
-        KratosMultiphysics.Expression.NodalExpression,
-        KratosMultiphysics.Expression.ElementExpression,
-        KratosMultiphysics.Expression.ConditionExpression
-    ]
+    # @todo replace expressions with tensor adaptors
+    #ContainerExpression = typing.Union[
+    #    KratosMultiphysics.Expression.NodalExpression,
+    #    KratosMultiphysics.Expression.ElementExpression,
+    #    KratosMultiphysics.Expression.ConditionExpression
+    #]

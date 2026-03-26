@@ -32,6 +32,10 @@ class DataItem(abc.ABC, Element):
         pass
 
 
+    def __str__(self) -> str:
+        return f"{type(self).__name__}\n\tshape {self.GetShape()}\n\tattributes {self.attrib}\n\ttext {self.text}"
+
+
 
 class LeafDataItem(DataItem):
 
@@ -131,14 +135,23 @@ def MakeCoordinateSlice(index_set: DataItem,
 
     if len(index_shape) == len(reference_shape):
         if len(component_indices):
-            raise RuntimeError(f"index and reference sets have matching ranks, but the list of selected components () is not empty")
+            if len(index_shape) == 1:
+                return CoordinateDataItem(index_set, reference_set)
+            else:
+                message: str = "Failed to slice data item. "
+                message: str = f"Index {index_shape} and reference sets {reference_shape} have matching ranks, but the list of selected components ("
+                message += f"shape [{len(component_indices)}]"
+                message += ") is not empty."
+                message += f"Reference dataset: {reference_set}\nIndex dataset: {index_set}"
+                raise RuntimeError(message)
         return CoordinateDataItem(index_set, reference_set, rank = 2)
     elif len(reference_shape) - len(index_shape) == 1:
         output: DataItem
         if len(component_indices) == 1:
-            component_set = __FunctionDataItem("JOIN($0, 0*$0)",
-                                               index_shape + [2],
-                                               reference_set.attrib.items())
+            component_set = __FunctionDataItem(
+                "JOIN($0, 0*$0)",
+                index_shape + [2],
+                reference_set.attrib.items())
             component_set.append(index_set)
             output = CoordinateDataItem(component_set, reference_set, rank = 2)
         else:
@@ -161,5 +174,8 @@ def MakeCoordinateSlice(index_set: DataItem,
 
         return output
     else:
-        raise RuntimeError(f"multidimensional slices are not supported")
+        return None
+        message: str = "Failed to slice data item, because multidimensional slices are not supported.\n"
+        message += f"Reference dataset: {reference_set}\nIndex dataset: {index_set}"
+        raise RuntimeError(message)
 

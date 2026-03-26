@@ -1,6 +1,6 @@
 """@author Máté Kelemen"""
 
-from .StringMaps import *
+#from .StringMaps import * # <== replace expressions with tensor adaptors
 from .types import *
 from .Debug import *
 from .RegistryExtensionOperation import *
